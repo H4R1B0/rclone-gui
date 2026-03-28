@@ -1,8 +1,11 @@
 import { create } from 'zustand';
 
+export type PanelMode = 'local' | 'cloud';
+
 export interface PanelState {
-  remote: string; // e.g. "gdrive:" or "" for home selector
-  path: string;
+  mode: PanelMode;
+  remote: string; // "gdrive:" for cloud, "/" for local
+  path: string;   // relative path within remote
   files: RcloneFile[];
   loading: boolean;
   error: string | null;
@@ -32,7 +35,20 @@ interface DualPanelStore {
   setRemotesLoading: (loading: boolean) => void;
 }
 
-const defaultPanel: PanelState = {
+const localPanel: PanelState = {
+  mode: 'local',
+  remote: '/',
+  path: '',
+  files: [],
+  loading: false,
+  error: null,
+  selectedFiles: new Set(),
+  sortBy: 'name',
+  sortAsc: true,
+};
+
+const cloudPanel: PanelState = {
+  mode: 'cloud',
   remote: '',
   path: '',
   files: [],
@@ -44,8 +60,8 @@ const defaultPanel: PanelState = {
 };
 
 export const usePanelStore = create<DualPanelStore>((set) => ({
-  left: { ...defaultPanel },
-  right: { ...defaultPanel },
+  left: { ...localPanel },
+  right: { ...cloudPanel },
   activePanel: 'left',
   remotes: [],
   remotesLoading: false,
@@ -53,7 +69,17 @@ export const usePanelStore = create<DualPanelStore>((set) => ({
   setActivePanel: (side) => set({ activePanel: side }),
 
   setRemote: (side, remote) =>
-    set((s) => ({ [side]: { ...s[side], remote, path: '', files: [], selectedFiles: new Set(), error: null } })),
+    set((s) => ({
+      [side]: {
+        ...s[side],
+        mode: remote === '/' ? 'local' : 'cloud',
+        remote,
+        path: '',
+        files: [],
+        selectedFiles: new Set(),
+        error: null,
+      },
+    })),
 
   setPath: (side, path) =>
     set((s) => ({ [side]: { ...s[side], path, selectedFiles: new Set() } })),

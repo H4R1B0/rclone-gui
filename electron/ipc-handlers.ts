@@ -1,8 +1,14 @@
 import { IpcMain } from 'electron';
+import { app } from 'electron';
 import { RcloneDaemon } from './rclone/daemon';
 
 export function registerIpcHandlers(ipcMain: IpcMain, daemon: RcloneDaemon) {
   const api = daemon.api;
+
+  // --- system ---
+  ipcMain.handle('system:homeDir', () => {
+    return app.getPath('home');
+  });
 
   // --- rclone binary info ---
   ipcMain.handle('rclone:version', () => {

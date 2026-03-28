@@ -1,6 +1,9 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('rcloneAPI', {
+  // system
+  getHomeDir: () => ipcRenderer.invoke('system:homeDir'),
+
   // rclone binary
   getRcloneVersion: () => ipcRenderer.invoke('rclone:version'),
 

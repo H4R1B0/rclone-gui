@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { usePanelStore } from '../../stores/panelStore';
 import { usePanelFiles } from '../../hooks/useRclone';
 import { RemoteSelector } from '../account/RemoteSelector';
-import { Breadcrumb } from '../file-browser/Breadcrumb';
+import { AddressBar } from '../file-browser/AddressBar';
 import { FileList } from '../file-browser/FileList';
 import { Loader2 } from 'lucide-react';
 
@@ -19,26 +19,24 @@ export function Panel({ side }: PanelProps) {
 
   const isActive = activePanel === side;
 
+  // Load files when remote changes (or on mount for local panel)
   useEffect(() => {
     if (panel.remote) {
       loadFiles(panel.remote, panel.path);
     }
   }, [panel.remote]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleSelectRemote = (remote: string) => {
-    setRemote(side, remote);
-  };
-
-  if (!panel.remote) {
+  // For cloud panel: show remote selector if no remote selected
+  if (panel.mode === 'cloud' && !panel.remote) {
     return (
       <div
         className={`h-full flex flex-col bg-surface ${isActive ? 'ring-1 ring-accent/50' : ''}`}
         onClick={() => setActivePanel(side)}
       >
         <div className="p-3 bg-surface-raised border-b border-border">
-          <span className="text-xs text-text-muted">리모트 선택</span>
+          <span className="text-xs text-text-muted">클라우드 선택</span>
         </div>
-        <RemoteSelector onSelect={handleSelectRemote} />
+        <RemoteSelector onSelect={(remote) => setRemote(side, remote)} />
       </div>
     );
   }
@@ -48,7 +46,7 @@ export function Panel({ side }: PanelProps) {
       className={`h-full flex flex-col bg-surface ${isActive ? 'ring-1 ring-accent/50' : ''}`}
       onClick={() => setActivePanel(side)}
     >
-      <Breadcrumb side={side} />
+      <AddressBar side={side} />
       {panel.loading ? (
         <div className="flex-1 flex items-center justify-center">
           <Loader2 className="animate-spin text-accent" size={24} />

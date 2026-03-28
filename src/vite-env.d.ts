@@ -1,6 +1,9 @@
 /// <reference types="vite/client" />
 
 interface RcloneAPI {
+  // system
+  getHomeDir: () => Promise<string>;
+
   // rclone binary
   getRcloneVersion: () => Promise<{ version: string; path: string; source: 'system' | 'bundled' }>;
 
