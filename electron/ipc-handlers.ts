@@ -105,7 +105,23 @@ export function registerIpcHandlers(ipcMain: IpcMain, daemon: RcloneDaemon) {
     return api.call('job/stop', { jobid });
   });
 
+  ipcMain.handle('rclone:getJobStatus', async (_e, jobid: number) => {
+    return api.call('job/status', { jobid });
+  });
+
   ipcMain.handle('rclone:setBwLimit', async (_e, rate: string) => {
+    return api.call('core/bwlimit', { rate });
+  });
+
+  ipcMain.handle('rclone:getTransferred', async () => {
+    return api.call('core/transferred');
+  });
+
+  ipcMain.handle('rclone:resetStats', async () => {
+    return api.call('core/stats-reset');
+  });
+
+  ipcMain.handle('rclone:speedLimit', async (_e, rate: string) => {
     return api.call('core/bwlimit', { rate });
   });
 

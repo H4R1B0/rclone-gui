@@ -36,7 +36,10 @@ contextBridge.exposeInMainWorld('rcloneAPI', {
   getStats: () => ipcRenderer.invoke('rclone:getStats'),
   getJobList: () => ipcRenderer.invoke('rclone:getJobList'),
   stopJob: (jobid: number) => ipcRenderer.invoke('rclone:stopJob', jobid),
+  getJobStatus: (jobid: number) => ipcRenderer.invoke('rclone:getJobStatus', jobid),
   setBwLimit: (rate: string) => ipcRenderer.invoke('rclone:setBwLimit', rate),
+  getTransferred: () => ipcRenderer.invoke('rclone:getTransferred'),
+  resetStats: () => ipcRenderer.invoke('rclone:resetStats'),
 
   // settings
   applyOptions: (opts: Record<string, unknown>) => ipcRenderer.invoke('rclone:applyOptions', opts),

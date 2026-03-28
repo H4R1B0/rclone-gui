@@ -30,7 +30,10 @@ interface RcloneAPI {
   getStats: () => Promise<RcloneStats>;
   getJobList: () => Promise<{ jobids: number[] }>;
   stopJob: (jobid: number) => Promise<void>;
+  getJobStatus: (jobid: number) => Promise<RcloneJobStatus>;
   setBwLimit: (rate: string) => Promise<{ bytesPerSecond: number; rate: string }>;
+  getTransferred: () => Promise<{ transferred: RcloneCompletedTransfer[] }>;
+  resetStats: () => Promise<void>;
 
   // settings
   applyOptions: (opts: Record<string, unknown>) => Promise<void>;
@@ -90,6 +93,28 @@ interface RcloneTransferring {
   size: number;
   speed: number;
   speedAvg: number;
+}
+
+interface RcloneJobStatus {
+  duration: number;
+  endTime: string;
+  error: string;
+  finished: boolean;
+  group: string;
+  id: number;
+  startTime: string;
+  success: boolean;
+}
+
+interface RcloneCompletedTransfer {
+  name: string;
+  size: number;
+  bytes: number;
+  checked: boolean;
+  started_at: string;
+  completed_at: string;
+  error: string;
+  group: string;
 }
 
 interface Window {
