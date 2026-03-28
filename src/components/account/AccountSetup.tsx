@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
-import { X, Loader2, Trash2 } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { X, Loader2, Trash2, Pencil, Search, ChevronLeft, Save } from 'lucide-react';
 import { usePanelStore } from '../../stores/panelStore';
+import { getProviderMeta } from '../../lib/providerIcons';
 
 interface AccountSetupProps {
   onClose: () => void;
@@ -12,19 +13,23 @@ interface ProviderOption {
   Prefix: string;
 }
 
-const POPULAR_PROVIDERS = [
-  'drive', 'onedrive', 'dropbox', 's3', 'b2', 'box',
-  'mega', 'pcloud', 'sftp', 'ftp', 'webdav', 'nextcloud',
-];
+type Step = 'list' | 'pick-provider' | 'create' | 'edit';
 
 export function AccountSetup({ onClose }: AccountSetupProps) {
   const [providers, setProviders] = useState<ProviderOption[]>([]);
   const [loading, setLoading] = useState(true);
-  const [step, setStep] = useState<'list' | 'create' | 'manage'>('list');
+  const [step, setStep] = useState<Step>('list');
   const [selectedProvider, setSelectedProvider] = useState<ProviderOption | null>(null);
   const [remoteName, setRemoteName] = useState('');
-  const [creating, setCreating] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+
+  // For edit mode
+  const [editingRemote, setEditingRemote] = useState<string | null>(null);
+  const [editConfig, setEditConfig] = useState<Record<string, string>>({});
+  const [editType, setEditType] = useState('');
+
   const remotes = usePanelStore((s) => s.remotes);
 
   useEffect(() => {
@@ -34,21 +39,32 @@ export function AccountSetup({ onClose }: AccountSetupProps) {
     }).catch(() => setLoading(false));
   }, []);
 
+  const filteredProviders = useMemo(() => {
+    if (!search.trim()) return providers;
+    const q = search.toLowerCase();
+    return providers.filter(
+      (p) => p.Name.toLowerCase().includes(q) || p.Description.toLowerCase().includes(q) || p.Prefix.toLowerCase().includes(q),
+    );
+  }, [providers, search]);
+
   const handleCreate = async () => {
     if (!remoteName.trim() || !selectedProvider) return;
-    setCreating(true);
+    setSaving(true);
     setError('');
     try {
       await window.rcloneAPI.createRemote(remoteName.trim(), selectedProvider.Prefix, {});
-      onClose();
+      const newRemotes = await window.rcloneAPI.listRemotes();
+      usePanelStore.getState().setRemotes(newRemotes);
+      goBack();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create remote');
     } finally {
-      setCreating(false);
+      setSaving(false);
     }
   };
 
   const handleDelete = async (name: string) => {
+    if (!confirm(`"${name}" 계정을 삭제하시겠습니까?`)) return;
     try {
       await window.rcloneAPI.deleteRemote(name);
       const newRemotes = await window.rcloneAPI.listRemotes();
@@ -58,17 +74,71 @@ export function AccountSetup({ onClose }: AccountSetupProps) {
     }
   };
 
-  const popularProviders = providers.filter((p) => POPULAR_PROVIDERS.includes(p.Prefix));
-  const otherProviders = providers.filter((p) => !POPULAR_PROVIDERS.includes(p.Prefix));
+  const startEdit = async (name: string) => {
+    setError('');
+    try {
+      const config = await window.rcloneAPI.getRemoteConfig(name) as Record<string, string>;
+      setEditingRemote(name);
+      setEditType(config.type ?? '');
+      // Remove 'type' from editable fields
+      const { type: _type, ...rest } = config;
+      setEditConfig(rest);
+      setStep('edit');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load config');
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingRemote) return;
+    setSaving(true);
+    setError('');
+    try {
+      // Delete and recreate with updated params
+      await window.rcloneAPI.deleteRemote(editingRemote);
+      await window.rcloneAPI.createRemote(editingRemote, editType, editConfig);
+      const newRemotes = await window.rcloneAPI.listRemotes();
+      usePanelStore.getState().setRemotes(newRemotes);
+      goBack();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save config');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const goBack = () => {
+    setStep('list');
+    setSelectedProvider(null);
+    setRemoteName('');
+    setEditingRemote(null);
+    setEditConfig({});
+    setSearch('');
+    setError('');
+  };
+
+  const title = (() => {
+    switch (step) {
+      case 'list': return '클라우드 계정 관리';
+      case 'pick-provider': return '서비스 선택';
+      case 'create': return `새 계정 — ${selectedProvider?.Name ?? ''}`;
+      case 'edit': return `계정 수정 — ${editingRemote ?? ''}`;
+    }
+  })();
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      <div className="bg-surface-raised border border-border rounded-xl shadow-2xl w-[600px] max-h-[80vh] flex flex-col">
+      <div className="bg-surface-raised border border-border rounded-xl shadow-2xl w-[640px] max-h-[85vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-          <h2 className="text-sm font-semibold text-text">
-            {step === 'list' ? '클라우드 계정 관리' : step === 'create' ? '새 계정 추가' : '계정 관리'}
-          </h2>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border flex-shrink-0">
+          <div className="flex items-center gap-2">
+            {step !== 'list' && (
+              <button onClick={goBack} className="text-text-muted hover:text-text">
+                <ChevronLeft size={18} />
+              </button>
+            )}
+            <h2 className="text-sm font-semibold text-text">{title}</h2>
+          </div>
           <button onClick={onClose} className="text-text-muted hover:text-text">
             <X size={18} />
           </button>
@@ -76,30 +146,31 @@ export function AccountSetup({ onClose }: AccountSetupProps) {
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto p-5">
+          {/* ---- LIST ---- */}
           {step === 'list' && (
             <div className="space-y-4">
-              {/* Existing remotes */}
-              {remotes.length > 0 && (
-                <div>
-                  <h3 className="text-xs text-text-muted mb-2">연결된 계정</h3>
-                  <div className="space-y-1">
-                    {remotes.map((name) => (
-                      <div key={name} className="flex items-center justify-between px-3 py-2 rounded bg-surface-overlay">
-                        <span className="text-sm text-text">{name}</span>
-                        <button
-                          onClick={() => handleDelete(name)}
-                          className="text-text-muted hover:text-danger"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
+              {remotes.length > 0 ? (
+                <div className="space-y-1">
+                  {remotes.map((name) => (
+                    <RemoteRow
+                      key={name}
+                      name={name}
+                      providers={providers}
+                      onEdit={() => startEdit(name)}
+                      onDelete={() => handleDelete(name)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-text-muted text-sm">
+                  등록된 계정이 없습니다
                 </div>
               )}
 
+              {error && <p className="text-xs text-danger">{error}</p>}
+
               <button
-                onClick={() => setStep('create')}
+                onClick={() => setStep('pick-provider')}
                 className="w-full py-2.5 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm transition-colors"
               >
                 + 새 클라우드 추가
@@ -107,54 +178,58 @@ export function AccountSetup({ onClose }: AccountSetupProps) {
             </div>
           )}
 
-          {step === 'create' && !selectedProvider && (
-            <div>
+          {/* ---- PICK PROVIDER ---- */}
+          {step === 'pick-provider' && (
+            <div className="space-y-3">
+              {/* Search */}
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+                <input
+                  autoFocus
+                  className="w-full pl-9 pr-3 py-2 rounded-lg bg-surface-overlay border border-border focus:border-accent text-xs text-text outline-none"
+                  placeholder="서비스 검색..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+
               {loading ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="animate-spin text-accent" size={24} />
                 </div>
+              ) : filteredProviders.length === 0 ? (
+                <div className="text-center py-8 text-text-muted text-sm">
+                  일치하는 서비스가 없습니다
+                </div>
               ) : (
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-xs text-text-muted mb-2">인기 서비스</h3>
-                    <div className="grid grid-cols-3 gap-2">
-                      {popularProviders.map((p) => (
-                        <button
-                          key={p.Prefix}
-                          onClick={() => setSelectedProvider(p)}
-                          className="p-3 rounded-lg bg-surface-overlay hover:bg-border border border-transparent hover:border-accent/30 text-left transition-colors"
-                        >
-                          <div className="text-sm text-text font-medium">{p.Name}</div>
-                          <div className="text-[10px] text-text-muted mt-0.5 truncate">{p.Description}</div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-xs text-text-muted mb-2">기타 서비스</h3>
-                    <div className="grid grid-cols-3 gap-2 max-h-[200px] overflow-y-auto">
-                      {otherProviders.map((p) => (
-                        <button
-                          key={p.Prefix}
-                          onClick={() => setSelectedProvider(p)}
-                          className="p-2 rounded bg-surface-overlay hover:bg-border text-left transition-colors"
-                        >
-                          <div className="text-xs text-text">{p.Name}</div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                <div className="grid grid-cols-2 gap-1.5 max-h-[50vh] overflow-y-auto">
+                  {filteredProviders.map((p) => {
+                    const meta = getProviderMeta(p.Prefix);
+                    const Icon = meta.icon;
+                    return (
+                      <button
+                        key={p.Prefix}
+                        onClick={() => { setSelectedProvider(p); setStep('create'); }}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-surface-overlay hover:bg-border border border-transparent hover:border-accent/30 text-left transition-colors"
+                      >
+                        <Icon size={18} style={{ color: meta.color }} className="flex-shrink-0" />
+                        <div className="min-w-0">
+                          <div className="text-xs text-text font-medium truncate">{p.Name}</div>
+                          <div className="text-[10px] text-text-muted truncate">{p.Description}</div>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
           )}
 
+          {/* ---- CREATE ---- */}
           {step === 'create' && selectedProvider && (
             <div className="space-y-4">
-              <div>
-                <div className="text-sm text-text mb-1">{selectedProvider.Name}</div>
-                <div className="text-xs text-text-muted">{selectedProvider.Description}</div>
-              </div>
+              <ProviderHeader provider={selectedProvider} />
+
               <div>
                 <label className="text-xs text-text-muted block mb-1">리모트 이름</label>
                 <input
@@ -167,42 +242,210 @@ export function AccountSetup({ onClose }: AccountSetupProps) {
                 />
               </div>
               <p className="text-[11px] text-text-muted">
-                기본 설정으로 생성됩니다. 상세 설정은 터미널에서 `rclone config`를 실행하세요.
+                기본 설정으로 생성됩니다. 생성 후 수정 버튼으로 상세 설정을 변경할 수 있습니다.
               </p>
+              {error && <p className="text-xs text-danger">{error}</p>}
+            </div>
+          )}
+
+          {/* ---- EDIT ---- */}
+          {step === 'edit' && editingRemote && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 px-3 py-2 rounded bg-surface-overlay">
+                {(() => {
+                  const meta = getProviderMeta(editType);
+                  const Icon = meta.icon;
+                  return <Icon size={18} style={{ color: meta.color }} />;
+                })()}
+                <div>
+                  <div className="text-xs text-text font-medium">{editingRemote}</div>
+                  <div className="text-[10px] text-text-muted">타입: {editType}</div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {Object.entries(editConfig).map(([key, value]) => (
+                  <div key={key}>
+                    <label className="text-xs text-text-muted block mb-1">{key}</label>
+                    <input
+                      className="w-full px-3 py-1.5 rounded bg-surface-overlay border border-border focus:border-accent text-xs text-text outline-none font-mono"
+                      value={value}
+                      onChange={(e) => setEditConfig((prev) => ({ ...prev, [key]: e.target.value }))}
+                    />
+                  </div>
+                ))}
+
+                {Object.keys(editConfig).length === 0 && (
+                  <div className="text-xs text-text-muted text-center py-4">
+                    설정 항목이 없습니다 (기본값 사용 중)
+                  </div>
+                )}
+
+                {/* Add new key */}
+                <AddConfigField
+                  onAdd={(key, val) => setEditConfig((prev) => ({ ...prev, [key]: val }))}
+                />
+              </div>
+
               {error && <p className="text-xs text-danger">{error}</p>}
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-border">
+        <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-border flex-shrink-0">
           {step === 'create' && (
             <button
-              onClick={() => { setSelectedProvider(null); setStep('list'); setError(''); }}
-              className="px-4 py-2 text-xs text-text-muted hover:text-text"
+              onClick={handleCreate}
+              disabled={saving || !remoteName.trim()}
+              className="flex items-center gap-1.5 px-4 py-2 text-xs rounded bg-accent hover:bg-accent-hover text-white disabled:opacity-50 transition-colors"
             >
-              뒤로
+              {saving ? <Loader2 size={12} className="animate-spin" /> : null}
+              {saving ? '생성 중...' : '생성'}
             </button>
           )}
-          {step === 'create' && selectedProvider && (
+          {step === 'edit' && (
             <button
-              onClick={handleCreate}
-              disabled={creating || !remoteName.trim()}
-              className="px-4 py-2 text-xs rounded bg-accent hover:bg-accent-hover text-white disabled:opacity-50 transition-colors"
+              onClick={handleSaveEdit}
+              disabled={saving}
+              className="flex items-center gap-1.5 px-4 py-2 text-xs rounded bg-accent hover:bg-accent-hover text-white disabled:opacity-50 transition-colors"
             >
-              {creating ? '생성 중...' : '생성'}
+              <Save size={12} />
+              {saving ? '저장 중...' : '저장'}
             </button>
           )}
           {step === 'list' && (
-            <button
-              onClick={onClose}
-              className="px-4 py-2 text-xs text-text-muted hover:text-text"
-            >
+            <button onClick={onClose} className="px-4 py-2 text-xs text-text-muted hover:text-text">
               닫기
             </button>
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+// --- Sub-components ---
+
+function RemoteRow({
+  name, providers, onEdit, onDelete,
+}: {
+  name: string;
+  providers: ProviderOption[];
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const [type, setType] = useState('');
+
+  useEffect(() => {
+    window.rcloneAPI.getRemoteConfig(name).then((cfg) => {
+      setType((cfg as Record<string, string>).type ?? '');
+    }).catch(() => {});
+  }, [name]);
+
+  const meta = getProviderMeta(type);
+  const Icon = meta.icon;
+  const providerName = providers.find((p) => p.Prefix === type)?.Name ?? type;
+
+  return (
+    <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-surface-overlay group">
+      <Icon size={20} style={{ color: meta.color }} className="flex-shrink-0" />
+      <div className="flex-1 min-w-0">
+        <div className="text-sm text-text truncate">{name}</div>
+        <div className="text-[10px] text-text-muted">{providerName}</div>
+      </div>
+      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={onEdit}
+          className="p-1.5 rounded hover:bg-border text-text-muted hover:text-accent transition-colors"
+          title="수정"
+        >
+          <Pencil size={13} />
+        </button>
+        <button
+          onClick={onDelete}
+          className="p-1.5 rounded hover:bg-border text-text-muted hover:text-danger transition-colors"
+          title="삭제"
+        >
+          <Trash2 size={13} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ProviderHeader({ provider }: { provider: ProviderOption }) {
+  const meta = getProviderMeta(provider.Prefix);
+  const Icon = meta.icon;
+  return (
+    <div className="flex items-center gap-3 px-3 py-2 rounded bg-surface-overlay">
+      <Icon size={22} style={{ color: meta.color }} />
+      <div>
+        <div className="text-sm text-text font-medium">{provider.Name}</div>
+        <div className="text-[10px] text-text-muted">{provider.Description}</div>
+      </div>
+    </div>
+  );
+}
+
+function AddConfigField({ onAdd }: { onAdd: (key: string, val: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [key, setKey] = useState('');
+  const [val, setVal] = useState('');
+
+  const submit = () => {
+    if (key.trim()) {
+      onAdd(key.trim(), val);
+      setKey('');
+      setVal('');
+      setOpen(false);
+    }
+  };
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="text-xs text-accent hover:text-accent-hover"
+      >
+        + 설정 항목 추가
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex items-end gap-2">
+      <div className="flex-1">
+        <label className="text-[10px] text-text-muted block mb-0.5">키</label>
+        <input
+          autoFocus
+          className="w-full px-2 py-1 rounded bg-surface-overlay border border-border focus:border-accent text-xs text-text outline-none font-mono"
+          placeholder="token"
+          value={key}
+          onChange={(e) => setKey(e.target.value)}
+        />
+      </div>
+      <div className="flex-1">
+        <label className="text-[10px] text-text-muted block mb-0.5">값</label>
+        <input
+          className="w-full px-2 py-1 rounded bg-surface-overlay border border-border focus:border-accent text-xs text-text outline-none font-mono"
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && submit()}
+        />
+      </div>
+      <button
+        onClick={submit}
+        className="px-2 py-1 text-xs rounded bg-accent text-white hover:bg-accent-hover"
+      >
+        추가
+      </button>
+      <button
+        onClick={() => setOpen(false)}
+        className="px-2 py-1 text-xs text-text-muted hover:text-text"
+      >
+        취소
+      </button>
     </div>
   );
 }

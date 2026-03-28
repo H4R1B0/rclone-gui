@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import { usePanelStore } from '../../stores/panelStore';
-import { HardDrive, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { getProviderMeta } from '../../lib/providerIcons';
 
 interface RemoteSelectorProps {
   onSelect: (remote: string) => void;
@@ -8,6 +10,23 @@ interface RemoteSelectorProps {
 export function RemoteSelector({ onSelect }: RemoteSelectorProps) {
   const remotes = usePanelStore((s) => s.remotes);
   const loading = usePanelStore((s) => s.remotesLoading);
+  const [types, setTypes] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const loadTypes = async () => {
+      const result: Record<string, string> = {};
+      for (const name of remotes) {
+        try {
+          const cfg = await window.rcloneAPI.getRemoteConfig(name) as Record<string, string>;
+          result[name] = cfg.type ?? '';
+        } catch {
+          result[name] = '';
+        }
+      }
+      setTypes(result);
+    };
+    if (remotes.length > 0) loadTypes();
+  }, [remotes]);
 
   if (loading) {
     return (
@@ -28,16 +47,24 @@ export function RemoteSelector({ onSelect }: RemoteSelectorProps) {
   return (
     <div className="flex-1 overflow-y-auto p-3">
       <div className="grid grid-cols-2 gap-2">
-        {remotes.map((name) => (
-          <button
-            key={name}
-            onClick={() => onSelect(`${name}:`)}
-            className="flex items-center gap-3 p-3 rounded-lg bg-surface-overlay hover:bg-border border border-transparent hover:border-accent/30 transition-colors text-left"
-          >
-            <HardDrive size={20} className="text-accent flex-shrink-0" />
-            <span className="text-sm text-text truncate">{name}</span>
-          </button>
-        ))}
+        {remotes.map((name) => {
+          const type = types[name] ?? '';
+          const meta = getProviderMeta(type);
+          const Icon = meta.icon;
+          return (
+            <button
+              key={name}
+              onClick={() => onSelect(`${name}:`)}
+              className="flex items-center gap-3 p-3 rounded-lg bg-surface-overlay hover:bg-border border border-transparent hover:border-accent/30 transition-colors text-left"
+            >
+              <Icon size={22} style={{ color: meta.color }} className="flex-shrink-0" />
+              <div className="min-w-0">
+                <span className="text-sm text-text block truncate">{name}</span>
+                {type && <span className="text-[10px] text-text-muted">{type}</span>}
+              </div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
