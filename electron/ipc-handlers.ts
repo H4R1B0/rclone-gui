@@ -62,11 +62,11 @@ export function registerIpcHandlers(ipcMain: IpcMain, daemon: RcloneDaemon) {
   });
 
   ipcMain.handle('rclone:copyFile', async (_e, srcFs: string, srcRemote: string, dstFs: string, dstRemote: string) => {
-    return api.call('operations/copyfile', { srcFs, srcRemote, dstFs, dstRemote });
+    return api.call('operations/copyfile', { srcFs, srcRemote, dstFs, dstRemote, _async: true });
   });
 
   ipcMain.handle('rclone:moveFile', async (_e, srcFs: string, srcRemote: string, dstFs: string, dstRemote: string) => {
-    return api.call('operations/movefile', { srcFs, srcRemote, dstFs, dstRemote });
+    return api.call('operations/movefile', { srcFs, srcRemote, dstFs, dstRemote, _async: true });
   });
 
   ipcMain.handle('rclone:copyDir', async (_e, srcFs: string, srcRemote: string, dstFs: string, dstRemote: string) => {

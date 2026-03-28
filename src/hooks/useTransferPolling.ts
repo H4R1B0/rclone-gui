@@ -13,23 +13,27 @@ export function useTransferPolling(interval = 1000) {
         const stats = await window.rcloneAPI.getStats();
         setStats(stats);
 
-        // Fetch job list
         try {
           const jobs = await window.rcloneAPI.getJobList();
           setJobIds(jobs.jobids ?? []);
-        } catch {
-          // job/list may not be available
-        }
+        } catch { /* */ }
 
-        // Fetch completed transfers
         try {
           const result = await window.rcloneAPI.getTransferred();
           const items = result.transferred ?? [];
+          const stoppedNames = new Set(
+            useTransferStore.getState().stopped.map((s) => s.name),
+          );
+
           const newItems = items
             .filter((t) => {
               const key = `${t.name}-${t.completed_at}`;
               if (seenRef.current.has(key)) return false;
               seenRef.current.add(key);
+              // Skip "context canceled" errors for items we manually stopped
+              if (t.error && t.error.includes('context canceled') && stoppedNames.has(t.name)) {
+                return false;
+              }
               return true;
             })
             .map((t) => ({
@@ -41,12 +45,8 @@ export function useTransferPolling(interval = 1000) {
               group: t.group ?? '',
             }));
           if (newItems.length > 0) addCompleted(newItems);
-        } catch {
-          // core/transferred may not be available
-        }
-      } catch {
-        // daemon might not be ready
-      }
+        } catch { /* */ }
+      } catch { /* */ }
     };
     poll();
     timerRef.current = setInterval(poll, interval);

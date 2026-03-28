@@ -19,8 +19,8 @@ interface RcloneAPI {
   mkdir: (fs: string, remote: string) => Promise<void>;
   deleteFile: (fs: string, remote: string) => Promise<void>;
   deleteDir: (fs: string, remote: string) => Promise<void>;
-  copyFile: (srcFs: string, srcRemote: string, dstFs: string, dstRemote: string) => Promise<void>;
-  moveFile: (srcFs: string, srcRemote: string, dstFs: string, dstRemote: string) => Promise<void>;
+  copyFile: (srcFs: string, srcRemote: string, dstFs: string, dstRemote: string) => Promise<{ jobid: number }>;
+  moveFile: (srcFs: string, srcRemote: string, dstFs: string, dstRemote: string) => Promise<{ jobid: number }>;
   copyDir: (srcFs: string, srcRemote: string, dstFs: string, dstRemote: string) => Promise<{ jobid: number }>;
   moveDir: (srcFs: string, srcRemote: string, dstFs: string, dstRemote: string) => Promise<{ jobid: number }>;
   renameFile: (fs: string, oldName: string, newName: string) => Promise<void>;

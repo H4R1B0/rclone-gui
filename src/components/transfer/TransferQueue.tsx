@@ -54,21 +54,24 @@ export function TransferQueue() {
 
   const stopSingleJob = useCallback(async (transfer: TransferItem) => {
     addStopped({ name: transfer.name, group: transfer.group, size: transfer.size });
-    // Try to find and stop just this one job by matching group
-    let found = false;
+
+    // rclone group format is typically "job/<jobid>" — extract jobid
+    const jobIdMatch = transfer.group.match(/^job\/(\d+)$/);
+    if (jobIdMatch) {
+      const targetId = parseInt(jobIdMatch[1], 10);
+      try { await window.rcloneAPI.stopJob(targetId); } catch { /* */ }
+      return;
+    }
+
+    // Fallback: match group via job/status
     for (const id of jobIds) {
       try {
         const status = await window.rcloneAPI.getJobStatus(id);
         if (status.group === transfer.group) {
           await window.rcloneAPI.stopJob(id);
-          found = true;
-          break;
+          return;
         }
       } catch { /* */ }
-    }
-    // If no group matched, try matching by checking if there's only 1 job
-    if (!found && jobIds.length === 1) {
-      try { await window.rcloneAPI.stopJob(jobIds[0]); } catch { /* */ }
     }
   }, [jobIds, addStopped]);
 
