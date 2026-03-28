@@ -9,38 +9,41 @@ import type { LucideIcon } from 'lucide-react';
 
 type Tab = 'active' | 'completed' | 'errors';
 
-interface CtxState {
-  x: number;
-  y: number;
-  tab: Tab;
-  index: number;
-}
-
 export function TransferQueue() {
   const {
     transfers, completed, stopped, jobIds, totalSpeed, totalTransfers, doneTransfers,
     paused, setPaused, clearCompleted, clearStopped, addStopped, removeStopped,
   } = useTransferStore();
   const [tab, setTab] = useState<Tab>('active');
-  const [ctx, setCtx] = useState<CtxState | null>(null);
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+  const [ctxPos, setCtxPos] = useState<{ x: number; y: number } | null>(null);
+  const ctxRef = useRef<HTMLDivElement>(null);
 
   const errorList = completed.filter((c) => !c.ok);
   const successList = completed.filter((c) => c.ok);
+  const activeCount = transfers.length + stopped.length;
+
+  // Close context menu on outside click
+  useEffect(() => {
+    if (!ctxPos) return;
+    const handler = (e: MouseEvent) => {
+      if (ctxRef.current && !ctxRef.current.contains(e.target as Node)) {
+        setCtxPos(null);
+      }
+    };
+    // Use timeout so the current mousedown that opened the menu doesn't immediately close it
+    const id = setTimeout(() => document.addEventListener('mousedown', handler), 0);
+    return () => { clearTimeout(id); document.removeEventListener('mousedown', handler); };
+  }, [ctxPos]);
 
   const togglePause = useCallback(async () => {
     try {
-      if (paused) {
-        await window.rcloneAPI.setBwLimit('off');
-        setPaused(false);
-      } else {
-        await window.rcloneAPI.setBwLimit('1');
-        setPaused(true);
-      }
+      if (paused) { await window.rcloneAPI.setBwLimit('off'); setPaused(false); }
+      else { await window.rcloneAPI.setBwLimit('1'); setPaused(true); }
     } catch { /* */ }
   }, [paused, setPaused]);
 
   const stopAllJobs = useCallback(async () => {
-    // Save active transfers as stopped before killing
     for (const t of transfers) {
       addStopped({ name: t.name, group: t.group, size: t.size });
     }
@@ -49,35 +52,35 @@ export function TransferQueue() {
     }
   }, [jobIds, transfers, addStopped]);
 
-  const stopJob = useCallback(async (transfer: TransferItem) => {
+  const stopSingleJob = useCallback(async (transfer: TransferItem) => {
     addStopped({ name: transfer.name, group: transfer.group, size: transfer.size });
+    // Try to find and stop just this one job by matching group
+    let found = false;
     for (const id of jobIds) {
       try {
         const status = await window.rcloneAPI.getJobStatus(id);
-        if (status.group === transfer.group) { await window.rcloneAPI.stopJob(id); return; }
+        if (status.group === transfer.group) {
+          await window.rcloneAPI.stopJob(id);
+          found = true;
+          break;
+        }
       } catch { /* */ }
+    }
+    // If no group matched, try matching by checking if there's only 1 job
+    if (!found && jobIds.length === 1) {
+      try { await window.rcloneAPI.stopJob(jobIds[0]); } catch { /* */ }
     }
   }, [jobIds, addStopped]);
 
   const restartTransfer = useCallback(async (item: StoppedTransfer) => {
-    // group format from rclone: "srcFs/srcRemote" or similar
-    // We re-issue the copy using the group info
-    // rclone group for sync/copy is typically the job group string
-    // We'll use sync/copy with the group as srcFs+dstFs
+    removeStopped(item.group);
     try {
-      removeStopped(item.group);
-      // rclone groups for async operations store the srcFs and dstFs
-      // Try to restart by calling sync/copy with _async
       await window.rcloneAPI.copyDir(
         item.group.split(':')[0] + ':',
-        '',
-        item.group,
-        '',
+        '', item.group, '',
       );
     } catch {
-      // Fallback: if group parsing fails, we can't restart automatically
-      // Just remove from stopped list
-      console.warn('Could not restart transfer, group format unknown:', item.group);
+      console.warn('Could not restart transfer:', item.group);
     }
   }, [removeStopped]);
 
@@ -86,17 +89,41 @@ export function TransferQueue() {
     clearStopped();
   }, [clearCompleted, clearStopped]);
 
-  const handleCtx = useCallback((e: React.MouseEvent, t: Tab, i: number) => {
-    e.preventDefault();
-    setCtx({ x: e.clientX, y: e.clientY, tab: t, index: i });
+  // --- Click & context menu ---
+  const handleRowClick = useCallback((index: number) => {
+    setSelectedIdx(index);
+    setCtxPos(null);
   }, []);
 
-  // Merge stopped into active tab display
-  const activeCount = transfers.length + stopped.length;
+  const handleContextMenu = useCallback((e: React.MouseEvent, index: number) => {
+    e.preventDefault();
+    setSelectedIdx(index);
+    setCtxPos({ x: e.clientX, y: e.clientY });
+  }, []);
+
+  const closeCtx = useCallback(() => setCtxPos(null), []);
+
+  // --- Context menu actions based on current tab + selected index ---
+  const ctxActions = useCallback(() => {
+    if (selectedIdx === null) return null;
+    if (tab === 'active') {
+      if (selectedIdx < transfers.length) {
+        const t = transfers[selectedIdx];
+        return { type: 'running' as const, item: t };
+      }
+      const sIdx = selectedIdx - transfers.length;
+      if (sIdx < stopped.length) {
+        return { type: 'stopped' as const, item: stopped[sIdx] };
+      }
+    }
+    if (tab === 'completed') return { type: 'completed' as const };
+    if (tab === 'errors') return { type: 'errors' as const };
+    return null;
+  }, [tab, selectedIdx, transfers, stopped]);
 
   const TabBtn = ({ id, label, count, icon: Icon }: { id: Tab; label: string; count: number; icon: LucideIcon }) => (
     <button
-      onClick={() => setTab(id)}
+      onClick={() => { setTab(id); setSelectedIdx(null); setCtxPos(null); }}
       className={`flex items-center gap-1 px-2 py-1 text-[11px] rounded transition-colors ${
         tab === id ? 'bg-surface-overlay text-text' : 'text-text-muted hover:text-text'
       }`}
@@ -110,6 +137,8 @@ export function TransferQueue() {
       )}
     </button>
   );
+
+  const actions = ctxPos ? ctxActions() : null;
 
   return (
     <div className="h-full bg-surface-raised flex flex-col">
@@ -143,24 +172,23 @@ export function TransferQueue() {
       )}
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto min-h-0">
-        {/* --- Active tab --- */}
+      <div className="flex-1 overflow-y-auto min-h-0" onClick={() => { setSelectedIdx(null); setCtxPos(null); }}>
+        {/* Active tab */}
         {tab === 'active' && (
           activeCount === 0 ? <Empty text="진행 중인 전송이 없습니다" /> : (
             <>
-              {/* Running transfers */}
               {transfers.map((t, i) => (
-                <div key={`run-${t.name}-${i}`} className="px-3 py-2 border-b border-border/50 group" onContextMenu={(e) => handleCtx(e, 'active', i)}>
+                <div
+                  key={`run-${i}`}
+                  className={`px-3 py-2 border-b border-border/50 cursor-pointer transition-colors ${selectedIdx === i ? 'bg-accent-muted' : 'hover:bg-surface-overlay'}`}
+                  onClick={(e) => { e.stopPropagation(); handleRowClick(i); }}
+                  onContextMenu={(e) => { e.stopPropagation(); handleContextMenu(e, i); }}
+                >
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs text-text truncate flex-1 mr-2">{t.name}</span>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className="text-[11px] text-text-muted">
-                        {formatBytes(t.bytes)} / {formatBytes(t.size)} · {formatSpeed(t.speed)} · {formatEta(t.eta)}
-                      </span>
-                      <button onClick={() => stopJob(t)} className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-text-muted hover:text-danger transition-all" title="중지">
-                        <XCircle size={13} />
-                      </button>
-                    </div>
+                    <span className="text-[11px] text-text-muted flex-shrink-0">
+                      {formatBytes(t.bytes)} / {formatBytes(t.size)} · {formatSpeed(t.speed)} · {formatEta(t.eta)}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="flex-1 h-1.5 bg-surface-overlay rounded-full overflow-hidden">
@@ -170,33 +198,39 @@ export function TransferQueue() {
                   </div>
                 </div>
               ))}
-
-              {/* Stopped transfers */}
-              {stopped.map((s, i) => (
-                <div key={`stop-${s.name}-${i}`} className="px-3 py-2 border-b border-border/50 group" onContextMenu={(e) => handleCtx(e, 'active', transfers.length + i)}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <StopCircle size={13} className="text-text-muted flex-shrink-0" />
-                      <span className="text-xs text-text-muted truncate">{s.name}</span>
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className="text-[11px] text-text-muted">{formatBytes(s.size)} · 중지됨</span>
-                      <button onClick={() => restartTransfer(s)} className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-text-muted hover:text-accent transition-all" title="재시작">
-                        <RotateCcw size={13} />
-                      </button>
+              {stopped.map((s, i) => {
+                const idx = transfers.length + i;
+                return (
+                  <div
+                    key={`stop-${i}`}
+                    className={`px-3 py-2 border-b border-border/50 cursor-pointer transition-colors ${selectedIdx === idx ? 'bg-accent-muted' : 'hover:bg-surface-overlay'}`}
+                    onClick={(e) => { e.stopPropagation(); handleRowClick(idx); }}
+                    onContextMenu={(e) => { e.stopPropagation(); handleContextMenu(e, idx); }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <StopCircle size={13} className="text-text-muted flex-shrink-0" />
+                        <span className="text-xs text-text-muted truncate">{s.name}</span>
+                      </div>
+                      <span className="text-[11px] text-text-muted flex-shrink-0">{formatBytes(s.size)} · 중지됨</span>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </>
           )
         )}
 
-        {/* --- Completed tab --- */}
+        {/* Completed tab */}
         {tab === 'completed' && (
           successList.length === 0 ? <Empty text="완료된 전송이 없습니다" /> : (
             successList.map((c, i) => (
-              <div key={`${c.name}-${i}`} className="flex items-center gap-2 px-3 py-1.5 border-b border-border/50" onContextMenu={(e) => handleCtx(e, 'completed', i)}>
+              <div
+                key={`${c.name}-${i}`}
+                className={`flex items-center gap-2 px-3 py-1.5 border-b border-border/50 cursor-pointer transition-colors ${selectedIdx === i ? 'bg-accent-muted' : 'hover:bg-surface-overlay'}`}
+                onClick={(e) => { e.stopPropagation(); handleRowClick(i); }}
+                onContextMenu={(e) => { e.stopPropagation(); handleContextMenu(e, i); }}
+              >
                 <CheckCircle2 size={13} className="text-success flex-shrink-0" />
                 <span className="text-xs text-text truncate flex-1">{c.name}</span>
                 <span className="text-[11px] text-text-muted flex-shrink-0">{formatBytes(c.size)}</span>
@@ -205,11 +239,16 @@ export function TransferQueue() {
           )
         )}
 
-        {/* --- Errors tab --- */}
+        {/* Errors tab */}
         {tab === 'errors' && (
           errorList.length === 0 ? <Empty text="오류가 없습니다" /> : (
             errorList.map((c, i) => (
-              <div key={`${c.name}-${i}`} className="px-3 py-1.5 border-b border-border/50" onContextMenu={(e) => handleCtx(e, 'errors', i)}>
+              <div
+                key={`${c.name}-${i}`}
+                className={`px-3 py-1.5 border-b border-border/50 cursor-pointer transition-colors ${selectedIdx === i ? 'bg-accent-muted' : 'hover:bg-surface-overlay'}`}
+                onClick={(e) => { e.stopPropagation(); handleRowClick(i); }}
+                onContextMenu={(e) => { e.stopPropagation(); handleContextMenu(e, i); }}
+              >
                 <div className="flex items-center gap-2">
                   <AlertCircle size={13} className="text-danger flex-shrink-0" />
                   <span className="text-xs text-text truncate flex-1">{c.name}</span>
@@ -222,104 +261,45 @@ export function TransferQueue() {
       </div>
 
       {/* Context menu */}
-      {ctx && (
-        <CtxMenu
-          ctx={ctx}
-          transfers={transfers}
-          stopped={stopped}
-          onClose={() => setCtx(null)}
-          onStop={stopJob}
-          onRestart={restartTransfer}
-          onRemoveStopped={(g) => { removeStopped(g); setCtx(null); }}
-          onClearCompleted={() => { clearCompleted(); setCtx(null); }}
-        />
+      {ctxPos && actions && (
+        <div
+          ref={ctxRef}
+          style={{ position: 'fixed', left: ctxPos.x, top: ctxPos.y, zIndex: 100 }}
+          className="bg-surface-raised border border-border rounded-lg shadow-xl py-1 min-w-[160px]"
+        >
+          {actions.type === 'running' && (
+            <CtxItem icon={StopCircle} label="전송 중지" danger onClick={() => { stopSingleJob(actions.item); closeCtx(); }} />
+          )}
+          {actions.type === 'stopped' && (
+            <>
+              <CtxItem icon={RotateCcw} label="재시작" onClick={() => { restartTransfer(actions.item); closeCtx(); }} />
+              <CtxItem icon={Trash2} label="목록에서 제거" danger onClick={() => { removeStopped(actions.item.group); closeCtx(); }} />
+            </>
+          )}
+          {actions.type === 'completed' && (
+            <CtxItem icon={Trash2} label="완료 목록 비우기" onClick={() => { clearCompleted(); closeCtx(); }} />
+          )}
+          {actions.type === 'errors' && (
+            <CtxItem icon={Trash2} label="오류 목록 비우기" onClick={() => { clearCompleted(); closeCtx(); }} />
+          )}
+        </div>
       )}
     </div>
+  );
+}
+
+function CtxItem({ icon: Icon, label, onClick, danger }: { icon: LucideIcon; label: string; onClick: () => void; danger?: boolean }) {
+  return (
+    <button
+      className={`flex items-center gap-2 w-full px-3 py-1.5 text-xs text-left hover:bg-surface-overlay transition-colors ${danger ? 'text-danger' : 'text-text'}`}
+      onClick={onClick}
+    >
+      <Icon size={13} />
+      {label}
+    </button>
   );
 }
 
 function Empty({ text }: { text: string }) {
   return <div className="flex items-center justify-center h-full text-text-muted text-xs">{text}</div>;
 }
-
-// --- Context Menu ---
-function CtxMenu({ ctx, transfers, stopped, onClose, onStop, onRestart, onRemoveStopped, onClearCompleted }: {
-  ctx: CtxState;
-  transfers: TransferItem[];
-  stopped: StoppedTransfer[];
-  onClose: () => void;
-  onStop: (t: TransferItem) => void;
-  onRestart: (t: StoppedTransfer) => void;
-  onRemoveStopped: (group: string) => void;
-  onClearCompleted: () => void;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [onClose]);
-
-  const MenuItem = ({ icon: Icon, label, onClick, danger }: { icon: LucideIcon; label: string; onClick: () => void; danger?: boolean }) => (
-    <button
-      className={`flex items-center gap-2 w-full px-3 py-1.5 text-xs text-left hover:bg-surface-overlay transition-colors ${danger ? 'text-danger' : 'text-text'}`}
-      onClick={() => { onClick(); onClose(); }}
-    >
-      <Icon size={13} />
-      {label}
-    </button>
-  );
-
-  if (ctx.tab === 'active') {
-    // Running or stopped?
-    if (ctx.index < transfers.length) {
-      const t = transfers[ctx.index];
-      if (!t) return null;
-      return (
-        <MenuWrap ref={ref} x={ctx.x} y={ctx.y}>
-          <MenuItem icon={StopCircle} label="전송 중지" onClick={() => onStop(t)} danger />
-        </MenuWrap>
-      );
-    } else {
-      const s = stopped[ctx.index - transfers.length];
-      if (!s) return null;
-      return (
-        <MenuWrap ref={ref} x={ctx.x} y={ctx.y}>
-          <MenuItem icon={RotateCcw} label="재시작" onClick={() => onRestart(s)} />
-          <MenuItem icon={Trash2} label="목록에서 제거" onClick={() => onRemoveStopped(s.group)} danger />
-        </MenuWrap>
-      );
-    }
-  }
-
-  if (ctx.tab === 'completed') {
-    return (
-      <MenuWrap ref={ref} x={ctx.x} y={ctx.y}>
-        <MenuItem icon={Trash2} label="완료 목록 비우기" onClick={onClearCompleted} />
-      </MenuWrap>
-    );
-  }
-
-  if (ctx.tab === 'errors') {
-    return (
-      <MenuWrap ref={ref} x={ctx.x} y={ctx.y}>
-        <MenuItem icon={Trash2} label="오류 목록 비우기" onClick={onClearCompleted} />
-      </MenuWrap>
-    );
-  }
-
-  return null;
-}
-
-const MenuWrap = ({ children, x, y, ref: fwdRef }: { children: React.ReactNode; x: number; y: number; ref: React.Ref<HTMLDivElement> }) => (
-  <div
-    ref={fwdRef}
-    style={{ position: 'fixed', left: x, top: y, zIndex: 100 }}
-    className="bg-surface-raised border border-border rounded-lg shadow-xl py-1 min-w-[160px]"
-  >
-    {children}
-  </div>
-);
