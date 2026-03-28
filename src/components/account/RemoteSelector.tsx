@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { usePanelStore } from '../../stores/panelStore';
 import { Loader2 } from 'lucide-react';
-import { getProviderMeta } from '../../lib/providerIcons';
+import { ProviderIconSvg } from '../common/ProviderIconSvg';
 
 interface RemoteSelectorProps {
   onSelect: (remote: string) => void;
@@ -49,15 +49,13 @@ export function RemoteSelector({ onSelect }: RemoteSelectorProps) {
       <div className="grid grid-cols-2 gap-2">
         {remotes.map((name) => {
           const type = types[name] ?? '';
-          const meta = getProviderMeta(type);
-          const Icon = meta.icon;
           return (
             <button
               key={name}
               onClick={() => onSelect(`${name}:`)}
               className="flex items-center gap-3 p-3 rounded-lg bg-surface-overlay hover:bg-border border border-transparent hover:border-accent/30 transition-colors text-left"
             >
-              <Icon size={22} style={{ color: meta.color }} className="flex-shrink-0" />
+              <ProviderIconSvg prefix={type} size={24} className="flex-shrink-0" />
               <div className="min-w-0">
                 <span className="text-sm text-text block truncate">{name}</span>
                 {type && <span className="text-[10px] text-text-muted">{type}</span>}

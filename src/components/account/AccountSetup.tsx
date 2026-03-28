@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { X, Loader2, Trash2, Pencil, Search, ChevronLeft, Save } from 'lucide-react';
 import { usePanelStore } from '../../stores/panelStore';
-import { getProviderMeta } from '../../lib/providerIcons';
+import { ProviderIconSvg } from '../common/ProviderIconSvg';
 
 interface AccountSetupProps {
   onClose: () => void;
@@ -203,23 +203,19 @@ export function AccountSetup({ onClose }: AccountSetupProps) {
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-1.5 max-h-[50vh] overflow-y-auto">
-                  {filteredProviders.map((p) => {
-                    const meta = getProviderMeta(p.Prefix);
-                    const Icon = meta.icon;
-                    return (
-                      <button
-                        key={p.Prefix}
-                        onClick={() => { setSelectedProvider(p); setStep('create'); }}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-surface-overlay hover:bg-border border border-transparent hover:border-accent/30 text-left transition-colors"
-                      >
-                        <Icon size={18} style={{ color: meta.color }} className="flex-shrink-0" />
-                        <div className="min-w-0">
-                          <div className="text-xs text-text font-medium truncate">{p.Name}</div>
-                          <div className="text-[10px] text-text-muted truncate">{p.Description}</div>
-                        </div>
-                      </button>
-                    );
-                  })}
+                  {filteredProviders.map((p) => (
+                    <button
+                      key={p.Prefix}
+                      onClick={() => { setSelectedProvider(p); setStep('create'); }}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-surface-overlay hover:bg-border border border-transparent hover:border-accent/30 text-left transition-colors"
+                    >
+                      <ProviderIconSvg prefix={p.Prefix} size={20} className="flex-shrink-0" />
+                      <div className="min-w-0">
+                        <div className="text-xs text-text font-medium truncate">{p.Name}</div>
+                        <div className="text-[10px] text-text-muted truncate">{p.Description}</div>
+                      </div>
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
@@ -251,12 +247,8 @@ export function AccountSetup({ onClose }: AccountSetupProps) {
           {/* ---- EDIT ---- */}
           {step === 'edit' && editingRemote && (
             <div className="space-y-4">
-              <div className="flex items-center gap-2 px-3 py-2 rounded bg-surface-overlay">
-                {(() => {
-                  const meta = getProviderMeta(editType);
-                  const Icon = meta.icon;
-                  return <Icon size={18} style={{ color: meta.color }} />;
-                })()}
+              <div className="flex items-center gap-3 px-3 py-2 rounded bg-surface-overlay">
+                <ProviderIconSvg prefix={editType} size={22} />
                 <div>
                   <div className="text-xs text-text font-medium">{editingRemote}</div>
                   <div className="text-[10px] text-text-muted">타입: {editType}</div>
@@ -343,13 +335,11 @@ function RemoteRow({
     }).catch(() => {});
   }, [name]);
 
-  const meta = getProviderMeta(type);
-  const Icon = meta.icon;
   const providerName = providers.find((p) => p.Prefix === type)?.Name ?? type;
 
   return (
     <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-surface-overlay group">
-      <Icon size={20} style={{ color: meta.color }} className="flex-shrink-0" />
+      <ProviderIconSvg prefix={type} size={22} className="flex-shrink-0" />
       <div className="flex-1 min-w-0">
         <div className="text-sm text-text truncate">{name}</div>
         <div className="text-[10px] text-text-muted">{providerName}</div>
@@ -375,11 +365,9 @@ function RemoteRow({
 }
 
 function ProviderHeader({ provider }: { provider: ProviderOption }) {
-  const meta = getProviderMeta(provider.Prefix);
-  const Icon = meta.icon;
   return (
     <div className="flex items-center gap-3 px-3 py-2 rounded bg-surface-overlay">
-      <Icon size={22} style={{ color: meta.color }} />
+      <ProviderIconSvg prefix={provider.Prefix} size={24} />
       <div>
         <div className="text-sm text-text font-medium">{provider.Name}</div>
         <div className="text-[10px] text-text-muted">{provider.Description}</div>
