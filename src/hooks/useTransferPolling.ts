@@ -38,6 +38,7 @@ export function useTransferPolling(interval = 1000) {
               error: t.error ?? '',
               completedAt: t.completed_at,
               ok: !t.error,
+              group: t.group ?? '',
             }));
           if (newItems.length > 0) addCompleted(newItems);
         } catch {

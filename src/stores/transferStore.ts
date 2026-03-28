@@ -16,11 +16,20 @@ export interface CompletedTransfer {
   error: string;
   completedAt: string;
   ok: boolean;
+  group: string;
+}
+
+// Stopped transfers that can be restarted
+export interface StoppedTransfer {
+  name: string;
+  group: string;
+  size: number;
 }
 
 interface TransferStore {
   transfers: TransferItem[];
   completed: CompletedTransfer[];
+  stopped: StoppedTransfer[];
   jobIds: number[];
   totalSpeed: number;
   totalBytes: number;
@@ -34,7 +43,10 @@ interface TransferStore {
   setStats: (stats: RcloneStats) => void;
   setJobIds: (ids: number[]) => void;
   addCompleted: (items: CompletedTransfer[]) => void;
+  addStopped: (item: StoppedTransfer) => void;
+  removeStopped: (group: string) => void;
   clearCompleted: () => void;
+  clearStopped: () => void;
   setPaused: (p: boolean) => void;
   setPolling: (p: boolean) => void;
 }
@@ -42,6 +54,7 @@ interface TransferStore {
 export const useTransferStore = create<TransferStore>((set) => ({
   transfers: [],
   completed: [],
+  stopped: [],
   jobIds: [],
   totalSpeed: 0,
   totalBytes: 0,
@@ -78,7 +91,14 @@ export const useTransferStore = create<TransferStore>((set) => ({
       completed: [...items, ...s.completed].slice(0, 200),
     })),
 
+  addStopped: (item) =>
+    set((s) => ({ stopped: [item, ...s.stopped] })),
+
+  removeStopped: (group) =>
+    set((s) => ({ stopped: s.stopped.filter((t) => t.group !== group) })),
+
   clearCompleted: () => set({ completed: [] }),
+  clearStopped: () => set({ stopped: [] }),
   setPaused: (p) => set({ paused: p }),
   setPolling: (p) => set({ polling: p }),
 }));
