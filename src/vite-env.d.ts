@@ -31,6 +31,12 @@ interface RcloneAPI {
   getJobList: () => Promise<{ jobids: number[] }>;
   stopJob: (jobid: number) => Promise<void>;
   setBwLimit: (rate: string) => Promise<{ bytesPerSecond: number; rate: string }>;
+
+  // settings
+  applyOptions: (opts: Record<string, unknown>) => Promise<void>;
+  getOptions: () => Promise<Record<string, unknown>>;
+  saveSettings: (settings: Record<string, unknown>) => Promise<void>;
+  loadSettings: () => Promise<Record<string, unknown> | null>;
 }
 
 interface RcloneProvider {

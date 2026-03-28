@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { Folder, File, FileText, Image, Film, Music, Archive, FileCode } from 'lucide-react';
 import { formatBytes, formatDate, getFileIcon } from '../../lib/utils';
@@ -7,6 +7,7 @@ interface FileItemProps {
   file: RcloneFile;
   selected: boolean;
   renaming: boolean;
+  side: 'left' | 'right';
   onClick: (e: React.MouseEvent) => void;
   onContextMenu: (e: React.MouseEvent) => void;
   onRename: (oldName: string, newName: string) => void;
@@ -23,7 +24,7 @@ const iconMap: Record<string, LucideIcon> = {
   'file-code': FileCode,
 };
 
-export function FileItem({ file, selected, renaming, onClick, onContextMenu, onRename }: FileItemProps) {
+export function FileItem({ file, selected, renaming, side, onClick, onContextMenu, onRename }: FileItemProps) {
   const [editName, setEditName] = useState(file.Name);
   const iconType = getFileIcon(file.Name, file.IsDir);
   const Icon = iconMap[iconType] ?? File;
@@ -32,11 +33,22 @@ export function FileItem({ file, selected, renaming, onClick, onContextMenu, onR
     onRename(file.Name, editName);
   };
 
+  const handleDragStart = useCallback((e: React.DragEvent) => {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      side,
+      fileName: file.Name,
+      isDir: file.IsDir,
+    }));
+    e.dataTransfer.effectAllowed = 'copyMove';
+  }, [side, file.Name, file.IsDir]);
+
   return (
     <div
       className={`grid grid-cols-[1fr_100px_160px] gap-2 px-3 py-1.5 text-xs cursor-pointer transition-colors ${
         selected ? 'bg-accent-muted text-text' : 'hover:bg-surface-overlay text-text'
       }`}
+      draggable={!renaming}
+      onDragStart={handleDragStart}
       onClick={onClick}
       onContextMenu={onContextMenu}
     >

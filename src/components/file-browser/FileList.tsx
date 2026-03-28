@@ -15,17 +15,17 @@ export function FileList({ side }: FileListProps) {
   const setSort = usePanelStore((s) => s.setSort);
   const toggleSelect = usePanelStore((s) => s.toggleSelect);
   const clearSelection = usePanelStore((s) => s.clearSelection);
-  const { navigate, goUp } = usePanelFiles(side);
+  const { navigate, goUp, refresh } = usePanelFiles(side);
   const { createFolder, deleteSelected, rename, copyToOtherPanel, moveToOtherPanel } = useFileOperations(side);
 
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; file?: RcloneFile } | null>(null);
   const [renamingFile, setRenamingFile] = useState<string | null>(null);
   const [newFolderMode, setNewFolderMode] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
 
   const sorted = useMemo(() => {
     const files = [...panel.files];
     files.sort((a, b) => {
-      // Directories first
       if (a.IsDir !== b.IsDir) return a.IsDir ? -1 : 1;
       let cmp = 0;
       switch (panel.sortBy) {
@@ -68,6 +68,73 @@ export function FileList({ side }: FileListProps) {
     setNewFolderMode(false);
   }, [createFolder]);
 
+  // --- Drag & Drop ---
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    const data = e.dataTransfer.types.includes('application/json');
+    if (data) {
+      e.dataTransfer.dropEffect = e.altKey ? 'move' : 'copy';
+      setDragOver(true);
+    }
+  }, []);
+
+  const handleDragLeave = useCallback(() => {
+    setDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+
+    try {
+      const raw = e.dataTransfer.getData('application/json');
+      if (!raw) return;
+      const data = JSON.parse(raw) as { side: string; fileName: string; isDir: boolean };
+
+      // Only accept drops from the other panel
+      if (data.side === side) return;
+
+      const srcSide = data.side as 'left' | 'right';
+      const srcPanel = usePanelStore.getState()[srcSide];
+      const dstPanel = panel;
+
+      if (!srcPanel.remote || !dstPanel.remote) return;
+
+      const srcPath = srcPanel.path ? `${srcPanel.path}/${data.fileName}` : data.fileName;
+      const dstPath = dstPanel.path ? `${dstPanel.path}/${data.fileName}` : data.fileName;
+
+      const isMove = e.altKey;
+      const api = window.rcloneAPI;
+
+      if (data.isDir) {
+        if (isMove) {
+          await api.moveDir(srcPanel.remote, srcPath, dstPanel.remote, dstPath);
+        } else {
+          await api.copyDir(srcPanel.remote, srcPath, dstPanel.remote, dstPath);
+        }
+      } else {
+        if (isMove) {
+          await api.moveFile(srcPanel.remote, srcPath, dstPanel.remote, dstPath);
+        } else {
+          await api.copyFile(srcPanel.remote, srcPath, dstPanel.remote, dstPath);
+        }
+      }
+
+      // Refresh both panels
+      refresh();
+      const otherSide = side === 'left' ? 'right' : 'left';
+      // Trigger refresh of source panel via store
+      const otherPanel = usePanelStore.getState()[otherSide];
+      if (otherPanel.remote) {
+        window.rcloneAPI.listFiles(otherPanel.remote, otherPanel.path).then((files) => {
+          usePanelStore.getState().setFiles(otherSide, files);
+        });
+      }
+    } catch (err) {
+      console.error('Drop failed:', err);
+    }
+  }, [side, panel, refresh]);
+
   const SortHeader = ({ label, field }: { label: string; field: 'name' | 'size' | 'date' }) => (
     <button
       className={`text-left text-[11px] hover:text-text ${panel.sortBy === field ? 'text-accent' : 'text-text-muted'}`}
@@ -79,9 +146,12 @@ export function FileList({ side }: FileListProps) {
 
   return (
     <div
-      className="flex-1 flex flex-col min-h-0"
+      className={`flex-1 flex flex-col min-h-0 transition-colors ${dragOver ? 'bg-accent/10 ring-2 ring-accent/40 ring-inset' : ''}`}
       onContextMenu={(e) => handleContextMenu(e)}
       onClick={() => clearSelection(side)}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
     >
       {/* Column headers */}
       <div className="grid grid-cols-[1fr_100px_160px] gap-2 px-3 py-1.5 border-b border-border bg-surface-raised">
@@ -89,6 +159,13 @@ export function FileList({ side }: FileListProps) {
         <SortHeader label="크기" field="size" />
         <SortHeader label="수정일" field="date" />
       </div>
+
+      {/* Drag hint */}
+      {dragOver && (
+        <div className="px-3 py-1 bg-accent/20 text-accent text-[11px] text-center border-b border-accent/30">
+          여기에 놓기 — 드롭: 복사 / Option+드롭: 이동
+        </div>
+      )}
 
       {/* File list */}
       <div className="flex-1 overflow-y-auto">
@@ -126,6 +203,7 @@ export function FileList({ side }: FileListProps) {
             file={file}
             selected={panel.selectedFiles.has(file.Name)}
             renaming={renamingFile === file.Name}
+            side={side}
             onClick={(e) => { e.stopPropagation(); handleClick(file, e); }}
             onContextMenu={(e) => { e.stopPropagation(); handleContextMenu(e, file); }}
             onRename={handleRename}

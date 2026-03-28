@@ -4,13 +4,14 @@ import { DualPanel } from './components/layout/DualPanel';
 import { StatusBar } from './components/layout/StatusBar';
 import { TransferQueue } from './components/transfer/TransferQueue';
 import { AccountSetup } from './components/account/AccountSetup';
-import { useRclone } from './hooks/useRclone';
+import { SettingsModal } from './components/settings/SettingsModal';
+import { useRclone, usePanelFiles } from './hooks/useRclone';
 import { useTransferPolling } from './hooks/useTransferPolling';
 import { usePanelStore } from './stores/panelStore';
-import { usePanelFiles } from './hooks/useRclone';
 
 export default function App() {
   const [showAccountSetup, setShowAccountSetup] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [showTransfers, setShowTransfers] = useState(true);
   const { loadRemotes } = useRclone();
   const setPath = usePanelStore((s) => s.setPath);
@@ -39,6 +40,7 @@ export default function App() {
       <Toolbar
         onAddAccount={() => setShowAccountSetup(true)}
         onToggleTransfers={() => setShowTransfers((v) => !v)}
+        onOpenSettings={() => setShowSettings(true)}
         showTransfers={showTransfers}
       />
 
@@ -51,6 +53,9 @@ export default function App() {
 
       {showAccountSetup && (
         <AccountSetup onClose={() => { setShowAccountSetup(false); loadRemotes(); }} />
+      )}
+      {showSettings && (
+        <SettingsModal onClose={() => setShowSettings(false)} />
       )}
     </div>
   );

@@ -1,5 +1,7 @@
 import { IpcMain } from 'electron';
 import { app } from 'electron';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
+import path from 'path';
 import { RcloneDaemon } from './rclone/daemon';
 
 export function registerIpcHandlers(ipcMain: IpcMain, daemon: RcloneDaemon) {
@@ -105,5 +107,30 @@ export function registerIpcHandlers(ipcMain: IpcMain, daemon: RcloneDaemon) {
 
   ipcMain.handle('rclone:setBwLimit', async (_e, rate: string) => {
     return api.call('core/bwlimit', { rate });
+  });
+
+  // --- settings ---
+  ipcMain.handle('rclone:applyOptions', async (_e, opts: Record<string, unknown>) => {
+    // rclone rc options/set allows changing global options at runtime
+    return api.call('options/set', { main: opts });
+  });
+
+  ipcMain.handle('rclone:getOptions', async () => {
+    return api.call('options/get');
+  });
+
+  const settingsPath = path.join(app.getPath('userData'), 'rclone-gui-settings.json');
+
+  ipcMain.handle('settings:save', async (_e, settings: Record<string, unknown>) => {
+    writeFileSync(settingsPath, JSON.stringify(settings, null, 2), 'utf-8');
+  });
+
+  ipcMain.handle('settings:load', async () => {
+    if (!existsSync(settingsPath)) return null;
+    try {
+      return JSON.parse(readFileSync(settingsPath, 'utf-8'));
+    } catch {
+      return null;
+    }
   });
 }

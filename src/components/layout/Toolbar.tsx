@@ -1,14 +1,15 @@
-import { Plus, ArrowDownUp, RefreshCw } from 'lucide-react';
+import { Plus, ArrowDownUp, RefreshCw, Settings } from 'lucide-react';
 import { usePanelStore } from '../../stores/panelStore';
 import { usePanelFiles } from '../../hooks/useRclone';
 
 interface ToolbarProps {
   onAddAccount: () => void;
   onToggleTransfers: () => void;
+  onOpenSettings: () => void;
   showTransfers: boolean;
 }
 
-export function Toolbar({ onAddAccount, onToggleTransfers, showTransfers }: ToolbarProps) {
+export function Toolbar({ onAddAccount, onToggleTransfers, onOpenSettings, showTransfers }: ToolbarProps) {
   const activePanel = usePanelStore((s) => s.activePanel);
   const { refresh } = usePanelFiles(activePanel);
 
@@ -37,6 +38,13 @@ export function Toolbar({ onAddAccount, onToggleTransfers, showTransfers }: Tool
       >
         <ArrowDownUp size={14} />
         전송
+      </button>
+      <button
+        onClick={onOpenSettings}
+        className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded bg-surface-overlay hover:bg-border text-text-muted hover:text-text transition-colors"
+      >
+        <Settings size={14} />
+        설정
       </button>
     </div>
   );
