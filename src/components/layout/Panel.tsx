@@ -32,10 +32,10 @@ export function Panel({ side }: PanelProps) {
   if (panel.mode === 'cloud' && !panel.remote) {
     return (
       <div
-        className={`h-full flex flex-col bg-surface ${isActive ? 'ring-1 ring-accent/50' : ''}`}
+        className={`h-full flex flex-col min-h-0 bg-surface ${isActive ? 'ring-1 ring-accent/50' : ''}`}
         onClick={() => setActivePanel(side)}
       >
-        <div className="p-3 bg-surface-raised border-b border-border">
+        <div className="p-3 bg-surface-raised border-b border-border flex-shrink-0">
           <span className="text-xs text-text-muted">클라우드 선택</span>
         </div>
         <RemoteSelector
@@ -51,7 +51,7 @@ export function Panel({ side }: PanelProps) {
 
   return (
     <div
-      className={`h-full flex flex-col bg-surface ${isActive ? 'ring-1 ring-accent/50' : ''}`}
+      className={`h-full flex flex-col min-h-0 bg-surface ${isActive ? 'ring-1 ring-accent/50' : ''}`}
       onClick={() => setActivePanel(side)}
     >
       <AddressBar side={side} />

@@ -28,10 +28,10 @@ export function DualPanel() {
   return (
     <div
       id="dual-panel-container"
-      className="flex-1 flex min-h-0"
+      className="flex-1 flex min-h-0 h-full"
       style={{ cursor: dragging ? 'col-resize' : undefined }}
     >
-      <div style={{ width: `${splitPercent}%` }} className="min-w-0">
+      <div style={{ width: `${splitPercent}%` }} className="min-w-0 h-full">
         <Panel side="left" />
       </div>
       <div
@@ -40,7 +40,7 @@ export function DualPanel() {
       >
         <GripVertical size={12} className="text-text-muted" />
       </div>
-      <div style={{ width: `${100 - splitPercent}%` }} className="min-w-0">
+      <div style={{ width: `${100 - splitPercent}%` }} className="min-w-0 h-full">
         <Panel side="right" />
       </div>
     </div>

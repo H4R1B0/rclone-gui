@@ -195,7 +195,7 @@ export function FileList({ side }: FileListProps) {
       )}
 
       {/* File list */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto min-h-0">
         {panel.path && (
           <div
             className="grid grid-cols-[1fr_100px_160px] gap-2 px-3 py-1.5 hover:bg-surface-overlay cursor-pointer text-text-muted text-xs"
