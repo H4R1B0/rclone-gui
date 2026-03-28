@@ -16,9 +16,9 @@ export function FileList({ side }: FileListProps) {
   const toggleSelect = usePanelStore((s) => s.toggleSelect);
   const clearSelection = usePanelStore((s) => s.clearSelection);
   const { navigate, goUp, refresh } = usePanelFiles(side);
-  const { createFolder, deleteSelected, rename, copyToOtherPanel, moveToOtherPanel } = useFileOperations(side);
+  const { createFolder, rename } = useFileOperations(side);
 
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; file?: RcloneFile } | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; file: RcloneFile } | null>(null);
   const [renamingFile, setRenamingFile] = useState<string | null>(null);
   const [newFolderMode, setNewFolderMode] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -38,7 +38,7 @@ export function FileList({ side }: FileListProps) {
     return files;
   }, [panel.files, panel.sortBy, panel.sortAsc]);
 
-  const handleContextMenu = useCallback((e: React.MouseEvent, file?: RcloneFile) => {
+  const handleContextMenu = useCallback((e: React.MouseEvent, file: RcloneFile) => {
     e.preventDefault();
     setContextMenu({ x: e.clientX, y: e.clientY, file });
   }, []);
@@ -67,6 +67,33 @@ export function FileList({ side }: FileListProps) {
     if (name) await createFolder(name);
     setNewFolderMode(false);
   }, [createFolder]);
+
+  const deleteSingle = useCallback(async (fileName: string) => {
+    const file = panel.files.find((f) => f.Name === fileName);
+    if (!file) return;
+    const remotePath = panel.path ? `${panel.path}/${fileName}` : fileName;
+    if (file.IsDir) {
+      await window.rcloneAPI.deleteDir(panel.remote, remotePath);
+    } else {
+      await window.rcloneAPI.deleteFile(panel.remote, remotePath);
+    }
+    refresh();
+  }, [panel.remote, panel.path, panel.files, refresh]);
+
+  const copySingleToOther = useCallback(async (fileName: string) => {
+    const otherSide = side === 'left' ? 'right' : 'left';
+    const other = usePanelStore.getState()[otherSide];
+    if (!other.remote) return;
+    const file = panel.files.find((f) => f.Name === fileName);
+    if (!file) return;
+    const srcPath = panel.path ? `${panel.path}/${fileName}` : fileName;
+    const dstPath = other.path ? `${other.path}/${fileName}` : fileName;
+    if (file.IsDir) {
+      await window.rcloneAPI.copyDir(panel.remote, srcPath, other.remote, dstPath);
+    } else {
+      await window.rcloneAPI.copyFile(panel.remote, srcPath, other.remote, dstPath);
+    }
+  }, [side, panel.remote, panel.path, panel.files]);
 
   // --- Drag & Drop ---
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -147,7 +174,7 @@ export function FileList({ side }: FileListProps) {
   return (
     <div
       className={`flex-1 flex flex-col min-h-0 transition-colors ${dragOver ? 'bg-accent/10 ring-2 ring-accent/40 ring-inset' : ''}`}
-      onContextMenu={(e) => handleContextMenu(e)}
+      onContextMenu={(e) => e.preventDefault()}
       onClick={() => clearSelection(side)}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -223,11 +250,9 @@ export function FileList({ side }: FileListProps) {
           y={contextMenu.y}
           file={contextMenu.file}
           onClose={() => setContextMenu(null)}
-          onNewFolder={() => { setContextMenu(null); setNewFolderMode(true); }}
           onRename={(name) => { setContextMenu(null); setRenamingFile(name); }}
-          onDelete={() => { setContextMenu(null); deleteSelected(); }}
-          onCopy={() => { setContextMenu(null); copyToOtherPanel(); }}
-          onMove={() => { setContextMenu(null); moveToOtherPanel(); }}
+          onDelete={(name) => { setContextMenu(null); deleteSingle(name); }}
+          onCopy={(name) => { setContextMenu(null); copySingleToOther(name); }}
         />
       )}
     </div>

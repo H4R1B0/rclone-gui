@@ -1,20 +1,18 @@
 import { useEffect, useRef } from 'react';
 import type { LucideIcon } from 'lucide-react';
-import { Copy, Move, Trash2, Edit3, FolderPlus } from 'lucide-react';
+import { Copy, Trash2, Edit3 } from 'lucide-react';
 
 interface ContextMenuProps {
   x: number;
   y: number;
-  file?: RcloneFile;
+  file: RcloneFile;
   onClose: () => void;
-  onNewFolder: () => void;
   onRename: (name: string) => void;
-  onDelete: () => void;
-  onCopy: () => void;
-  onMove: () => void;
+  onDelete: (name: string) => void;
+  onCopy: (name: string) => void;
 }
 
-export function ContextMenu({ x, y, file, onClose, onNewFolder, onRename, onDelete, onCopy, onMove }: ContextMenuProps) {
+export function ContextMenu({ x, y, file, onClose, onRename, onDelete, onCopy }: ContextMenuProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -27,7 +25,6 @@ export function ContextMenu({ x, y, file, onClose, onNewFolder, onRename, onDele
     return () => document.removeEventListener('mousedown', handler);
   }, [onClose]);
 
-  // Adjust position so menu doesn't overflow
   const style: React.CSSProperties = {
     position: 'fixed',
     left: x,
@@ -49,17 +46,10 @@ export function ContextMenu({ x, y, file, onClose, onNewFolder, onRename, onDele
 
   return (
     <div ref={ref} style={style} className="bg-surface-raised border border-border rounded-lg shadow-xl py-1 min-w-[160px]">
-      <Item icon={FolderPlus} label="새 폴더" onClick={onNewFolder} />
-      {file && (
-        <>
-          <div className="border-t border-border my-1" />
-          <Item icon={Copy} label="반대편에 복사" onClick={onCopy} />
-          <Item icon={Move} label="반대편으로 이동" onClick={onMove} />
-          <Item icon={Edit3} label="이름 변경" onClick={() => onRename(file.Name)} />
-          <div className="border-t border-border my-1" />
-          <Item icon={Trash2} label="삭제" onClick={onDelete} danger />
-        </>
-      )}
+      <Item icon={Edit3} label="이름 변경" onClick={() => onRename(file.Name)} />
+      <Item icon={Copy} label="반대편에 복사" onClick={() => onCopy(file.Name)} />
+      <div className="border-t border-border my-1" />
+      <Item icon={Trash2} label="삭제" onClick={() => onDelete(file.Name)} danger />
     </div>
   );
 }
