@@ -81,8 +81,9 @@ export function TransferQueue() {
     }
   }, [removeStopped]);
 
-  const resetStats = useCallback(async () => {
-    try { await window.rcloneAPI.resetStats(); clearCompleted(); clearStopped(); } catch { /* */ }
+  const clearHistory = useCallback(() => {
+    clearCompleted();
+    clearStopped();
   }, [clearCompleted, clearStopped]);
 
   const handleCtx = useCallback((e: React.MouseEvent, t: Tab, i: number) => {
@@ -128,7 +129,7 @@ export function TransferQueue() {
           <button onClick={stopAllJobs} className="p-1 rounded text-text-muted hover:bg-surface-overlay hover:text-danger transition-colors" title="전체 중지">
             <XCircle size={14} />
           </button>
-          <button onClick={resetStats} className="p-1 rounded text-text-muted hover:bg-surface-overlay hover:text-text transition-colors" title="이력 초기화">
+          <button onClick={clearHistory} className="p-1 rounded text-text-muted hover:bg-surface-overlay hover:text-text transition-colors" title="완료/중지 이력 삭제">
             <Trash2 size={14} />
           </button>
         </div>
