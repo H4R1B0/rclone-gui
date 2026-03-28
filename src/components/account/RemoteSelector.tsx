@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { usePanelStore } from '../../stores/panelStore';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plus } from 'lucide-react';
 import { ProviderIconSvg } from '../common/ProviderIconSvg';
 
 interface RemoteSelectorProps {
   onSelect: (remote: string) => void;
+  onAddAccount?: () => void;
 }
 
-export function RemoteSelector({ onSelect }: RemoteSelectorProps) {
+export function RemoteSelector({ onSelect, onAddAccount }: RemoteSelectorProps) {
   const remotes = usePanelStore((s) => s.remotes);
   const loading = usePanelStore((s) => s.remotesLoading);
   const [types, setTypes] = useState<Record<string, string>>({});
@@ -36,14 +37,6 @@ export function RemoteSelector({ onSelect }: RemoteSelectorProps) {
     );
   }
 
-  if (remotes.length === 0) {
-    return (
-      <div className="flex-1 flex items-center justify-center text-text-muted text-sm">
-        연결된 클라우드가 없습니다. "계정 추가"를 클릭하세요.
-      </div>
-    );
-  }
-
   return (
     <div className="flex-1 overflow-y-auto p-3">
       <div className="grid grid-cols-2 gap-2">
@@ -63,7 +56,26 @@ export function RemoteSelector({ onSelect }: RemoteSelectorProps) {
             </button>
           );
         })}
+
+        {/* Add account button */}
+        {onAddAccount && (
+          <button
+            onClick={onAddAccount}
+            className="flex items-center gap-3 p-3 rounded-lg border border-dashed border-border hover:border-accent/50 hover:bg-accent/5 transition-colors text-left"
+          >
+            <div className="w-6 h-6 rounded-full bg-accent/15 flex items-center justify-center flex-shrink-0">
+              <Plus size={14} className="text-accent" />
+            </div>
+            <span className="text-sm text-text-muted">클라우드 연결</span>
+          </button>
+        )}
       </div>
+
+      {remotes.length === 0 && (
+        <div className="text-center py-6 text-text-muted text-xs">
+          연결된 클라우드가 없습니다
+        </div>
+      )}
     </div>
   );
 }
