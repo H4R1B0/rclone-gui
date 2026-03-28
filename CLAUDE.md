@@ -20,10 +20,14 @@ rclone-gui/
 │   ├── preload.ts            # 컨텍스트 브릿지
 │   ├── rclone/
 │   │   ├── daemon.ts         # rclone rcd 프로세스 관리 (시작/종료)
+│   │   ├── binary.ts         # rclone 바이너리 탐지 (시스템 → 내장 fallback)
 │   │   ├── api.ts            # rclone rc API 클라이언트 래퍼
 │   │   └── config.ts         # rclone config 파싱/관리
 │   ├── scheduler.ts          # 작업 스케줄러
 │   └── ipc-handlers.ts       # IPC 핸들러 등록
+├── resources/                 # 빌드 시 앱 번들에 포함되는 리소스
+│   └── bin/
+│       └── rclone            # 내장 rclone 바이너리 (macOS arm64/x64)
 ├── src/                       # React 프론트엔드 (Renderer)
 │   ├── main.tsx              # React 진입점
 │   ├── App.tsx
@@ -79,7 +83,7 @@ rclone-gui/
 ├── package.json
 ├── tsconfig.json
 ├── vite.config.ts
-├── electron-builder.yml           # 패키징 설정
+├── electron-builder.yml           # 패키징 설정 (.dmg, extraResources)
 ├── tailwind.config.ts
 ├── postcss.config.js
 ├── README.md
@@ -137,9 +141,16 @@ const response = await fetch('http://localhost:5572/operations/list', {
 - 파일명: 컴포넌트는 PascalCase, 유틸/훅은 camelCase
 - 한 파일에 하나의 export default 컴포넌트
 
+### rclone 바이너리 전략
+- **우선순위**: 시스템 PATH의 rclone → 앱 내장 rclone (fallback)
+- 탐지 순서:
+  1. 사용자 설정에 수동 경로가 있으면 그것을 사용
+  2. `which rclone`으로 시스템 PATH에서 탐지
+  3. 시스템에 없으면 `app.getPath('exe')/../Resources/bin/rclone` 내장 바이너리 사용
+- 시스템 rclone 버전이 최소 요구 버전보다 낮으면 경고 후 내장 바이너리 사용 제안
+- 내장 바이너리는 빌드 시 `electron-builder`의 `extraResources`로 번들링
+
 ### rclone 연동 원칙
-- rclone 바이너리 경로는 시스템 PATH에서 자동 탐지 (`which rclone`)
-- rclone이 없으면 앱 시작 시 안내 메시지 표시
 - rclone rcd 데몬은 앱 시작 시 자동으로 시작, 종료 시 정리
 - 모든 rclone 작업은 rc API를 통해 수행 (CLI 직접 호출 최소화)
 - API 에러는 사용자에게 명확한 메시지로 표시
@@ -159,7 +170,7 @@ const response = await fetch('http://localhost:5572/operations/list', {
 
 ### Phase 1 — 핵심 (MVP)
 1. Electron + React + Vite 프로젝트 셋업
-2. rclone 데몬 관리 (시작/종료/상태 확인)
+2. rclone 바이너리 탐지 (시스템 → 내장 fallback) 및 데몬 관리
 3. 계정 관리 (리모트 목록, 추가, 삭제)
 4. 듀얼 패널 파일 브라우저
 5. 기본 파일 작업 (복사, 이동, 삭제, 이름 변경, 폴더 생성)
@@ -208,7 +219,7 @@ test: 테스트 추가/수정
 ```bash
 npm run dev          # 개발 서버
 npm run build        # 프로덕션 빌드
-npm run package      # Electron 패키징
+npm run package      # Electron 패키징 (.dmg)
 npm run lint         # ESLint
 npm run typecheck    # TypeScript 타입 체크
 rclone rcd --rc-no-auth --rc-addr localhost:5572   # rclone 데몬 수동 시작
