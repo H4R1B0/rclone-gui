@@ -88,7 +88,7 @@ export function TransferQueue() {
   );
 
   return (
-    <div className="h-[200px] flex-shrink-0 border-t border-border bg-surface-raised flex flex-col">
+    <div className="h-full bg-surface-raised flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-1.5 border-b border-border">
         <div className="flex items-center gap-1">

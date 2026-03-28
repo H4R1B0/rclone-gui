@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Toolbar } from './components/layout/Toolbar';
 import { DualPanel } from './components/layout/DualPanel';
 import { StatusBar } from './components/layout/StatusBar';
@@ -8,15 +8,36 @@ import { SettingsModal } from './components/settings/SettingsModal';
 import { useRclone, usePanelFiles } from './hooks/useRclone';
 import { useTransferPolling } from './hooks/useTransferPolling';
 import { usePanelStore } from './stores/panelStore';
+import { GripHorizontal } from 'lucide-react';
 
 export default function App() {
   const [showAccountSetup, setShowAccountSetup] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showTransfers, setShowTransfers] = useState(true);
+  const [transferHeight, setTransferHeight] = useState(200);
+  const [resizing, setResizing] = useState(false);
   const { loadRemotes } = useRclone();
   const setPath = usePanelStore((s) => s.setPath);
   const { loadFiles: loadLeftFiles } = usePanelFiles('left');
   useTransferPolling();
+
+  const onResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setResizing(true);
+    const startY = e.clientY;
+    const startH = transferHeight;
+    const onMove = (ev: MouseEvent) => {
+      const delta = startY - ev.clientY;
+      setTransferHeight(Math.max(80, Math.min(600, startH + delta)));
+    };
+    const onUp = () => {
+      setResizing(false);
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  }, [transferHeight]);
 
   useEffect(() => {
     loadRemotes();
@@ -44,9 +65,23 @@ export default function App() {
         showTransfers={showTransfers}
       />
 
-      <div className="flex-1 flex flex-col min-h-0">
-        <DualPanel />
-        {showTransfers && <TransferQueue />}
+      <div className="flex-1 flex flex-col min-h-0" style={{ cursor: resizing ? 'row-resize' : undefined }}>
+        <div className="flex-1 min-h-0">
+          <DualPanel />
+        </div>
+        {showTransfers && (
+          <>
+            <div
+              className="h-1 bg-border hover:bg-accent cursor-row-resize flex items-center justify-center flex-shrink-0 transition-colors"
+              onMouseDown={onResizeStart}
+            >
+              <GripHorizontal size={12} className="text-text-muted" />
+            </div>
+            <div style={{ height: transferHeight }} className="flex-shrink-0">
+              <TransferQueue />
+            </div>
+          </>
+        )}
       </div>
 
       <StatusBar />
