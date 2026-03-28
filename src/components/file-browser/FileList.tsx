@@ -1,0 +1,157 @@
+import { useMemo, useState, useCallback } from 'react';
+import { usePanelStore } from '../../stores/panelStore';
+import { usePanelFiles } from '../../hooks/useRclone';
+import { useFileOperations } from '../../hooks/useFileOperations';
+import { FileItem } from './FileItem';
+import { ContextMenu } from './ContextMenu';
+import { ArrowUp } from 'lucide-react';
+
+interface FileListProps {
+  side: 'left' | 'right';
+}
+
+export function FileList({ side }: FileListProps) {
+  const panel = usePanelStore((s) => s[side]);
+  const setSort = usePanelStore((s) => s.setSort);
+  const toggleSelect = usePanelStore((s) => s.toggleSelect);
+  const clearSelection = usePanelStore((s) => s.clearSelection);
+  const { navigate, goUp } = usePanelFiles(side);
+  const { createFolder, deleteSelected, rename, copyToOtherPanel, moveToOtherPanel } = useFileOperations(side);
+
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; file?: RcloneFile } | null>(null);
+  const [renamingFile, setRenamingFile] = useState<string | null>(null);
+  const [newFolderMode, setNewFolderMode] = useState(false);
+
+  const sorted = useMemo(() => {
+    const files = [...panel.files];
+    files.sort((a, b) => {
+      // Directories first
+      if (a.IsDir !== b.IsDir) return a.IsDir ? -1 : 1;
+      let cmp = 0;
+      switch (panel.sortBy) {
+        case 'name': cmp = a.Name.localeCompare(b.Name); break;
+        case 'size': cmp = a.Size - b.Size; break;
+        case 'date': cmp = new Date(a.ModTime).getTime() - new Date(b.ModTime).getTime(); break;
+      }
+      return panel.sortAsc ? cmp : -cmp;
+    });
+    return files;
+  }, [panel.files, panel.sortBy, panel.sortAsc]);
+
+  const handleContextMenu = useCallback((e: React.MouseEvent, file?: RcloneFile) => {
+    e.preventDefault();
+    setContextMenu({ x: e.clientX, y: e.clientY, file });
+  }, []);
+
+  const handleClick = useCallback((file: RcloneFile, e: React.MouseEvent) => {
+    if (e.detail === 2 && file.IsDir) {
+      navigate(file.Name);
+    } else {
+      if (e.metaKey || e.ctrlKey) {
+        toggleSelect(side, file.Name);
+      } else {
+        clearSelection(side);
+        toggleSelect(side, file.Name);
+      }
+    }
+  }, [side, navigate, toggleSelect, clearSelection]);
+
+  const handleRename = useCallback(async (oldName: string, newName: string) => {
+    if (newName && newName !== oldName) {
+      await rename(oldName, newName);
+    }
+    setRenamingFile(null);
+  }, [rename]);
+
+  const handleNewFolder = useCallback(async (name: string) => {
+    if (name) await createFolder(name);
+    setNewFolderMode(false);
+  }, [createFolder]);
+
+  const SortHeader = ({ label, field }: { label: string; field: 'name' | 'size' | 'date' }) => (
+    <button
+      className={`text-left text-[11px] hover:text-text ${panel.sortBy === field ? 'text-accent' : 'text-text-muted'}`}
+      onClick={() => setSort(side, field)}
+    >
+      {label} {panel.sortBy === field && (panel.sortAsc ? '↑' : '↓')}
+    </button>
+  );
+
+  return (
+    <div
+      className="flex-1 flex flex-col min-h-0"
+      onContextMenu={(e) => handleContextMenu(e)}
+      onClick={() => clearSelection(side)}
+    >
+      {/* Column headers */}
+      <div className="grid grid-cols-[1fr_100px_160px] gap-2 px-3 py-1.5 border-b border-border bg-surface-raised">
+        <SortHeader label="이름" field="name" />
+        <SortHeader label="크기" field="size" />
+        <SortHeader label="수정일" field="date" />
+      </div>
+
+      {/* File list */}
+      <div className="flex-1 overflow-y-auto">
+        {panel.path && (
+          <div
+            className="grid grid-cols-[1fr_100px_160px] gap-2 px-3 py-1.5 hover:bg-surface-overlay cursor-pointer text-text-muted text-xs"
+            onClick={(e) => { e.stopPropagation(); goUp(); }}
+          >
+            <span className="flex items-center gap-2">
+              <ArrowUp size={14} /> ..
+            </span>
+            <span />
+            <span />
+          </div>
+        )}
+
+        {newFolderMode && (
+          <div className="px-3 py-1.5">
+            <input
+              autoFocus
+              className="bg-surface-overlay border border-accent rounded px-2 py-1 text-xs text-text w-60 outline-none"
+              placeholder="새 폴더 이름"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleNewFolder((e.target as HTMLInputElement).value);
+                if (e.key === 'Escape') setNewFolderMode(false);
+              }}
+              onBlur={(e) => handleNewFolder(e.target.value)}
+            />
+          </div>
+        )}
+
+        {sorted.map((file) => (
+          <FileItem
+            key={file.Name}
+            file={file}
+            selected={panel.selectedFiles.has(file.Name)}
+            renaming={renamingFile === file.Name}
+            onClick={(e) => { e.stopPropagation(); handleClick(file, e); }}
+            onContextMenu={(e) => { e.stopPropagation(); handleContextMenu(e, file); }}
+            onRename={handleRename}
+          />
+        ))}
+
+        {sorted.length === 0 && !panel.loading && (
+          <div className="flex items-center justify-center h-32 text-text-muted text-sm">
+            빈 폴더
+          </div>
+        )}
+      </div>
+
+      {contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          file={contextMenu.file}
+          onClose={() => setContextMenu(null)}
+          onNewFolder={() => { setContextMenu(null); setNewFolderMode(true); }}
+          onRename={(name) => { setContextMenu(null); setRenamingFile(name); }}
+          onDelete={() => { setContextMenu(null); deleteSelected(); }}
+          onCopy={() => { setContextMenu(null); copyToOtherPanel(); }}
+          onMove={() => { setContextMenu(null); moveToOtherPanel(); }}
+        />
+      )}
+    </div>
+  );
+}

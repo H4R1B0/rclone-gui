@@ -1,0 +1,65 @@
+import { useEffect, useRef } from 'react';
+import type { LucideIcon } from 'lucide-react';
+import { Copy, Move, Trash2, Edit3, FolderPlus } from 'lucide-react';
+
+interface ContextMenuProps {
+  x: number;
+  y: number;
+  file?: RcloneFile;
+  onClose: () => void;
+  onNewFolder: () => void;
+  onRename: (name: string) => void;
+  onDelete: () => void;
+  onCopy: () => void;
+  onMove: () => void;
+}
+
+export function ContextMenu({ x, y, file, onClose, onNewFolder, onRename, onDelete, onCopy, onMove }: ContextMenuProps) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        onClose();
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [onClose]);
+
+  // Adjust position so menu doesn't overflow
+  const style: React.CSSProperties = {
+    position: 'fixed',
+    left: x,
+    top: y,
+    zIndex: 100,
+  };
+
+  const Item = ({ icon: Icon, label, onClick, danger }: { icon: LucideIcon; label: string; onClick: () => void; danger?: boolean }) => (
+    <button
+      className={`flex items-center gap-2 w-full px-3 py-1.5 text-xs text-left hover:bg-surface-overlay transition-colors ${
+        danger ? 'text-danger' : 'text-text'
+      }`}
+      onClick={onClick}
+    >
+      <Icon size={14} />
+      {label}
+    </button>
+  );
+
+  return (
+    <div ref={ref} style={style} className="bg-surface-raised border border-border rounded-lg shadow-xl py-1 min-w-[160px]">
+      <Item icon={FolderPlus} label="새 폴더" onClick={onNewFolder} />
+      {file && (
+        <>
+          <div className="border-t border-border my-1" />
+          <Item icon={Copy} label="반대편에 복사" onClick={onCopy} />
+          <Item icon={Move} label="반대편으로 이동" onClick={onMove} />
+          <Item icon={Edit3} label="이름 변경" onClick={() => onRename(file.Name)} />
+          <div className="border-t border-border my-1" />
+          <Item icon={Trash2} label="삭제" onClick={onDelete} danger />
+        </>
+      )}
+    </div>
+  );
+}
