@@ -8,6 +8,7 @@ import { SettingsModal } from './components/settings/SettingsModal';
 import { useRclone, usePanelFiles } from './hooks/useRclone';
 import { useTransferPolling } from './hooks/useTransferPolling';
 import { usePanelStore } from './stores/panelStore';
+import { useI18n, type Locale } from './lib/i18n';
 import { GripHorizontal } from 'lucide-react';
 
 export default function App() {
@@ -40,6 +41,13 @@ export default function App() {
   }, [transferHeight]);
 
   useEffect(() => {
+    // Load saved locale
+    window.rcloneAPI.loadSettings().then((saved) => {
+      if (saved && saved.locale) {
+        useI18n.getState().setLocale(saved.locale as Locale);
+      }
+    });
+
     loadRemotes();
     // Set left panel to user's home directory
     window.rcloneAPI.getHomeDir().then((home) => {

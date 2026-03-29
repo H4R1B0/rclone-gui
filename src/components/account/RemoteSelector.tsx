@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { usePanelStore } from '../../stores/panelStore';
 import { Loader2, Plus } from 'lucide-react';
 import { ProviderIconSvg } from '../common/ProviderIconSvg';
+import { useT } from '../../lib/i18n';
 
 interface RemoteSelectorProps {
   onSelect: (remote: string) => void;
@@ -11,6 +12,7 @@ interface RemoteSelectorProps {
 export function RemoteSelector({ onSelect, onAddAccount }: RemoteSelectorProps) {
   const remotes = usePanelStore((s) => s.remotes);
   const loading = usePanelStore((s) => s.remotesLoading);
+  const t = useT();
   const [types, setTypes] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -66,14 +68,14 @@ export function RemoteSelector({ onSelect, onAddAccount }: RemoteSelectorProps) 
             <div className="w-6 h-6 rounded-full bg-accent/15 flex items-center justify-center flex-shrink-0">
               <Plus size={14} className="text-accent" />
             </div>
-            <span className="text-sm text-text-muted">클라우드 연결</span>
+            <span className="text-sm text-text-muted">{t('remote.connect')}</span>
           </button>
         )}
       </div>
 
       {remotes.length === 0 && (
         <div className="text-center py-6 text-text-muted text-xs">
-          연결된 클라우드가 없습니다
+          {t('remote.noCloud')}
         </div>
       )}
     </div>

@@ -5,6 +5,7 @@ import { useFileOperations } from '../../hooks/useFileOperations';
 import { FileItem } from './FileItem';
 import { ContextMenu } from './ContextMenu';
 import { ArrowUp } from 'lucide-react';
+import { useT } from '../../lib/i18n';
 
 interface FileListProps {
   side: 'left' | 'right';
@@ -17,6 +18,7 @@ export function FileList({ side }: FileListProps) {
   const clearSelection = usePanelStore((s) => s.clearSelection);
   const { navigate, goUp, refresh } = usePanelFiles(side);
   const { createFolder, rename } = useFileOperations(side);
+  const t = useT();
 
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; file: RcloneFile } | null>(null);
   const [renamingFile, setRenamingFile] = useState<string | null>(null);
@@ -182,15 +184,15 @@ export function FileList({ side }: FileListProps) {
     >
       {/* Column headers */}
       <div className="grid grid-cols-[1fr_100px_160px] gap-2 px-3 py-1.5 border-b border-border bg-surface-raised">
-        <SortHeader label="이름" field="name" />
-        <SortHeader label="크기" field="size" />
-        <SortHeader label="수정일" field="date" />
+        <SortHeader label={t('file.name')} field="name" />
+        <SortHeader label={t('file.size')} field="size" />
+        <SortHeader label={t('file.modified')} field="date" />
       </div>
 
       {/* Drag hint */}
       {dragOver && (
         <div className="px-3 py-1 bg-accent/20 text-accent text-[11px] text-center border-b border-accent/30">
-          여기에 놓기 — 드롭: 복사 / Option+드롭: 이동
+          {t('file.dropHint')}
         </div>
       )}
 
@@ -214,7 +216,7 @@ export function FileList({ side }: FileListProps) {
             <input
               autoFocus
               className="bg-surface-overlay border border-accent rounded px-2 py-1 text-xs text-text w-60 outline-none"
-              placeholder="새 폴더 이름"
+              placeholder={t('file.newFolderName')}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleNewFolder((e.target as HTMLInputElement).value);
                 if (e.key === 'Escape') setNewFolderMode(false);
@@ -239,7 +241,7 @@ export function FileList({ side }: FileListProps) {
 
         {sorted.length === 0 && !panel.loading && (
           <div className="flex items-center justify-center h-32 text-text-muted text-sm">
-            빈 폴더
+            {t('file.emptyFolder')}
           </div>
         )}
       </div>

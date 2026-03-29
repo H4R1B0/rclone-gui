@@ -6,10 +6,12 @@ import {
   RotateCcw, StopCircle,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { useT } from '../../lib/i18n';
 
 type Tab = 'active' | 'completed' | 'errors';
 
 export function TransferQueue() {
+  const t = useT();
   const {
     transfers, completed, stopped, jobIds, totalSpeed, totalTransfers, doneTransfers,
     paused, setPaused, clearCompleted, clearStopped, addStopped, removeStopped,
@@ -148,20 +150,20 @@ export function TransferQueue() {
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-1.5 border-b border-border">
         <div className="flex items-center gap-1">
-          <TabBtn id="active" label="진행" count={activeCount} icon={ArrowDownUp} />
-          <TabBtn id="completed" label="완료" count={successList.length} icon={CheckCircle2} />
-          <TabBtn id="errors" label="오류" count={errorList.length} icon={AlertCircle} />
+          <TabBtn id="active" label={t('transfer.active')} count={activeCount} icon={ArrowDownUp} />
+          <TabBtn id="completed" label={t('transfer.completed')} count={successList.length} icon={CheckCircle2} />
+          <TabBtn id="errors" label={t('transfer.errors')} count={errorList.length} icon={AlertCircle} />
         </div>
         <div className="flex items-center gap-1">
           {totalTransfers > 0 && <span className="text-[11px] text-text-muted mr-2">{doneTransfers}/{totalTransfers}</span>}
           {totalSpeed > 0 && <span className="text-[11px] text-accent mr-2">{formatSpeed(totalSpeed)}</span>}
-          <button onClick={togglePause} className={`p-1 rounded transition-colors ${paused ? 'text-warning hover:bg-warning/20' : 'text-text-muted hover:bg-surface-overlay hover:text-text'}`} title={paused ? '전체 재개' : '전체 일시정지'}>
+          <button onClick={togglePause} className={`p-1 rounded transition-colors ${paused ? 'text-warning hover:bg-warning/20' : 'text-text-muted hover:bg-surface-overlay hover:text-text'}`} title={paused ? t('transfer.resumeAll') : t('transfer.pauseAll')}>
             {paused ? <Play size={14} /> : <Pause size={14} />}
           </button>
-          <button onClick={stopAllJobs} className="p-1 rounded text-text-muted hover:bg-surface-overlay hover:text-danger transition-colors" title="전체 중지">
+          <button onClick={stopAllJobs} className="p-1 rounded text-text-muted hover:bg-surface-overlay hover:text-danger transition-colors" title={t('transfer.stopAll')}>
             <XCircle size={14} />
           </button>
-          <button onClick={clearHistory} className="p-1 rounded text-text-muted hover:bg-surface-overlay hover:text-text transition-colors" title="완료/중지 이력 삭제">
+          <button onClick={clearHistory} className="p-1 rounded text-text-muted hover:bg-surface-overlay hover:text-text transition-colors" title={t('transfer.clearHistory')}>
             <Trash2 size={14} />
           </button>
         </div>
@@ -169,8 +171,8 @@ export function TransferQueue() {
 
       {paused && (
         <div className="px-3 py-1 bg-warning/10 border-b border-warning/30 flex items-center justify-between">
-          <span className="text-[11px] text-warning flex items-center gap-1"><Pause size={11} /> 전송이 일시정지되었습니다</span>
-          <button onClick={togglePause} className="text-[11px] text-warning hover:text-warning/80 flex items-center gap-1"><Play size={11} /> 재개</button>
+          <span className="text-[11px] text-warning flex items-center gap-1"><Pause size={11} /> {t('transfer.paused')}</span>
+          <button onClick={togglePause} className="text-[11px] text-warning hover:text-warning/80 flex items-center gap-1"><Play size={11} /> {t('transfer.resume')}</button>
         </div>
       )}
 
@@ -178,7 +180,7 @@ export function TransferQueue() {
       <div className="flex-1 overflow-y-auto min-h-0" onClick={() => { setSelectedIdx(null); setCtxPos(null); }}>
         {/* Active tab */}
         {tab === 'active' && (
-          activeCount === 0 ? <Empty text="진행 중인 전송이 없습니다" /> : (
+          activeCount === 0 ? <Empty text={t('transfer.noActive')} /> : (
             <>
               {transfers.map((t, i) => (
                 <div
@@ -215,7 +217,7 @@ export function TransferQueue() {
                         <StopCircle size={13} className="text-text-muted flex-shrink-0" />
                         <span className="text-xs text-text-muted truncate">{s.name}</span>
                       </div>
-                      <span className="text-[11px] text-text-muted flex-shrink-0">{formatBytes(s.size)} · 중지됨</span>
+                      <span className="text-[11px] text-text-muted flex-shrink-0">{formatBytes(s.size)} · {t('transfer.stopped')}</span>
                     </div>
                   </div>
                 );
@@ -226,7 +228,7 @@ export function TransferQueue() {
 
         {/* Completed tab */}
         {tab === 'completed' && (
-          successList.length === 0 ? <Empty text="완료된 전송이 없습니다" /> : (
+          successList.length === 0 ? <Empty text={t('transfer.noCompleted')} /> : (
             successList.map((c, i) => (
               <div
                 key={`${c.name}-${i}`}
@@ -244,7 +246,7 @@ export function TransferQueue() {
 
         {/* Errors tab */}
         {tab === 'errors' && (
-          errorList.length === 0 ? <Empty text="오류가 없습니다" /> : (
+          errorList.length === 0 ? <Empty text={t('transfer.noErrors')} /> : (
             errorList.map((c, i) => (
               <div
                 key={`${c.name}-${i}`}
@@ -271,19 +273,19 @@ export function TransferQueue() {
           className="bg-surface-raised border border-border rounded-lg shadow-xl py-1 min-w-[160px]"
         >
           {actions.type === 'running' && (
-            <CtxItem icon={StopCircle} label="전송 중지" danger onClick={() => { stopSingleJob(actions.item); closeCtx(); }} />
+            <CtxItem icon={StopCircle} label={t('transfer.stop')} danger onClick={() => { stopSingleJob(actions.item); closeCtx(); }} />
           )}
           {actions.type === 'stopped' && (
             <>
-              <CtxItem icon={RotateCcw} label="재시작" onClick={() => { restartTransfer(actions.item); closeCtx(); }} />
-              <CtxItem icon={Trash2} label="목록에서 제거" danger onClick={() => { removeStopped(actions.item.group); closeCtx(); }} />
+              <CtxItem icon={RotateCcw} label={t('transfer.restart')} onClick={() => { restartTransfer(actions.item); closeCtx(); }} />
+              <CtxItem icon={Trash2} label={t('transfer.removeFromList')} danger onClick={() => { removeStopped(actions.item.group); closeCtx(); }} />
             </>
           )}
           {actions.type === 'completed' && (
-            <CtxItem icon={Trash2} label="완료 목록 비우기" onClick={() => { clearCompleted(); closeCtx(); }} />
+            <CtxItem icon={Trash2} label={t('transfer.clearCompleted')} onClick={() => { clearCompleted(); closeCtx(); }} />
           )}
           {actions.type === 'errors' && (
-            <CtxItem icon={Trash2} label="오류 목록 비우기" onClick={() => { clearCompleted(); closeCtx(); }} />
+            <CtxItem icon={Trash2} label={t('transfer.clearErrors')} onClick={() => { clearCompleted(); closeCtx(); }} />
           )}
         </div>
       )}

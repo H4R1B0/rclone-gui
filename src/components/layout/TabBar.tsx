@@ -1,5 +1,6 @@
 import { usePanelStore } from '../../stores/panelStore';
 import { Plus, X } from 'lucide-react';
+import { useT } from '../../lib/i18n';
 
 interface TabBarProps {
   side: 'left' | 'right';
@@ -11,13 +12,20 @@ export function TabBar({ side }: TabBarProps) {
   const closeTab = usePanelStore((s) => s.closeTab);
   const addTab = usePanelStore((s) => s.addTab);
   const panel = usePanelStore((s) => s[side]);
+  const t = useT();
+
+  const displayLabel = (label: string) => {
+    if (label === 'local') return t('panel.myPc');
+    if (label === 'cloud') return t('panel.cloud');
+    return label;
+  };
 
   const handleAddTab = () => {
     // New tab inherits current panel mode
     if (panel.mode === 'local') {
-      addTab(side, 'local', '/', '', '내 PC');
+      addTab(side, 'local', '/', '', 'local');
     } else {
-      addTab(side, 'cloud', '', '', '클라우드');
+      addTab(side, 'cloud', '', '', 'cloud');
     }
   };
 
@@ -29,7 +37,7 @@ export function TabBar({ side }: TabBarProps) {
         <button
           onClick={handleAddTab}
           className="px-2 py-1 text-text-muted hover:text-accent hover:bg-surface-overlay transition-colors"
-          title="새 탭"
+          title={t('panel.newTab')}
         >
           <Plus size={12} />
         </button>
@@ -43,7 +51,7 @@ export function TabBar({ side }: TabBarProps) {
         const isActive = tab.id === sideState.activeTabId;
         const label = tab.remote
           ? (tab.path ? tab.path.split('/').pop() : tab.remote)
-          : tab.label;
+          : displayLabel(tab.label);
 
         return (
           <div
@@ -70,7 +78,7 @@ export function TabBar({ side }: TabBarProps) {
       <button
         onClick={handleAddTab}
         className="px-2 py-1.5 text-text-muted hover:text-accent hover:bg-surface-overlay transition-colors flex-shrink-0"
-        title="새 탭"
+        title={t('panel.newTab')}
       >
         <Plus size={12} />
       </button>

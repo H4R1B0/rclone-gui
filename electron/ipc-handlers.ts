@@ -12,6 +12,11 @@ export function registerIpcHandlers(ipcMain: IpcMain, daemon: RcloneDaemon) {
     return app.getPath('home');
   });
 
+  ipcMain.handle('system:restart', () => {
+    app.relaunch();
+    app.exit(0);
+  });
+
   // --- rclone binary info ---
   ipcMain.handle('rclone:version', () => {
     const info = daemon.info;

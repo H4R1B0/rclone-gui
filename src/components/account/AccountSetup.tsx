@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { X, Loader2, Trash2, Pencil, Search, ChevronLeft, Save, Eye, EyeOff } from 'lucide-react';
 import { usePanelStore } from '../../stores/panelStore';
 import { ProviderIconSvg } from '../common/ProviderIconSvg';
+import { useT } from '../../lib/i18n';
 
 interface AccountSetupProps {
   onClose: () => void;
@@ -28,6 +29,7 @@ interface ProviderDef {
 type Step = 'list' | 'pick-provider' | 'create' | 'edit';
 
 export function AccountSetup({ onClose }: AccountSetupProps) {
+  const t = useT();
   const [providers, setProviders] = useState<ProviderDef[]>([]);
   const [loading, setLoading] = useState(true);
   const [step, setStep] = useState<Step>('list');
@@ -101,7 +103,7 @@ export function AccountSetup({ onClose }: AccountSetupProps) {
   };
 
   const handleDelete = async (name: string) => {
-    if (!confirm(`"${name}" 계정을 삭제하시겠습니까?`)) return;
+    if (!confirm(`"${name}" ${t('account.confirmDelete')}`)) return;
     try {
       await window.rcloneAPI.deleteRemote(name);
       const newRemotes = await window.rcloneAPI.listRemotes();
@@ -165,10 +167,10 @@ export function AccountSetup({ onClose }: AccountSetupProps) {
 
   const title = (() => {
     switch (step) {
-      case 'list': return '클라우드 계정 관리';
-      case 'pick-provider': return '서비스 선택';
-      case 'create': return `새 계정 — ${selectedProvider?.Name ?? ''}`;
-      case 'edit': return `계정 수정 — ${editingRemote ?? ''}`;
+      case 'list': return t('account.manage');
+      case 'pick-provider': return t('account.selectService');
+      case 'create': return `${t('account.newAccount')} — ${selectedProvider?.Name ?? ''}`;
+      case 'edit': return `${t('account.editAccount')} — ${editingRemote ?? ''}`;
     }
   })();
 
@@ -202,11 +204,11 @@ export function AccountSetup({ onClose }: AccountSetupProps) {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 text-text-muted text-sm">등록된 계정이 없습니다</div>
+                <div className="text-center py-8 text-text-muted text-sm">{t('account.noAccounts')}</div>
               )}
               {error && <p className="text-xs text-danger">{error}</p>}
               <button onClick={() => setStep('pick-provider')} className="w-full py-2.5 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm transition-colors">
-                + 새 클라우드 추가
+                {t('account.addCloud')}
               </button>
             </div>
           )}
@@ -219,7 +221,7 @@ export function AccountSetup({ onClose }: AccountSetupProps) {
                 <input
                   autoFocus
                   className="w-full pl-9 pr-3 py-2 rounded-lg bg-surface-overlay border border-border focus:border-accent text-xs text-text outline-none"
-                  placeholder="서비스 검색..."
+                  placeholder={t('account.searchService')}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
@@ -227,7 +229,7 @@ export function AccountSetup({ onClose }: AccountSetupProps) {
               {loading ? (
                 <div className="flex justify-center py-8"><Loader2 className="animate-spin text-accent" size={24} /></div>
               ) : filteredProviders.length === 0 ? (
-                <div className="text-center py-8 text-text-muted text-sm">일치하는 서비스가 없습니다</div>
+                <div className="text-center py-8 text-text-muted text-sm">{t('account.noMatch')}</div>
               ) : (
                 <div className="grid grid-cols-2 gap-1.5 max-h-[50vh] overflow-y-auto">
                   {filteredProviders.map((p) => (
@@ -255,16 +257,16 @@ export function AccountSetup({ onClose }: AccountSetupProps) {
 
               <div>
                 <label className="text-xs text-text block mb-1">
-                  리모트 이름 <span className="text-danger">*</span>
+                  {t('account.remoteName')} <span className="text-danger">*</span>
                 </label>
                 <input
                   autoFocus
                   className="w-full px-3 py-2 rounded bg-surface-overlay border border-border focus:border-accent text-sm text-text outline-none"
-                  placeholder="예: my-pikpak"
+                  placeholder={t('account.remoteNamePlaceholder')}
                   value={remoteName}
                   onChange={(e) => setRemoteName(e.target.value)}
                 />
-                <p className="text-[10px] text-text-muted mt-1">rclone에서 이 계정을 식별하는 이름</p>
+                <p className="text-[10px] text-text-muted mt-1">{t('account.remoteNameDesc')}</p>
               </div>
 
               {/* Provider-specific fields */}
@@ -286,7 +288,7 @@ export function AccountSetup({ onClose }: AccountSetupProps) {
                   onClick={() => setShowAdvanced((v) => !v)}
                   className="text-xs text-accent hover:text-accent-hover"
                 >
-                  {showAdvanced ? '- 고급 설정 숨기기' : '+ 고급 설정 보기'}
+                  {showAdvanced ? t('account.hideAdvanced') : t('account.showAdvanced')}
                 </button>
               )}
 
@@ -299,11 +301,11 @@ export function AccountSetup({ onClose }: AccountSetupProps) {
             <div className="space-y-4">
               <div className="flex items-center gap-3 px-3 py-2 rounded bg-surface-overlay">
                 <ProviderIconSvg prefix={editType} size={22} />
-                <div className="text-[10px] text-text-muted">타입: {editType}</div>
+                <div className="text-[10px] text-text-muted">{t('common.type')}: {editType}</div>
               </div>
 
               <div>
-                <label className="text-xs text-text block mb-1">리모트 이름</label>
+                <label className="text-xs text-text block mb-1">{t('account.remoteName')}</label>
                 <input
                   className="w-full px-3 py-1.5 rounded bg-surface-overlay border border-border focus:border-accent text-sm text-text outline-none"
                   value={editName}
@@ -330,7 +332,7 @@ export function AccountSetup({ onClose }: AccountSetupProps) {
                 })}
 
                 {Object.keys(editConfig).length === 0 && (
-                  <div className="text-xs text-text-muted text-center py-4">설정 항목이 없습니다 (기본값 사용 중)</div>
+                  <div className="text-xs text-text-muted text-center py-4">{t('account.noSettings')}</div>
                 )}
 
                 <AddConfigField onAdd={(key, val) => setEditConfig((prev) => ({ ...prev, [key]: val }))} />
@@ -350,7 +352,7 @@ export function AccountSetup({ onClose }: AccountSetupProps) {
               className="flex items-center gap-1.5 px-4 py-2 text-xs rounded bg-accent hover:bg-accent-hover text-white disabled:opacity-50 transition-colors"
             >
               {saving ? <Loader2 size={12} className="animate-spin" /> : null}
-              {saving ? '연결 중...' : '연결'}
+              {saving ? t('account.connecting') : t('account.connect')}
             </button>
           )}
           {step === 'edit' && (
@@ -360,11 +362,11 @@ export function AccountSetup({ onClose }: AccountSetupProps) {
               className="flex items-center gap-1.5 px-4 py-2 text-xs rounded bg-accent hover:bg-accent-hover text-white disabled:opacity-50 transition-colors"
             >
               <Save size={12} />
-              {saving ? '저장 중...' : '저장'}
+              {saving ? t('common.saving') : t('common.save')}
             </button>
           )}
           {step === 'list' && (
-            <button onClick={onClose} className="px-4 py-2 text-xs text-text-muted hover:text-text">닫기</button>
+            <button onClick={onClose} className="px-4 py-2 text-xs text-text-muted hover:text-text">{t('common.close')}</button>
           )}
         </div>
       </div>
@@ -374,6 +376,7 @@ export function AccountSetup({ onClose }: AccountSetupProps) {
 
 // --- Option field for create ---
 function OptionField({ field, value, onChange }: { field: ProviderOptionField; value: string; onChange: (v: string) => void }) {
+  const t = useT();
   const [showPassword, setShowPassword] = useState(false);
 
   // If field has examples as an enum-like list, show a select
@@ -384,7 +387,7 @@ function OptionField({ field, value, onChange }: { field: ProviderOptionField; v
       <label className="text-xs text-text block mb-1">
         {field.Name}
         {field.Required && <span className="text-danger ml-0.5">*</span>}
-        {field.Advanced && <span className="text-text-muted ml-1 text-[10px]">(고급)</span>}
+        {field.Advanced && <span className="text-text-muted ml-1 text-[10px]">({t('common.advanced')})</span>}
       </label>
 
       {hasExamples && !field.IsPassword ? (
@@ -393,7 +396,7 @@ function OptionField({ field, value, onChange }: { field: ProviderOptionField; v
           value={value}
           onChange={(e) => onChange(e.target.value)}
         >
-          <option value="">선택...</option>
+          <option value="">{t('common.select')}</option>
           {field.Examples!.map((ex) => (
             <option key={ex.Value} value={ex.Value}>
               {ex.Value}{ex.Help ? ` — ${ex.Help}` : ''}
@@ -460,6 +463,7 @@ function EditField({ name, value, help, isPassword, onChange }: { name: string; 
 // --- Sub-components ---
 
 function RemoteRow({ name, providers, onEdit, onDelete }: { name: string; providers: ProviderDef[]; onEdit: () => void; onDelete: () => void }) {
+  const t = useT();
   const [type, setType] = useState('');
 
   useEffect(() => {
@@ -478,10 +482,10 @@ function RemoteRow({ name, providers, onEdit, onDelete }: { name: string; provid
         <div className="text-[10px] text-text-muted">{providerName}</div>
       </div>
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button onClick={onEdit} className="p-1.5 rounded hover:bg-border text-text-muted hover:text-accent transition-colors" title="수정">
+        <button onClick={onEdit} className="p-1.5 rounded hover:bg-border text-text-muted hover:text-accent transition-colors" title={t('common.edit')}>
           <Pencil size={13} />
         </button>
-        <button onClick={onDelete} className="p-1.5 rounded hover:bg-border text-text-muted hover:text-danger transition-colors" title="삭제">
+        <button onClick={onDelete} className="p-1.5 rounded hover:bg-border text-text-muted hover:text-danger transition-colors" title={t('common.delete')}>
           <Trash2 size={13} />
         </button>
       </div>
@@ -502,6 +506,7 @@ function ProviderHeader({ provider }: { provider: ProviderDef }) {
 }
 
 function AddConfigField({ onAdd }: { onAdd: (key: string, val: string) => void }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [key, setKey] = useState('');
   const [val, setVal] = useState('');
@@ -511,21 +516,21 @@ function AddConfigField({ onAdd }: { onAdd: (key: string, val: string) => void }
   };
 
   if (!open) {
-    return <button onClick={() => setOpen(true)} className="text-xs text-accent hover:text-accent-hover">+ 설정 항목 추가</button>;
+    return <button onClick={() => setOpen(true)} className="text-xs text-accent hover:text-accent-hover">{t('account.addField')}</button>;
   }
 
   return (
     <div className="flex items-end gap-2">
       <div className="flex-1">
-        <label className="text-[10px] text-text-muted block mb-0.5">키</label>
+        <label className="text-[10px] text-text-muted block mb-0.5">{t('common.key')}</label>
         <input autoFocus className="w-full px-2 py-1 rounded bg-surface-overlay border border-border focus:border-accent text-xs text-text outline-none font-mono" placeholder="token" value={key} onChange={(e) => setKey(e.target.value)} />
       </div>
       <div className="flex-1">
-        <label className="text-[10px] text-text-muted block mb-0.5">값</label>
+        <label className="text-[10px] text-text-muted block mb-0.5">{t('common.value')}</label>
         <input className="w-full px-2 py-1 rounded bg-surface-overlay border border-border focus:border-accent text-xs text-text outline-none font-mono" value={val} onChange={(e) => setVal(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()} />
       </div>
-      <button onClick={submit} className="px-2 py-1 text-xs rounded bg-accent text-white hover:bg-accent-hover">추가</button>
-      <button onClick={() => setOpen(false)} className="px-2 py-1 text-xs text-text-muted hover:text-text">취소</button>
+      <button onClick={submit} className="px-2 py-1 text-xs rounded bg-accent text-white hover:bg-accent-hover">{t('common.add')}</button>
+      <button onClick={() => setOpen(false)} className="px-2 py-1 text-xs text-text-muted hover:text-text">{t('common.cancel')}</button>
     </div>
   );
 }

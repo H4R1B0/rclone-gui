@@ -41,12 +41,12 @@ function makeTab(mode: PanelMode, remote: string, path: string, label: string): 
 }
 
 const leftInit: SideState = (() => {
-  const tab = makeTab('local', '/', '', '내 PC');
+  const tab = makeTab('local', '/', '', 'local');
   return { tabs: [tab], activeTabId: tab.id };
 })();
 
 const rightInit: SideState = (() => {
-  const tab = makeTab('cloud', '', '', '클라우드');
+  const tab = makeTab('cloud', '', '', 'cloud');
   return { tabs: [tab], activeTabId: tab.id };
 })();
 
@@ -124,7 +124,7 @@ export const usePanelStore = create<DualPanelStore>((set) => ({
         files: [],
         selectedFiles: new Set(),
         error: null,
-        label: remote === '/' ? '내 PC' : remote === '' ? '클라우드' : remote,
+        label: remote === '/' ? 'local' : remote === '' ? 'cloud' : remote,
       }));
       const next = { ...s, [key]: updated };
       return { ...next, ...recompute(next) };

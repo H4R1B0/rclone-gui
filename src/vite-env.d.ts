@@ -3,6 +3,7 @@
 interface RcloneAPI {
   // system
   getHomeDir: () => Promise<string>;
+  restartApp: () => Promise<void>;
 
   // rclone binary
   getRcloneVersion: () => Promise<{ version: string; path: string; source: 'system' | 'bundled' }>;

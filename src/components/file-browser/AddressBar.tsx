@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { ChevronRight, Monitor, Cloud, ChevronUp } from 'lucide-react';
 import { usePanelStore } from '../../stores/panelStore';
 import { usePanelFiles } from '../../hooks/useRclone';
+import { useT } from '../../lib/i18n';
 
 interface AddressBarProps {
   side: 'left' | 'right';
@@ -11,6 +12,7 @@ export function AddressBar({ side }: AddressBarProps) {
   const panel = usePanelStore((s) => s[side]);
   const setRemote = usePanelStore((s) => s.setRemote);
   const { loadFiles, goUp } = usePanelFiles(side);
+  const t = useT();
   const [editing, setEditing] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -84,7 +86,7 @@ export function AddressBar({ side }: AddressBarProps) {
       <button
         onClick={goUp}
         className="px-2 py-2.5 text-text-muted hover:text-accent hover:bg-surface-overlay transition-colors"
-        title="상위 폴더"
+        title={t('panel.parentFolder')}
       >
         <ChevronUp size={14} />
       </button>
@@ -112,10 +114,10 @@ export function AddressBar({ side }: AddressBarProps) {
             <button
               onClick={(e) => { e.stopPropagation(); isLocal ? goToRoot() : goToCloudHome(); }}
               className="flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-surface-overlay text-text-muted hover:text-accent flex-shrink-0 transition-colors"
-              title={isLocal ? '/ (루트)' : '클라우드 선택'}
+              title={isLocal ? t('panel.root') : t('panel.cloudSelect')}
             >
               {isLocal ? <Monitor size={13} /> : <Cloud size={13} />}
-              <span>{isLocal ? '내 PC' : panel.remote}</span>
+              <span>{isLocal ? t('panel.myPc') : panel.remote}</span>
             </button>
 
             {/* Path segments */}

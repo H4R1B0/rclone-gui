@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { Copy, Trash2, Edit3 } from 'lucide-react';
+import { useT } from '../../lib/i18n';
 
 interface ContextMenuProps {
   x: number;
@@ -14,6 +15,7 @@ interface ContextMenuProps {
 
 export function ContextMenu({ x, y, file, onClose, onRename, onDelete, onCopy }: ContextMenuProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const t = useT();
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -46,10 +48,10 @@ export function ContextMenu({ x, y, file, onClose, onRename, onDelete, onCopy }:
 
   return (
     <div ref={ref} style={style} className="bg-surface-raised border border-border rounded-lg shadow-xl py-1 min-w-[160px]">
-      <Item icon={Edit3} label="이름 변경" onClick={() => onRename(file.Name)} />
-      <Item icon={Copy} label="반대편에 복사" onClick={() => onCopy(file.Name)} />
+      <Item icon={Edit3} label={t('ctx.rename')} onClick={() => onRename(file.Name)} />
+      <Item icon={Copy} label={t('ctx.copyToOther')} onClick={() => onCopy(file.Name)} />
       <div className="border-t border-border my-1" />
-      <Item icon={Trash2} label="삭제" onClick={() => onDelete(file.Name)} danger />
+      <Item icon={Trash2} label={t('common.delete')} onClick={() => onDelete(file.Name)} danger />
     </div>
   );
 }
