@@ -41,6 +41,7 @@ export function AccountSetup({ onClose }: AccountSetupProps) {
 
   // For edit mode
   const [editingRemote, setEditingRemote] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
   const [editConfig, setEditConfig] = useState<Record<string, string>>({});
   const [editType, setEditType] = useState('');
 
@@ -115,6 +116,7 @@ export function AccountSetup({ onClose }: AccountSetupProps) {
     try {
       const config = await window.rcloneAPI.getRemoteConfig(name) as Record<string, string>;
       setEditingRemote(name);
+      setEditName(name);
       setEditType(config.type ?? '');
       const { type: _type, ...rest } = config;
       setEditConfig(rest);
@@ -125,12 +127,12 @@ export function AccountSetup({ onClose }: AccountSetupProps) {
   };
 
   const handleSaveEdit = async () => {
-    if (!editingRemote) return;
+    if (!editingRemote || !editName.trim()) return;
     setSaving(true);
     setError('');
     try {
       await window.rcloneAPI.deleteRemote(editingRemote);
-      await window.rcloneAPI.createRemote(editingRemote, editType, editConfig);
+      await window.rcloneAPI.createRemote(editName.trim(), editType, editConfig);
       const newRemotes = await window.rcloneAPI.listRemotes();
       usePanelStore.getState().setRemotes(newRemotes);
       goBack();
@@ -154,6 +156,7 @@ export function AccountSetup({ onClose }: AccountSetupProps) {
     setRemoteName('');
     setCreateParams({});
     setEditingRemote(null);
+    setEditName('');
     setEditConfig({});
     setSearch('');
     setError('');
@@ -296,10 +299,16 @@ export function AccountSetup({ onClose }: AccountSetupProps) {
             <div className="space-y-4">
               <div className="flex items-center gap-3 px-3 py-2 rounded bg-surface-overlay">
                 <ProviderIconSvg prefix={editType} size={22} />
-                <div>
-                  <div className="text-xs text-text font-medium">{editingRemote}</div>
-                  <div className="text-[10px] text-text-muted">타입: {editType}</div>
-                </div>
+                <div className="text-[10px] text-text-muted">타입: {editType}</div>
+              </div>
+
+              <div>
+                <label className="text-xs text-text block mb-1">리모트 이름</label>
+                <input
+                  className="w-full px-3 py-1.5 rounded bg-surface-overlay border border-border focus:border-accent text-sm text-text outline-none"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                />
               </div>
 
               <div className="space-y-3">
@@ -347,7 +356,7 @@ export function AccountSetup({ onClose }: AccountSetupProps) {
           {step === 'edit' && (
             <button
               onClick={handleSaveEdit}
-              disabled={saving}
+              disabled={saving || !editName.trim()}
               className="flex items-center gap-1.5 px-4 py-2 text-xs rounded bg-accent hover:bg-accent-hover text-white disabled:opacity-50 transition-colors"
             >
               <Save size={12} />
