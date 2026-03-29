@@ -1,6 +1,6 @@
 {
   "name": "rclone-gui",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "rclone 기반 멀티 클라우드 파일 매니저 GUI",
   "main": "dist-electron/main.js",
   "author": "rclone-gui",

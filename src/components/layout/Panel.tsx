@@ -5,6 +5,7 @@ import { RemoteSelector } from '../account/RemoteSelector';
 import { AccountSetup } from '../account/AccountSetup';
 import { AddressBar } from '../file-browser/AddressBar';
 import { FileList } from '../file-browser/FileList';
+import { TabBar } from './TabBar';
 import { Loader2 } from 'lucide-react';
 
 interface PanelProps {
@@ -22,49 +23,46 @@ export function Panel({ side }: PanelProps) {
 
   const isActive = activePanel === side;
 
+  // Reload files when active tab's remote changes
   useEffect(() => {
     if (panel.remote) {
       loadFiles(panel.remote, panel.path);
     }
-  }, [panel.remote]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Cloud panel: show remote selector if no remote selected
-  if (panel.mode === 'cloud' && !panel.remote) {
-    return (
-      <div
-        className={`h-full flex flex-col min-h-0 bg-surface ${isActive ? 'ring-1 ring-accent/50' : ''}`}
-        onClick={() => setActivePanel(side)}
-      >
-        <div className="p-3 bg-surface-raised border-b border-border flex-shrink-0">
-          <span className="text-xs text-text-muted">클라우드 선택</span>
-        </div>
-        <RemoteSelector
-          onSelect={(remote) => setRemote(side, remote)}
-          onAddAccount={() => setShowAccountSetup(true)}
-        />
-        {showAccountSetup && (
-          <AccountSetup onClose={() => { setShowAccountSetup(false); loadRemotes(); }} />
-        )}
-      </div>
-    );
-  }
+  }, [panel.remote, panel.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div
       className={`h-full flex flex-col min-h-0 bg-surface ${isActive ? 'ring-1 ring-accent/50' : ''}`}
       onClick={() => setActivePanel(side)}
     >
-      <AddressBar side={side} />
-      {panel.loading ? (
-        <div className="flex-1 flex items-center justify-center">
-          <Loader2 className="animate-spin text-accent" size={24} />
-        </div>
-      ) : panel.error ? (
-        <div className="flex-1 flex items-center justify-center text-danger text-sm px-4 text-center">
-          {panel.error}
-        </div>
+      <TabBar side={side} />
+
+      {/* Cloud panel: show remote selector if no remote selected */}
+      {panel.mode === 'cloud' && !panel.remote ? (
+        <>
+          <RemoteSelector
+            onSelect={(remote) => setRemote(side, remote)}
+            onAddAccount={() => setShowAccountSetup(true)}
+          />
+          {showAccountSetup && (
+            <AccountSetup onClose={() => { setShowAccountSetup(false); loadRemotes(); }} />
+          )}
+        </>
       ) : (
-        <FileList side={side} />
+        <>
+          <AddressBar side={side} />
+          {panel.loading ? (
+            <div className="flex-1 flex items-center justify-center">
+              <Loader2 className="animate-spin text-accent" size={24} />
+            </div>
+          ) : panel.error ? (
+            <div className="flex-1 flex items-center justify-center text-danger text-sm px-4 text-center">
+              {panel.error}
+            </div>
+          ) : (
+            <FileList side={side} />
+          )}
+        </>
       )}
     </div>
   );
