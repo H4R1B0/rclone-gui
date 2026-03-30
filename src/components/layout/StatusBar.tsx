@@ -5,7 +5,7 @@ import { useT } from '../../lib/i18n';
 import { Bell, X } from 'lucide-react';
 
 export function StatusBar() {
-  const { transfers, totalSpeed, errors, completed, lastErrors } = useTransferStore();
+  const { transfers, totalSpeed, completed, lastErrors } = useTransferStore();
   const t = useT();
   const [rcloneInfo, setRcloneInfo] = useState<{ version: string; source: string } | null>(null);
   const [showErrors, setShowErrors] = useState(false);
@@ -42,13 +42,13 @@ export function StatusBar() {
             {transfers.length}{t('transfer.count')} · {formatSpeed(totalSpeed)}
           </span>
         )}
-        {(errors > 0 || errorList.length > 0) && (
+        {(errorList.length > 0 || lastErrors.length > 0) && (
           <button
             onClick={() => setShowErrors((v) => !v)}
             className="flex items-center gap-1 text-danger hover:text-danger/80 transition-colors relative"
           >
             <Bell size={12} />
-            <span>{Math.max(errors, errorList.length)}{t('transfer.errorCount')}</span>
+            <span>{errorList.length + lastErrors.length}{t('transfer.errorCount')}</span>
             <span className="absolute -top-1 -right-1 w-2 h-2 bg-danger rounded-full animate-pulse" />
           </button>
         )}
@@ -63,7 +63,7 @@ export function StatusBar() {
           <div className="flex items-center justify-between px-3 py-2 border-b border-border">
             <span className="text-xs text-text font-medium flex items-center gap-1.5">
               <Bell size={12} className="text-danger" />
-              {t('transfer.errors')} ({errorList.length})
+              {t('transfer.errors')} ({errorList.length + lastErrors.length})
             </span>
             <button onClick={() => setShowErrors(false)} className="text-text-muted hover:text-text">
               <X size={13} />

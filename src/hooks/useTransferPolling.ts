@@ -14,10 +14,12 @@ export function useTransferPolling(interval = 1000) {
         const stats = await window.rcloneAPI.getStats();
         setStats(stats);
 
-        // Collect lastError from rclone stats
+        // Collect lastError from rclone stats (skip manual stop errors)
         if (stats.lastError && stats.lastError !== lastErrorRef.current) {
           lastErrorRef.current = stats.lastError;
-          addLastError(stats.lastError);
+          if (!stats.lastError.includes('context canceled')) {
+            addLastError(stats.lastError);
+          }
         }
 
         try {
