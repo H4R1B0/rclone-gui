@@ -12,6 +12,7 @@ import { useI18n, type Locale } from './lib/i18n';
 import { GripHorizontal } from 'lucide-react';
 
 export default function App() {
+  const [ready, setReady] = useState(false);
   const [showAccountSetup, setShowAccountSetup] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showTransfers, setShowTransfers] = useState(true);
@@ -48,7 +49,7 @@ export default function App() {
       }
     });
 
-    // Wait for rclone daemon to be ready, then load data
+    // Wait for rclone daemon to be ready before rendering panels
     const waitAndLoad = async () => {
       for (let i = 0; i < 30; i++) {
         try {
@@ -58,11 +59,12 @@ export default function App() {
           await new Promise((r) => setTimeout(r, 500));
         }
       }
-      loadRemotes();
+      await loadRemotes();
       const home = await window.rcloneAPI.getHomeDir();
       const cleanPath = home.replace(/^\/+/, '');
       setPath('left', cleanPath);
-      loadLeftFiles('/', cleanPath);
+      await loadLeftFiles('/', cleanPath);
+      setReady(true);
     };
     waitAndLoad();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -85,7 +87,11 @@ export default function App() {
 
       <div className="flex-1 flex flex-col min-h-0" style={{ cursor: resizing ? 'row-resize' : undefined }}>
         <div className="flex-1 min-h-0 h-full">
-          <DualPanel />
+          {ready ? <DualPanel /> : (
+            <div className="flex items-center justify-center h-full text-text-muted text-sm">
+              rclone 데몬 연결 중...
+            </div>
+          )}
         </div>
         {showTransfers && (
           <>
