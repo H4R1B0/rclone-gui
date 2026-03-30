@@ -55,9 +55,15 @@ export function TransferQueue() {
   }, [jobIds, transfers, addStopped]);
 
   const stopSingleJob = useCallback(async (transfer: TransferItem) => {
-    addStopped({ name: transfer.name, group: transfer.group, size: transfer.size });
+    // Find origin info to enable restart
+    const origin = useTransferStore.getState().copyOrigins.find((o) => o.name === transfer.name);
+    addStopped({
+      name: transfer.name, group: transfer.group, size: transfer.size,
+      srcFs: origin?.srcFs, srcRemote: origin?.srcRemote,
+      dstFs: origin?.dstFs, dstRemote: origin?.dstRemote,
+      isDir: origin?.isDir,
+    });
 
-    // rclone group format is typically "job/<jobid>" — extract jobid
     const jobIdMatch = transfer.group.match(/^job\/(\d+)$/);
     if (jobIdMatch) {
       const targetId = parseInt(jobIdMatch[1], 10);
@@ -65,7 +71,6 @@ export function TransferQueue() {
       return;
     }
 
-    // Fallback: match group via job/status
     for (const id of jobIds) {
       try {
         const status = await window.rcloneAPI.getJobStatus(id);
@@ -79,13 +84,25 @@ export function TransferQueue() {
 
   const restartTransfer = useCallback(async (item: StoppedTransfer) => {
     removeStopped(item.group);
+    if (!item.srcFs || !item.dstFs) {
+      console.warn('Cannot restart: missing origin info');
+      return;
+    }
+    // Re-register origin for next stop/restart
+    useTransferStore.getState().addCopyOrigin({
+      name: item.name,
+      srcFs: item.srcFs, srcRemote: item.srcRemote ?? '',
+      dstFs: item.dstFs, dstRemote: item.dstRemote ?? '',
+      isDir: item.isDir ?? false,
+    });
     try {
-      await window.rcloneAPI.copyDir(
-        item.group.split(':')[0] + ':',
-        '', item.group, '',
-      );
-    } catch {
-      console.warn('Could not restart transfer:', item.group);
+      if (item.isDir) {
+        await window.rcloneAPI.copyDir(item.srcFs, item.srcRemote ?? '', item.dstFs, item.dstRemote ?? '');
+      } else {
+        await window.rcloneAPI.copyFile(item.srcFs, item.srcRemote ?? '', item.dstFs, item.dstRemote ?? '');
+      }
+    } catch (err) {
+      console.warn('Failed to restart transfer:', err);
     }
   }, [removeStopped]);
 

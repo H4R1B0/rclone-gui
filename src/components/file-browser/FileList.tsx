@@ -6,6 +6,7 @@ import { FileItem } from './FileItem';
 import { ContextMenu } from './ContextMenu';
 import { ArrowUp } from 'lucide-react';
 import { useT } from '../../lib/i18n';
+import { useTransferStore } from '../../stores/transferStore';
 
 interface FileListProps {
   side: 'left' | 'right';
@@ -90,6 +91,11 @@ export function FileList({ side }: FileListProps) {
     if (!file) return;
     const srcPath = panel.path ? `${panel.path}/${fileName}` : fileName;
     const dstPath = other.path ? `${other.path}/${fileName}` : fileName;
+    // Track origin for restart
+    useTransferStore.getState().addCopyOrigin({
+      name: fileName, srcFs: panel.remote, srcRemote: srcPath,
+      dstFs: other.remote, dstRemote: dstPath, isDir: file.IsDir,
+    });
     if (file.IsDir) {
       await window.rcloneAPI.copyDir(panel.remote, srcPath, other.remote, dstPath);
     } else {
@@ -134,6 +140,14 @@ export function FileList({ side }: FileListProps) {
 
       const isMove = e.altKey;
       const api = window.rcloneAPI;
+
+      // Track origin for restart
+      if (!isMove) {
+        useTransferStore.getState().addCopyOrigin({
+          name: data.fileName, srcFs: srcPanel.remote, srcRemote: srcPath,
+          dstFs: dstPanel.remote, dstRemote: dstPath, isDir: data.isDir,
+        });
+      }
 
       if (data.isDir) {
         if (isMove) {
