@@ -201,7 +201,7 @@ export function FileList({ side }: FileListProps) {
         {panel.path && (
           <div
             className="grid grid-cols-[1fr_100px_160px] gap-2 px-3 py-1.5 hover:bg-surface-overlay cursor-pointer text-text-muted text-xs"
-            onClick={(e) => { e.stopPropagation(); goUp(); }}
+            onDoubleClick={(e) => { e.stopPropagation(); goUp(); }}
           >
             <span className="flex items-center gap-2">
               <ArrowUp size={14} /> ..
