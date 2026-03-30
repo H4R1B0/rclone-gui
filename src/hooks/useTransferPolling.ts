@@ -2,9 +2,10 @@ import { useEffect, useRef } from 'react';
 import { useTransferStore } from '../stores/transferStore';
 
 export function useTransferPolling(interval = 1000) {
-  const { setStats, setJobIds, addCompleted, setPolling } = useTransferStore();
+  const { setStats, setJobIds, addCompleted, addLastError, setPolling } = useTransferStore();
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const seenRef = useRef<Set<string>>(new Set());
+  const lastErrorRef = useRef<string>('');
 
   useEffect(() => {
     setPolling(true);
@@ -12,6 +13,12 @@ export function useTransferPolling(interval = 1000) {
       try {
         const stats = await window.rcloneAPI.getStats();
         setStats(stats);
+
+        // Collect lastError from rclone stats
+        if (stats.lastError && stats.lastError !== lastErrorRef.current) {
+          lastErrorRef.current = stats.lastError;
+          addLastError(stats.lastError);
+        }
 
         try {
           const jobs = await window.rcloneAPI.getJobList();

@@ -75,6 +75,7 @@ interface RcloneStats {
   errors: number;
   eta?: number;
   fatalError: boolean;
+  lastError?: string;
   renames: number;
   retryError: boolean;
   speed: number;

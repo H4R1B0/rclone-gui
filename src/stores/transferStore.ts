@@ -53,10 +53,12 @@ interface TransferStore {
   totalTransfers: number;
   doneTransfers: number;
   errors: number;
+  lastErrors: string[];
   paused: boolean;
   polling: boolean;
 
   setStats: (stats: RcloneStats) => void;
+  addLastError: (err: string) => void;
   setJobIds: (ids: number[]) => void;
   addCompleted: (items: CompletedTransfer[]) => void;
   addStopped: (item: StoppedTransfer) => void;
@@ -81,6 +83,7 @@ export const useTransferStore = create<TransferStore>((set) => ({
   totalTransfers: 0,
   doneTransfers: 0,
   errors: 0,
+  lastErrors: [],
   paused: false,
   polling: false,
 
@@ -102,6 +105,11 @@ export const useTransferStore = create<TransferStore>((set) => ({
       doneTransfers: stats.transfers,
       errors: stats.errors,
     }),
+
+  addLastError: (err) =>
+    set((s) => ({
+      lastErrors: [err, ...s.lastErrors].slice(0, 100),
+    })),
 
   setJobIds: (ids) => set({ jobIds: ids }),
 
