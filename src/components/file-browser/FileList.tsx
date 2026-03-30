@@ -46,15 +46,15 @@ export function FileList({ side }: FileListProps) {
   }, []);
 
   const handleClick = useCallback((file: RcloneFile, e: React.MouseEvent) => {
-    if (file.IsDir) {
+    if (e.detail === 2 && file.IsDir) {
       navigate(file.Name);
+      return;
+    }
+    if (e.metaKey || e.ctrlKey) {
+      toggleSelect(side, file.Name);
     } else {
-      if (e.metaKey || e.ctrlKey) {
-        toggleSelect(side, file.Name);
-      } else {
-        clearSelection(side);
-        toggleSelect(side, file.Name);
-      }
+      clearSelection(side);
+      toggleSelect(side, file.Name);
     }
   }, [side, navigate, toggleSelect, clearSelection]);
 
