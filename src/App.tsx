@@ -48,13 +48,23 @@ export default function App() {
       }
     });
 
-    loadRemotes();
-    // Set left panel to user's home directory
-    window.rcloneAPI.getHomeDir().then((home) => {
+    // Wait for rclone daemon to be ready, then load data
+    const waitAndLoad = async () => {
+      for (let i = 0; i < 30; i++) {
+        try {
+          await window.rcloneAPI.listRemotes();
+          break;
+        } catch {
+          await new Promise((r) => setTimeout(r, 500));
+        }
+      }
+      loadRemotes();
+      const home = await window.rcloneAPI.getHomeDir();
       const cleanPath = home.replace(/^\/+/, '');
       setPath('left', cleanPath);
       loadLeftFiles('/', cleanPath);
-    });
+    };
+    waitAndLoad();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (

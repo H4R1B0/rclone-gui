@@ -104,7 +104,10 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
   const handleLanguageChange = async (locale: Locale) => {
     if (locale === currentLocale) return;
-    // Save locale to settings file
+    const msg = locale === 'ko'
+      ? '언어를 변경하면 앱이 재시작됩니다. 계속하시겠습니까?'
+      : 'The app will restart to change the language. Continue?';
+    if (!confirm(msg)) return;
     try {
       const saved = await window.rcloneAPI.loadSettings() ?? {};
       await window.rcloneAPI.saveSettings({ ...saved, locale });
