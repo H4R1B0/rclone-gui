@@ -199,7 +199,7 @@ const response = await fetch('http://localhost:5572/operations/list', {
 22. 스토리지 풀링 (union)
 23. 미디어 스트리밍
 24. 설정 가져오기/내보내기
-25. 앱 잠금 비밀번호
+25. 앱 잠금 보안 (비밀번호 및 Touch ID) (완료)
 26. 연결 탐색(Linked Browsing)
 
 ## 커밋 컨벤션
