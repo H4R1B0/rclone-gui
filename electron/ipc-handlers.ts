@@ -1,8 +1,11 @@
-import { IpcMain } from 'electron';
+import { IpcMain, BrowserWindow } from 'electron';
 import { app, safeStorage, systemPreferences } from 'electron';
 import { readFileSync, writeFileSync, existsSync, unlinkSync } from 'fs';
 import path from 'path';
 import { RcloneDaemon } from './rclone/daemon';
+
+// Active search abort controllers
+const activeSearches = new Map<string, { aborted: boolean }>();
 
 export function registerIpcHandlers(ipcMain: IpcMain, daemon: RcloneDaemon) {
   const api = daemon.api;
@@ -52,6 +55,89 @@ export function registerIpcHandlers(ipcMain: IpcMain, daemon: RcloneDaemon) {
       fs, remote, opt: { recurse: false },
     });
     return result.list ?? [];
+  });
+
+  ipcMain.handle('rclone:searchFiles', async (_e, fs: string, query: string) => {
+    const result = await api.call<{ list: unknown[] }>('operations/list', {
+      fs, remote: '', 
+      opt: { recurse: true },
+      _filter: { AddRule: [`+ *${query}*`, `- *`] }
+    });
+    return result.list ?? [];
+  });
+
+  // --- streaming BFS search ---
+  ipcMain.handle('rclone:searchStream', async (event, searchId: string, targets: string[], query: string) => {
+    const control = { aborted: false };
+    activeSearches.set(searchId, control);
+    const sender = event.sender;
+    const queryLower = query.toLowerCase();
+    const CONCURRENCY = 5;
+
+    const searchRemote = async (remoteName: string) => {
+      if (control.aborted) return;
+      const fsOpt = remoteName.endsWith(':') ? remoteName : `${remoteName}:`;
+      // BFS queue: start from root
+      const queue: string[] = [''];
+
+      while (queue.length > 0 && !control.aborted) {
+        // Process directories in batches for concurrency
+        const batch = queue.splice(0, CONCURRENCY);
+        const batchPromises = batch.map(async (dirPath) => {
+          if (control.aborted) return;
+          try {
+            const result = await api.call<{ list: { Path: string; Name: string; Size: number; MimeType: string; ModTime: string; IsDir: boolean; ID?: string }[] }>('operations/list', {
+              fs: fsOpt, remote: dirPath, opt: { recurse: false },
+            });
+            const items = result.list ?? [];
+            const matchingFiles: unknown[] = [];
+
+            for (const item of items) {
+              if (control.aborted) break;
+              if (item.IsDir) {
+                // Queue subdirectory for BFS
+                queue.push(item.Path);
+                // Also check if dir name matches
+                if (item.Name.toLowerCase().includes(queryLower)) {
+                  matchingFiles.push({ ...item, RemoteFs: remoteName });
+                }
+              } else {
+                // Check if filename matches
+                if (item.Name.toLowerCase().includes(queryLower)) {
+                  matchingFiles.push({ ...item, RemoteFs: remoteName });
+                }
+              }
+            }
+
+            // Send batch of matching results immediately
+            if (matchingFiles.length > 0 && !control.aborted && !sender.isDestroyed()) {
+              sender.send('search:results', searchId, matchingFiles);
+            }
+          } catch (err) {
+            console.error(`Search error in ${fsOpt}:${dirPath}:`, err);
+          }
+        });
+        await Promise.all(batchPromises);
+      }
+    };
+
+    try {
+      // Search all target remotes in parallel
+      await Promise.all(targets.map(t => searchRemote(t)));
+    } finally {
+      activeSearches.delete(searchId);
+      if (!sender.isDestroyed()) {
+        sender.send('search:done', searchId);
+      }
+    }
+  });
+
+  ipcMain.handle('rclone:searchAbort', async (_e, searchId: string) => {
+    const control = activeSearches.get(searchId);
+    if (control) {
+      control.aborted = true;
+      activeSearches.delete(searchId);
+    }
   });
 
   ipcMain.handle('rclone:mkdir', async (_e, fs: string, remote: string) => {

@@ -18,6 +18,20 @@ contextBridge.exposeInMainWorld('rcloneAPI', {
 
   // file operations
   listFiles: (fs: string, remote: string) => ipcRenderer.invoke('rclone:listFiles', fs, remote),
+  searchFiles: (fs: string, query: string) => ipcRenderer.invoke('rclone:searchFiles', fs, query),
+  searchStream: (searchId: string, targets: string[], query: string) =>
+    ipcRenderer.invoke('rclone:searchStream', searchId, targets, query),
+  searchAbort: (searchId: string) => ipcRenderer.invoke('rclone:searchAbort', searchId),
+  onSearchResults: (callback: (searchId: string, results: unknown[]) => void) => {
+    const handler = (_e: Electron.IpcRendererEvent, searchId: string, results: unknown[]) => callback(searchId, results);
+    ipcRenderer.on('search:results', handler);
+    return () => { ipcRenderer.removeListener('search:results', handler); };
+  },
+  onSearchDone: (callback: (searchId: string) => void) => {
+    const handler = (_e: Electron.IpcRendererEvent, searchId: string) => callback(searchId);
+    ipcRenderer.on('search:done', handler);
+    return () => { ipcRenderer.removeListener('search:done', handler); };
+  },
   mkdir: (fs: string, remote: string) => ipcRenderer.invoke('rclone:mkdir', fs, remote),
   deleteFile: (fs: string, remote: string) => ipcRenderer.invoke('rclone:deleteFile', fs, remote),
   deleteDir: (fs: string, remote: string) => ipcRenderer.invoke('rclone:deleteDir', fs, remote),

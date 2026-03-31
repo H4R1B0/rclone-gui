@@ -17,6 +17,11 @@ interface RcloneAPI {
 
   // file operations
   listFiles: (fs: string, remote: string) => Promise<RcloneFile[]>;
+  searchFiles: (fs: string, query: string) => Promise<RcloneFile[]>;
+  searchStream: (searchId: string, targets: string[], query: string) => Promise<void>;
+  searchAbort: (searchId: string) => Promise<void>;
+  onSearchResults: (callback: (searchId: string, results: (RcloneFile & { RemoteFs: string })[]) => void) => () => void;
+  onSearchDone: (callback: (searchId: string) => void) => () => void;
   mkdir: (fs: string, remote: string) => Promise<void>;
   deleteFile: (fs: string, remote: string) => Promise<void>;
   deleteDir: (fs: string, remote: string) => Promise<void>;
