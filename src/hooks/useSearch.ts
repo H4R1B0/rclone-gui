@@ -3,7 +3,7 @@ import { useSearchStore, type SearchResult } from '../stores/searchStore';
 import { usePanelStore } from '../stores/panelStore';
 
 export function useSearch() {
-  const { query, selectedClouds, setSearching, setResults, appendResults, setError, setSearchId } = useSearchStore();
+  const { query, selectedClouds, setSearching, setHasSearched, setResults, appendResults, setError, setSearchId } = useSearchStore();
   const { remotes } = usePanelStore();
   const cleanupRef = useRef<(() => void) | null>(null);
 
@@ -48,6 +48,7 @@ export function useSearch() {
     }
 
     setSearching(true);
+    setHasSearched(true);
     setError(null);
     setResults([]);
 
@@ -74,7 +75,7 @@ export function useSearch() {
       setError(err instanceof Error ? err.message : 'Search failed');
       setSearching(false);
     }
-  }, [query, selectedClouds, remotes, setSearching, setResults, appendResults, setError, setSearchId]);
+  }, [query, selectedClouds, remotes, setSearching, setHasSearched, setResults, appendResults, setError, setSearchId]);
 
   const abortSearch = useCallback(async () => {
     const currentId = useSearchStore.getState().searchId;

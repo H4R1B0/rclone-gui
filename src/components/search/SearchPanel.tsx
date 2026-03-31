@@ -37,8 +37,8 @@ function getFolderPath(path: string): string {
 export function SearchPanel() {
   const t = useT();
   const {
-    query, isSearching, results, error, selectedClouds,
-    setQuery, toggleCloud, reset,
+    query, isSearching, hasSearched, results, error, selectedClouds,
+    setQuery, toggleCloud,
   } = useSearchStore();
 
   const { performSearch, abortSearch } = useSearch();
@@ -48,10 +48,10 @@ export function SearchPanel() {
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [remoteTypes, setRemoteTypes] = useState<Record<string, string>>({});
 
-  // Auto-focus on mount, abort search on unmount
+  // Auto-focus on mount, abort active search on unmount but preserve results
   useEffect(() => {
     setTimeout(() => inputRef.current?.focus(), 100);
-    return () => { abortSearch(); reset(); };
+    return () => { abortSearch(); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load remote types for icons
@@ -199,7 +199,7 @@ export function SearchPanel() {
       {/* Results area */}
       <div className="flex-1 overflow-y-auto min-h-0">
         {/* Empty states */}
-        {!isSearching && !error && !query && results.length === 0 && (
+        {!hasSearched && results.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-text-muted">
             <Search size={48} className="mb-4 opacity-20" />
             <p className="text-sm">{t('search.emptyHint')}</p>
@@ -207,7 +207,7 @@ export function SearchPanel() {
           </div>
         )}
 
-        {!isSearching && !error && query && results.length === 0 && (
+        {hasSearched && !isSearching && !error && results.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-text-muted">
             <Search size={40} className="mb-3 opacity-20" />
             <p className="text-sm">{t('search.noResults')} "{query}"</p>

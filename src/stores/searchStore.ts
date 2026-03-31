@@ -8,6 +8,7 @@ interface SearchState {
   isOpen: boolean;
   query: string;
   isSearching: boolean;
+  hasSearched: boolean;
   results: SearchResult[];
   error: string | null;
   selectedClouds: string[]; // List of specific clouds to search. If empty, search all.
@@ -16,6 +17,7 @@ interface SearchState {
   setIsOpen: (isOpen: boolean) => void;
   setQuery: (query: string) => void;
   setSearching: (isSearching: boolean) => void;
+  setHasSearched: (hasSearched: boolean) => void;
   setResults: (results: SearchResult[]) => void;
   appendResults: (results: SearchResult[]) => void;
   setError: (error: string | null) => void;
@@ -29,6 +31,7 @@ export const useSearchStore = create<SearchState>((set) => ({
   isOpen: false,
   query: '',
   isSearching: false,
+  hasSearched: false,
   results: [],
   error: null,
   selectedClouds: [],
@@ -37,6 +40,7 @@ export const useSearchStore = create<SearchState>((set) => ({
   setIsOpen: (isOpen) => set({ isOpen }),
   setQuery: (query) => set({ query }),
   setSearching: (isSearching) => set({ isSearching }),
+  setHasSearched: (hasSearched) => set({ hasSearched }),
   setResults: (results) => set({ results }),
   appendResults: (newResults) =>
     set((state) => ({ results: [...state.results, ...newResults] })),
@@ -49,5 +53,5 @@ export const useSearchStore = create<SearchState>((set) => ({
         : [...state.selectedClouds, cloud],
     })),
   setSearchId: (searchId) => set({ searchId }),
-  reset: () => set({ query: '', isSearching: false, results: [], error: null, searchId: null }),
+  reset: () => set({ query: '', isSearching: false, hasSearched: false, results: [], error: null, searchId: null }),
 }));
