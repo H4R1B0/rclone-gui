@@ -97,6 +97,7 @@ const translations: Record<string, Record<Locale, string>> = {
   'transfer.removeFromList': { ko: '목록에서 제거', en: 'Remove from List' },
   'transfer.clearCompleted': { ko: '완료 목록 비우기', en: 'Clear Completed' },
   'transfer.clearErrors': { ko: '오류 목록 비우기', en: 'Clear Errors' },
+  'transfer.copyError': { ko: '오류 내용 복사', en: 'Copy Error' },
   'transfer.count': { ko: '개 전송 중', en: ' transferring' },
   'transfer.errorCount': { ko: '개 오류', en: ' errors' },
 

@@ -66,6 +66,7 @@ interface TransferStore {
   addCopyOrigin: (origin: CopyOrigin) => void;
   removeCopyOrigin: (name: string) => void;
   clearCompleted: () => void;
+  clearErrors: () => void;
   clearStopped: () => void;
   setPaused: (p: boolean) => void;
   setPolling: (p: boolean) => void;
@@ -130,7 +131,8 @@ export const useTransferStore = create<TransferStore>((set) => ({
   removeCopyOrigin: (name) =>
     set((s) => ({ copyOrigins: s.copyOrigins.filter((o) => o.name !== name) })),
 
-  clearCompleted: () => set({ completed: [] }),
+  clearCompleted: () => set((s) => ({ completed: s.completed.filter((c) => !c.ok) })),
+  clearErrors: () => set((s) => ({ completed: s.completed.filter((c) => c.ok) })),
   clearStopped: () => set({ stopped: [] }),
   setPaused: (p) => set({ paused: p }),
   setPolling: (p) => set({ polling: p }),

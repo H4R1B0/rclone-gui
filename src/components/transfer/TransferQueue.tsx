@@ -3,7 +3,7 @@ import { useTransferStore, type TransferItem, type StoppedTransfer } from '../..
 import { formatBytes, formatSpeed, formatEta } from '../../lib/utils';
 import {
   ArrowDownUp, Pause, Play, XCircle, Trash2, CheckCircle2, AlertCircle,
-  RotateCcw, StopCircle,
+  RotateCcw, StopCircle, Copy,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useT } from '../../lib/i18n';
@@ -14,7 +14,7 @@ export function TransferQueue() {
   const t = useT();
   const {
     transfers, completed, stopped, jobIds, totalSpeed, totalTransfers, doneTransfers,
-    paused, setPaused, clearCompleted, clearStopped, addStopped, removeStopped,
+    paused, setPaused, clearCompleted, clearErrors, clearStopped, addStopped, removeStopped,
   } = useTransferStore();
   const [tab, setTab] = useState<Tab>('active');
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
@@ -139,9 +139,11 @@ export function TransferQueue() {
       }
     }
     if (tab === 'completed') return { type: 'completed' as const };
-    if (tab === 'errors') return { type: 'errors' as const };
+    if (tab === 'errors' && selectedIdx < errorList.length) {
+      return { type: 'errors' as const, item: errorList[selectedIdx] };
+    }
     return null;
-  }, [tab, selectedIdx, transfers, stopped]);
+  }, [tab, selectedIdx, transfers, stopped, errorList]);
 
   const TabBtn = ({ id, label, count, icon: Icon }: { id: Tab; label: string; count: number; icon: LucideIcon }) => (
     <button
@@ -264,20 +266,32 @@ export function TransferQueue() {
         {/* Errors tab */}
         {tab === 'errors' && (
           errorList.length === 0 ? <Empty text={t('transfer.noErrors')} /> : (
-            errorList.map((c, i) => (
-              <div
-                key={`${c.name}-${i}`}
-                className={`px-3 py-1.5 border-b border-border/50 cursor-pointer transition-colors ${selectedIdx === i ? 'bg-accent-muted' : 'hover:bg-surface-overlay'}`}
-                onClick={(e) => { e.stopPropagation(); handleRowClick(i); }}
-                onContextMenu={(e) => { e.stopPropagation(); handleContextMenu(e, i); }}
-              >
-                <div className="flex items-center gap-2">
-                  <AlertCircle size={13} className="text-danger flex-shrink-0" />
-                  <span className="text-xs text-text truncate flex-1">{c.name}</span>
-                </div>
-                {c.error && <div className="text-[10px] text-danger/80 ml-5 mt-0.5 truncate">{c.error}</div>}
+            <>
+              <div className="flex items-center justify-between px-3 py-1 border-b border-border bg-surface-raised sticky top-0">
+                <span className="text-[11px] text-danger">{errorList.length}{t('transfer.errorCount')}</span>
+                <button
+                  onClick={(e) => { e.stopPropagation(); clearErrors(); }}
+                  className="flex items-center gap-1 text-[11px] text-text-muted hover:text-danger transition-colors"
+                >
+                  <Trash2 size={11} />
+                  {t('transfer.clearErrors')}
+                </button>
               </div>
-            ))
+              {errorList.map((c, i) => (
+                <div
+                  key={`${c.name}-${i}`}
+                  className={`px-3 py-1.5 border-b border-border/50 cursor-pointer transition-colors ${selectedIdx === i ? 'bg-accent-muted' : 'hover:bg-surface-overlay'}`}
+                  onClick={(e) => { e.stopPropagation(); handleRowClick(i); }}
+                  onContextMenu={(e) => { e.stopPropagation(); handleContextMenu(e, i); }}
+                >
+                  <div className="flex items-center gap-2">
+                    <AlertCircle size={13} className="text-danger flex-shrink-0" />
+                    <span className="text-xs text-text truncate flex-1">{c.name}</span>
+                  </div>
+                  {c.error && <div className="text-[10px] text-danger/80 ml-5 mt-0.5 truncate">{c.error}</div>}
+                </div>
+              ))}
+            </>
           )
         )}
       </div>
@@ -302,7 +316,15 @@ export function TransferQueue() {
             <CtxItem icon={Trash2} label={t('transfer.clearCompleted')} onClick={() => { clearCompleted(); closeCtx(); }} />
           )}
           {actions.type === 'errors' && (
-            <CtxItem icon={Trash2} label={t('transfer.clearErrors')} onClick={() => { clearCompleted(); closeCtx(); }} />
+            <>
+              <CtxItem icon={Copy} label={t('transfer.copyError')} onClick={() => {
+                const item = actions.item;
+                const text = item ? `${item.name}\n${item.error || ''}` : '';
+                navigator.clipboard.writeText(text);
+                closeCtx();
+              }} />
+              <CtxItem icon={Trash2} label={t('transfer.clearErrors')} danger onClick={() => { clearErrors(); closeCtx(); }} />
+            </>
           )}
         </div>
       )}
