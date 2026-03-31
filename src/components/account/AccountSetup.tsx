@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { X, Loader2, Trash2, Pencil, Search, ChevronLeft, Save, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Trash2, Pencil, Search, ChevronLeft, Save, Eye, EyeOff, Plus } from 'lucide-react';
 import { usePanelStore } from '../../stores/panelStore';
 import { ProviderIconSvg } from '../common/ProviderIconSvg';
 import { useT } from '../../lib/i18n';
@@ -28,7 +28,7 @@ interface ProviderDef {
 
 type Step = 'list' | 'pick-provider' | 'create' | 'edit';
 
-export function AccountSetup({ onClose }: AccountSetupProps) {
+export function AccountSetup({ onClose: _onClose }: AccountSetupProps) {
   const t = useT();
   const [providers, setProviders] = useState<ProviderDef[]>([]);
   const [loading, setLoading] = useState(true);
@@ -165,94 +165,108 @@ export function AccountSetup({ onClose }: AccountSetupProps) {
     setShowAdvanced(false);
   };
 
-  const title = (() => {
-    switch (step) {
-      case 'list': return t('account.manage');
-      case 'pick-provider': return t('account.selectService');
-      case 'create': return `${t('account.newAccount')} — ${selectedProvider?.Name ?? ''}`;
-      case 'edit': return `${t('account.editAccount')} — ${editingRemote ?? ''}`;
-    }
-  })();
-
-  return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      <div className="bg-surface-raised border border-border rounded-xl shadow-2xl w-[640px] max-h-[85vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border flex-shrink-0">
-          <div className="flex items-center gap-2">
-            {step !== 'list' && (
-              <button onClick={goBack} className="text-text-muted hover:text-text">
-                <ChevronLeft size={18} />
-              </button>
-            )}
-            <h2 className="text-sm font-semibold text-text">{title}</h2>
-          </div>
-          <button onClick={onClose} className="text-text-muted hover:text-text">
-            <X size={18} />
+  // ---- LIST VIEW: accounts as grid cards + add button at the end ----
+  if (step === 'list') {
+    return (
+      <div className="w-full h-full bg-surface overflow-y-auto p-6">
+        {error && <p className="text-xs text-danger mb-4">{error}</p>}
+        <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))' }}>
+          {remotes.map((name) => (
+            <RemoteCard
+              key={name}
+              name={name}
+              providers={providers}
+              onEdit={() => startEdit(name)}
+              onDelete={() => handleDelete(name)}
+            />
+          ))}
+          {/* Add account card at the end */}
+          <button
+            onClick={() => setStep('pick-provider')}
+            className="flex flex-col items-center justify-center min-h-[180px] rounded-2xl border-2 border-dashed border-border hover:border-accent/60 bg-surface-raised/50 hover:bg-accent/5 text-text-muted hover:text-accent transition-all group cursor-pointer"
+          >
+            <div className="w-12 h-12 rounded-full bg-surface-overlay group-hover:bg-accent/10 flex items-center justify-center mb-3 transition-colors">
+              <Plus size={24} className="group-hover:scale-110 transition-transform" />
+            </div>
+            <span className="text-sm font-medium">{t('account.addCloud')}</span>
           </button>
         </div>
+      </div>
+    );
+  }
 
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto p-5">
-          {/* ---- LIST ---- */}
-          {step === 'list' && (
-            <div className="space-y-4">
-              {remotes.length > 0 ? (
-                <div className="space-y-1">
-                  {remotes.map((name) => (
-                    <RemoteRow key={name} name={name} providers={providers} onEdit={() => startEdit(name)} onDelete={() => handleDelete(name)} />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-text-muted text-sm">{t('account.noAccounts')}</div>
-              )}
-              {error && <p className="text-xs text-danger">{error}</p>}
-              <button onClick={() => setStep('pick-provider')} className="w-full py-2.5 rounded-lg bg-accent hover:bg-accent-hover text-white text-sm transition-colors">
-                {t('account.addCloud')}
-              </button>
+  // ---- PICK PROVIDER VIEW ----
+  if (step === 'pick-provider') {
+    return (
+      <div className="w-full h-full bg-surface overflow-y-auto p-6">
+        <div className="max-w-3xl mx-auto">
+          {/* Back button + title */}
+          <div className="flex items-center gap-3 mb-5">
+            <button onClick={goBack} className="p-1.5 rounded-lg hover:bg-surface-overlay text-text-muted hover:text-text transition-colors">
+              <ChevronLeft size={18} />
+            </button>
+            <h2 className="text-sm font-semibold text-text">{t('account.selectService')}</h2>
+          </div>
+
+          {/* Search */}
+          <div className="relative mb-4">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+            <input
+              autoFocus
+              className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-surface-raised border border-border focus:border-accent text-xs text-text outline-none"
+              placeholder={t('account.searchService')}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+
+          {loading ? (
+            <div className="flex justify-center py-12"><Loader2 className="animate-spin text-accent" size={24} /></div>
+          ) : filteredProviders.length === 0 ? (
+            <div className="text-center py-12 text-text-muted text-sm">{t('account.noMatch')}</div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {filteredProviders.map((p) => (
+                <button
+                  key={p.Prefix}
+                  onClick={() => selectProvider(p)}
+                  className="flex items-center gap-3 px-3 py-3 rounded-xl bg-surface-raised hover:bg-surface-overlay border border-transparent hover:border-accent/30 text-left transition-all hover:shadow-sm"
+                >
+                  <ProviderIconSvg prefix={p.Prefix} size={22} className="flex-shrink-0" />
+                  <div className="min-w-0">
+                    <div className="text-xs text-text font-medium truncate">{p.Name}</div>
+                    <div className="text-[10px] text-text-muted truncate">{p.Description}</div>
+                  </div>
+                </button>
+              ))}
             </div>
           )}
+        </div>
+      </div>
+    );
+  }
 
-          {/* ---- PICK PROVIDER ---- */}
-          {step === 'pick-provider' && (
-            <div className="space-y-3">
-              <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-                <input
-                  autoFocus
-                  className="w-full pl-9 pr-3 py-2 rounded-lg bg-surface-overlay border border-border focus:border-accent text-xs text-text outline-none"
-                  placeholder={t('account.searchService')}
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-              </div>
-              {loading ? (
-                <div className="flex justify-center py-8"><Loader2 className="animate-spin text-accent" size={24} /></div>
-              ) : filteredProviders.length === 0 ? (
-                <div className="text-center py-8 text-text-muted text-sm">{t('account.noMatch')}</div>
-              ) : (
-                <div className="grid grid-cols-2 gap-1.5 max-h-[50vh] overflow-y-auto">
-                  {filteredProviders.map((p) => (
-                    <button
-                      key={p.Prefix}
-                      onClick={() => selectProvider(p)}
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-surface-overlay hover:bg-border border border-transparent hover:border-accent/30 text-left transition-colors"
-                    >
-                      <ProviderIconSvg prefix={p.Prefix} size={20} className="flex-shrink-0" />
-                      <div className="min-w-0">
-                        <div className="text-xs text-text font-medium truncate">{p.Name}</div>
-                        <div className="text-[10px] text-text-muted truncate">{p.Description}</div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+  // ---- CREATE / EDIT VIEW ----
+  const isEdit = step === 'edit';
+  const title = isEdit
+    ? `${t('account.editAccount')} — ${editingRemote ?? ''}`
+    : `${t('account.newAccount')} — ${selectedProvider?.Name ?? ''}`;
 
+  return (
+    <div className="w-full h-full bg-surface overflow-y-auto p-6">
+      <div className="max-w-2xl mx-auto">
+        {/* Back button + title */}
+        <div className="flex items-center gap-3 mb-5">
+          <button onClick={goBack} className="p-1.5 rounded-lg hover:bg-surface-overlay text-text-muted hover:text-text transition-colors">
+            <ChevronLeft size={18} />
+          </button>
+          <h2 className="text-sm font-semibold text-text">{title}</h2>
+        </div>
+
+        <div className="bg-surface-raised border border-border rounded-xl p-6 space-y-5">
           {/* ---- CREATE ---- */}
           {step === 'create' && selectedProvider && (
-            <div className="space-y-4">
+            <>
               <ProviderHeader provider={selectedProvider} />
 
               <div>
@@ -291,14 +305,12 @@ export function AccountSetup({ onClose }: AccountSetupProps) {
                   {showAdvanced ? t('account.hideAdvanced') : t('account.showAdvanced')}
                 </button>
               )}
-
-              {error && <p className="text-xs text-danger">{error}</p>}
-            </div>
+            </>
           )}
 
           {/* ---- EDIT ---- */}
           {step === 'edit' && editingRemote && (
-            <div className="space-y-4">
+            <>
               <div className="flex items-center gap-3 px-3 py-2 rounded bg-surface-overlay">
                 <ProviderIconSvg prefix={editType} size={22} />
                 <div className="text-[10px] text-text-muted">{t('common.type')}: {editType}</div>
@@ -337,37 +349,37 @@ export function AccountSetup({ onClose }: AccountSetupProps) {
 
                 <AddConfigField onAdd={(key, val) => setEditConfig((prev) => ({ ...prev, [key]: val }))} />
               </div>
+            </>
+          )}
 
-              {error && <p className="text-xs text-danger">{error}</p>}
-            </div>
-          )}
-        </div>
+          {error && <p className="text-xs text-danger">{error}</p>}
 
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-border flex-shrink-0">
-          {step === 'create' && (
-            <button
-              onClick={handleCreate}
-              disabled={saving || !remoteName.trim()}
-              className="flex items-center gap-1.5 px-4 py-2 text-xs rounded bg-accent hover:bg-accent-hover text-white disabled:opacity-50 transition-colors"
-            >
-              {saving ? <Loader2 size={12} className="animate-spin" /> : null}
-              {saving ? t('account.connecting') : t('account.connect')}
+          {/* Action buttons */}
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
+            <button onClick={goBack} className="px-4 py-2 text-xs text-text-muted hover:text-text transition-colors">
+              {t('common.cancel')}
             </button>
-          )}
-          {step === 'edit' && (
-            <button
-              onClick={handleSaveEdit}
-              disabled={saving || !editName.trim()}
-              className="flex items-center gap-1.5 px-4 py-2 text-xs rounded bg-accent hover:bg-accent-hover text-white disabled:opacity-50 transition-colors"
-            >
-              <Save size={12} />
-              {saving ? t('common.saving') : t('common.save')}
-            </button>
-          )}
-          {step === 'list' && (
-            <button onClick={onClose} className="px-4 py-2 text-xs text-text-muted hover:text-text">{t('common.close')}</button>
-          )}
+            {step === 'create' && (
+              <button
+                onClick={handleCreate}
+                disabled={saving || !remoteName.trim()}
+                className="flex items-center gap-1.5 px-4 py-2 text-xs rounded-lg bg-accent hover:bg-accent-hover text-white disabled:opacity-50 transition-colors"
+              >
+                {saving ? <Loader2 size={12} className="animate-spin" /> : null}
+                {saving ? t('account.connecting') : t('account.connect')}
+              </button>
+            )}
+            {step === 'edit' && (
+              <button
+                onClick={handleSaveEdit}
+                disabled={saving || !editName.trim()}
+                className="flex items-center gap-1.5 px-4 py-2 text-xs rounded-lg bg-accent hover:bg-accent-hover text-white disabled:opacity-50 transition-colors"
+              >
+                <Save size={12} />
+                {saving ? t('common.saving') : t('common.save')}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -392,7 +404,7 @@ function OptionField({ field, value, onChange }: { field: ProviderOptionField; v
 
       {hasExamples && !field.IsPassword ? (
         <select
-          className="w-full px-3 py-1.5 rounded bg-surface-overlay border border-border focus:border-accent text-xs text-text outline-none"
+          className="w-full px-4 py-2.5 rounded-xl bg-surface-overlay border border-border focus:border-accent text-sm text-text outline-none"
           value={value}
           onChange={(e) => onChange(e.target.value)}
         >
@@ -407,7 +419,7 @@ function OptionField({ field, value, onChange }: { field: ProviderOptionField; v
         <div className="relative">
           <input
             type={field.IsPassword && !showPassword ? 'password' : 'text'}
-            className="w-full px-3 py-1.5 rounded bg-surface-overlay border border-border focus:border-accent text-xs text-text outline-none font-mono pr-8"
+            className="w-full px-4 py-2.5 rounded-xl bg-surface-overlay border border-border focus:border-accent text-sm text-text outline-none font-mono pr-10"
             placeholder={field.Default != null && field.Default !== '' ? String(field.Default) : undefined}
             value={value}
             onChange={(e) => onChange(e.target.value)}
@@ -416,16 +428,16 @@ function OptionField({ field, value, onChange }: { field: ProviderOptionField; v
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-text-muted hover:text-text"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text"
             >
-              {showPassword ? <EyeOff size={13} /> : <Eye size={13} />}
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           )}
         </div>
       )}
 
       {field.Help && (
-        <p className="text-[10px] text-text-muted mt-0.5 line-clamp-2">{field.Help}</p>
+        <p className="text-[11px] text-text-muted mt-1.5 line-clamp-2">{field.Help}</p>
       )}
     </div>
   );
@@ -462,7 +474,7 @@ function EditField({ name, value, help, isPassword, onChange }: { name: string; 
 
 // --- Sub-components ---
 
-function RemoteRow({ name, providers, onEdit, onDelete }: { name: string; providers: ProviderDef[]; onEdit: () => void; onDelete: () => void }) {
+function RemoteCard({ name, providers, onEdit, onDelete }: { name: string; providers: ProviderDef[]; onEdit: () => void; onDelete: () => void }) {
   const t = useT();
   const [type, setType] = useState('');
 
@@ -475,19 +487,23 @@ function RemoteRow({ name, providers, onEdit, onDelete }: { name: string; provid
   const providerName = providers.find((p) => p.Prefix === type)?.Name ?? type;
 
   return (
-    <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-surface-overlay group">
-      <ProviderIconSvg prefix={type} size={22} className="flex-shrink-0" />
-      <div className="flex-1 min-w-0">
-        <div className="text-sm text-text truncate">{name}</div>
-        <div className="text-[10px] text-text-muted">{providerName}</div>
+    <div className="relative flex flex-col items-center justify-center p-6 min-h-[180px] rounded-2xl bg-surface-raised border border-border shadow-sm hover:shadow-md hover:border-accent/30 transition-all group overflow-hidden">
+      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity translate-y-[-10px] group-hover:translate-y-0">
+        <button onClick={onEdit} className="p-2 rounded-lg bg-surface hover:bg-surface-overlay text-text-muted hover:text-accent transition-colors shadow-sm" title={t('common.edit')}>
+          <Pencil size={14} />
+        </button>
+        <button onClick={onDelete} className="p-2 rounded-lg bg-surface hover:bg-surface-overlay text-text-muted hover:text-danger transition-colors shadow-sm" title={t('common.delete')}>
+          <Trash2 size={14} />
+        </button>
       </div>
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button onClick={onEdit} className="p-1.5 rounded hover:bg-border text-text-muted hover:text-accent transition-colors" title={t('common.edit')}>
-          <Pencil size={13} />
-        </button>
-        <button onClick={onDelete} className="p-1.5 rounded hover:bg-border text-text-muted hover:text-danger transition-colors" title={t('common.delete')}>
-          <Trash2 size={13} />
-        </button>
+      <div className="mb-3 transform group-hover:scale-105 transition-transform">
+        <ProviderIconSvg prefix={type} size={48} className="opacity-90 group-hover:opacity-100 transition-opacity" />
+      </div>
+      <div className="text-center w-full px-2">
+        <div className="text-sm font-bold text-text truncate mb-1">{name}</div>
+        <div className="inline-flex items-center px-2 py-0.5 rounded-full bg-surface-overlay text-[10px] font-medium text-text-muted truncate max-w-full">
+          {providerName || 'Loading...'}
+        </div>
       </div>
     </div>
   );
