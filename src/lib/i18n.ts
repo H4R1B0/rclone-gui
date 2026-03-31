@@ -38,9 +38,12 @@ const translations: Record<string, Record<Locale, string>> = {
 
   // Toolbar
   'toolbar.addAccount': { ko: '계정 추가', en: 'Add Account' },
+  'toolbar.explore': { ko: '탐색', en: 'Explore' },
+  'toolbar.accounts': { ko: '계정 관리', en: 'Accounts' },
   'toolbar.refresh': { ko: '새로고침', en: 'Refresh' },
   'toolbar.transfer': { ko: '전송', en: 'Transfers' },
   'toolbar.settings': { ko: '설정', en: 'Settings' },
+  'toolbar.search': { ko: '검색', en: 'Search' },
 
   // File browser
   'file.name': { ko: '이름', en: 'Name' },
@@ -174,6 +177,22 @@ const translations: Record<string, Record<Locale, string>> = {
   'lock.useTouchID': { ko: 'Touch ID로 잠금 해제', en: 'Unlock with Touch ID' },
   'lock.wrongPassword': { ko: '비밀번호가 올바르지 않습니다', en: 'Incorrect password' },
   'lock.touchIDFailed': { ko: 'Touch ID 인증에 실패했습니다', en: 'Touch ID authentication failed' },
+
+  // Search
+  'search.placeholder': { ko: '연결된 클라우드에서 파일 검색...', en: 'Search files across connected clouds...' },
+  'search.button': { ko: '검색', en: 'Search' },
+  'search.filter': { ko: '필터', en: 'Filter' },
+  'search.noCloud': { ko: '연결된 클라우드가 없습니다', en: 'No connected clouds' },
+  'search.emptyHint': { ko: '검색어를 입력하여 파일을 찾으세요', en: 'Enter a keyword to find files' },
+  'search.emptyDesc': { ko: '선택한 클라우드에서 결과를 검색합니다', en: 'Results will be fetched from selected clouds' },
+  'search.noResults': { ko: '검색 결과가 없습니다:', en: 'No files found matching' },
+  'search.searching': { ko: '클라우드에서 검색 중...', en: 'Searching through clouds...' },
+  'search.colName': { ko: '이름', en: 'Name' },
+  'search.colCloud': { ko: '클라우드', en: 'Cloud' },
+  'search.colSize': { ko: '크기', en: 'Size' },
+  'search.colDate': { ko: '날짜', en: 'Date' },
+  'search.colFolder': { ko: '폴더 위치', en: 'Folder' },
+  'search.resultCount': { ko: '개 결과', en: ' results' },
 };
 
 export function t(key: string): string {
