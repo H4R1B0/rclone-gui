@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, RotateCcw } from 'lucide-react';
+import { X, RotateCcw, Shield, Fingerprint, KeyRound, Trash2 } from 'lucide-react';
 import { useSettingsStore, defaultSettings, type RcloneSettings } from '../../stores/settingsStore';
 import { useT, useI18n, type Locale } from '../../lib/i18n';
 
@@ -42,6 +42,18 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
 
+  // App Lock state
+  const [lockConfig, setLockConfig] = useState<AppLockConfig>({ appLockEnabled: false, useTouchID: false });
+  const [hasPassword, setHasPassword] = useState(false);
+  const [canTouchID, setCanTouchID] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [passwordMode, setPasswordMode] = useState<'set' | 'change'>('set');
+  const [currentPw, setCurrentPw] = useState('');
+  const [newPw, setNewPw] = useState('');
+  const [confirmPw, setConfirmPw] = useState('');
+  const [pwError, setPwError] = useState('');
+  const [pwSuccess, setPwSuccess] = useState('');
+
   useEffect(() => {
     window.rcloneAPI.loadSettings().then((saved) => {
       if (saved) {
@@ -50,6 +62,10 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
         setSettings(merged);
       }
     });
+    // Load app lock config
+    window.rcloneAPI.appLockGetConfig().then(setLockConfig);
+    window.rcloneAPI.appLockHasPassword().then(setHasPassword);
+    window.rcloneAPI.appLockCanUseTouchID().then(setCanTouchID);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateField = (key: keyof RcloneSettings, value: unknown) => {
@@ -102,6 +118,79 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     setMessage('');
   };
 
+  // --- App Lock handlers ---
+  const handleToggleAppLock = async (enabled: boolean) => {
+    if (enabled && !hasPassword) {
+      // Must set password first
+      setPasswordMode('set');
+      setShowPasswordForm(true);
+      return;
+    }
+    const newConfig = { ...lockConfig, appLockEnabled: enabled };
+    if (!enabled) {
+      newConfig.useTouchID = false;
+    }
+    setLockConfig(newConfig);
+    await window.rcloneAPI.appLockSaveConfig(newConfig);
+  };
+
+  const handleToggleTouchID = async (enabled: boolean) => {
+    const newConfig = { ...lockConfig, useTouchID: enabled };
+    setLockConfig(newConfig);
+    await window.rcloneAPI.appLockSaveConfig(newConfig);
+  };
+
+  const handlePasswordSubmit = async () => {
+    setPwError('');
+    setPwSuccess('');
+
+    if (passwordMode === 'change') {
+      const valid = await window.rcloneAPI.appLockVerifyPassword(currentPw);
+      if (!valid) {
+        setPwError(t('settings.wrongPassword'));
+        return;
+      }
+    }
+
+    if (newPw.length < 4) {
+      setPwError(t('settings.passwordTooShort'));
+      return;
+    }
+    if (newPw !== confirmPw) {
+      setPwError(t('settings.passwordMismatch'));
+      return;
+    }
+
+    try {
+      await window.rcloneAPI.appLockSetPassword(newPw);
+      setHasPassword(true);
+      // Enable lock if setting first password
+      if (!lockConfig.appLockEnabled) {
+        const newConfig = { ...lockConfig, appLockEnabled: true };
+        setLockConfig(newConfig);
+        await window.rcloneAPI.appLockSaveConfig(newConfig);
+      }
+      setPwSuccess(passwordMode === 'set' ? t('settings.passwordSet') : t('settings.passwordChanged'));
+      setShowPasswordForm(false);
+      setCurrentPw('');
+      setNewPw('');
+      setConfirmPw('');
+    } catch (err) {
+      setPwError(String(err));
+    }
+  };
+
+  const handleRemovePassword = async () => {
+    if (!confirm(t('settings.confirmRemovePassword'))) return;
+    await window.rcloneAPI.appLockRemovePassword();
+    const newConfig = { appLockEnabled: false, useTouchID: false };
+    setLockConfig(newConfig);
+    await window.rcloneAPI.appLockSaveConfig(newConfig);
+    setHasPassword(false);
+    setPwSuccess(t('settings.passwordRemoved'));
+    setShowPasswordForm(false);
+  };
+
   const handleLanguageChange = async (locale: Locale) => {
     if (locale === currentLocale) return;
     const msg = locale === 'ko'
@@ -146,6 +235,136 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                   English
                 </button>
               </div>
+            </div>
+          </Section>
+
+          {/* Security */}
+          <Section title={t('settings.security')}>
+            {/* App Lock toggle */}
+            <label className="flex items-center justify-between py-1.5 cursor-pointer group">
+              <div className="flex items-center gap-2">
+                <Shield size={14} className="text-accent" />
+                <div>
+                  <div className="text-xs text-text group-hover:text-accent transition-colors">{t('settings.appLock')}</div>
+                  <div className="text-[10px] text-text-muted">{t('settings.appLockDesc')}</div>
+                </div>
+              </div>
+              <input
+                type="checkbox"
+                checked={lockConfig.appLockEnabled}
+                onChange={(e) => handleToggleAppLock(e.target.checked)}
+                className="w-4 h-4 rounded accent-accent"
+              />
+            </label>
+
+            {/* Touch ID toggle */}
+            {canTouchID && (
+              <label className={`flex items-center justify-between py-1.5 cursor-pointer group ${!lockConfig.appLockEnabled ? 'opacity-40 pointer-events-none' : ''}`}>
+                <div className="flex items-center gap-2">
+                  <Fingerprint size={14} className="text-accent" />
+                  <div>
+                    <div className="text-xs text-text group-hover:text-accent transition-colors">{t('settings.useTouchID')}</div>
+                    <div className="text-[10px] text-text-muted">{t('settings.useTouchIDDesc')}</div>
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={lockConfig.useTouchID}
+                  onChange={(e) => handleToggleTouchID(e.target.checked)}
+                  className="w-4 h-4 rounded accent-accent"
+                  disabled={!lockConfig.appLockEnabled}
+                />
+              </label>
+            )}
+
+            {/* Password management */}
+            <div className="pt-1 space-y-2">
+              <div className="flex items-center gap-2">
+                {hasPassword ? (
+                  <>
+                    <button
+                      onClick={() => { setPasswordMode('change'); setShowPasswordForm(true); setPwError(''); setPwSuccess(''); setCurrentPw(''); setNewPw(''); setConfirmPw(''); }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded bg-surface-overlay text-text hover:bg-border transition-colors"
+                    >
+                      <KeyRound size={12} />
+                      {t('settings.changePassword')}
+                    </button>
+                    <button
+                      onClick={handleRemovePassword}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded bg-surface-overlay text-danger/80 hover:bg-danger/20 hover:text-danger transition-colors"
+                    >
+                      <Trash2 size={12} />
+                      {t('settings.removePassword')}
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => { setPasswordMode('set'); setShowPasswordForm(true); setPwError(''); setPwSuccess(''); setNewPw(''); setConfirmPw(''); }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded bg-surface-overlay text-text hover:bg-border transition-colors"
+                  >
+                    <KeyRound size={12} />
+                    {t('settings.setPassword')}
+                  </button>
+                )}
+              </div>
+
+              {pwSuccess && (
+                <div className="text-xs text-success">{pwSuccess}</div>
+              )}
+
+              {/* Password form */}
+              {showPasswordForm && (
+                <div className="space-y-2 p-3 rounded-lg bg-surface/50 border border-border">
+                  {passwordMode === 'change' && (
+                    <div>
+                      <label className="text-[10px] text-text-muted mb-1 block">{t('settings.currentPassword')}</label>
+                      <input
+                        type="password"
+                        value={currentPw}
+                        onChange={(e) => setCurrentPw(e.target.value)}
+                        className="w-full px-3 py-1.5 rounded bg-surface-overlay border border-border focus:border-accent text-xs text-text outline-none"
+                        autoFocus
+                      />
+                    </div>
+                  )}
+                  <div>
+                    <label className="text-[10px] text-text-muted mb-1 block">{t('settings.newPassword')}</label>
+                    <input
+                      type="password"
+                      value={newPw}
+                      onChange={(e) => setNewPw(e.target.value)}
+                      className="w-full px-3 py-1.5 rounded bg-surface-overlay border border-border focus:border-accent text-xs text-text outline-none"
+                      autoFocus={passwordMode === 'set'}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-text-muted mb-1 block">{t('settings.confirmPassword')}</label>
+                    <input
+                      type="password"
+                      value={confirmPw}
+                      onChange={(e) => setConfirmPw(e.target.value)}
+                      className="w-full px-3 py-1.5 rounded bg-surface-overlay border border-border focus:border-accent text-xs text-text outline-none"
+                    />
+                  </div>
+                  {pwError && (
+                    <div className="text-xs text-danger">{pwError}</div>
+                  )}
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      onClick={handlePasswordSubmit}
+                      className="px-3 py-1.5 text-xs rounded bg-accent hover:bg-accent-hover text-white transition-colors"
+                    >
+                      {passwordMode === 'set' ? t('settings.setPassword') : t('settings.changePassword')}
+                    </button>
+                    <button
+                      onClick={() => setShowPasswordForm(false)}
+                      className="px-3 py-1.5 text-xs text-text-muted hover:text-text"
+                    >
+                      {t('common.cancel')}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </Section>
 
