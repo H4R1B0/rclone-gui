@@ -6,6 +6,7 @@ import { TransferQueue } from './components/transfer/TransferQueue';
 import { AccountSetup } from './components/account/AccountSetup';
 import { SettingsModal } from './components/settings/SettingsModal';
 import { LockScreen } from './components/lock/LockScreen';
+import { SearchPanel } from './components/search/SearchPanel';
 import { useRclone, usePanelFiles } from './hooks/useRclone';
 import { useTransferPolling } from './hooks/useTransferPolling';
 import { usePanelStore } from './stores/panelStore';
@@ -14,7 +15,7 @@ import { GripHorizontal } from 'lucide-react';
 
 export default function App() {
   const [ready, setReady] = useState(false);
-  const [showAccountSetup, setShowAccountSetup] = useState(false);
+  const [activeView, setActiveView] = useState<'explore' | 'account' | 'search'>('explore');
   const [showSettings, setShowSettings] = useState(false);
   const [showTransfers, setShowTransfers] = useState(true);
   const [transferHeight, setTransferHeight] = useState(200);
@@ -120,18 +121,27 @@ export default function App() {
       </div>
 
       <Toolbar
-        onAddAccount={() => setShowAccountSetup(true)}
+        onExplore={() => setActiveView('explore')}
+        onAddAccount={() => setActiveView('account')}
         onToggleTransfers={() => setShowTransfers((v) => !v)}
         onOpenSettings={() => setShowSettings(true)}
+        onOpenSearch={() => setActiveView('search')}
         showTransfers={showTransfers}
+        activeMode={activeView}
       />
 
       <div className="flex-1 flex flex-col min-h-0" style={{ cursor: resizing ? 'row-resize' : undefined }}>
         <div className="flex-1 min-h-0 h-full">
-          {ready ? <DualPanel /> : (
+          {!ready ? (
             <div className="flex items-center justify-center h-full text-text-muted text-sm">
               rclone 데몬 연결 중...
             </div>
+          ) : activeView === 'account' ? (
+            <AccountSetup onClose={() => { setActiveView('explore'); loadRemotes(); }} />
+          ) : activeView === 'search' ? (
+            <SearchPanel />
+          ) : (
+            <DualPanel />
           )}
         </div>
         {showTransfers && (
@@ -151,12 +161,10 @@ export default function App() {
 
       <StatusBar />
 
-      {showAccountSetup && (
-        <AccountSetup onClose={() => { setShowAccountSetup(false); loadRemotes(); }} />
-      )}
       {showSettings && (
         <SettingsModal onClose={() => setShowSettings(false)} />
       )}
+
     </div>
   );
 }
