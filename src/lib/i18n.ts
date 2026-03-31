@@ -142,6 +142,37 @@ const translations: Record<string, Record<Locale, string>> = {
   'settings.noUpdateModTime': { ko: '수정 시간 유지 안함', en: 'No Update ModTime' },
   'settings.noUpdateModTimeDesc': { ko: '전송 후 수정 시간을 업데이트하지 않음', en: "Don't update modification time after transfer" },
   'settings.unlimited': { ko: '무제한', en: 'Unlimited' },
+
+  // App Lock
+  'settings.security': { ko: '보안', en: 'Security' },
+  'settings.appLock': { ko: '앱 잠금', en: 'App Lock' },
+  'settings.appLockDesc': { ko: '앱 시작 시 인증을 요구합니다', en: 'Require authentication on app start' },
+  'settings.appLockPassword': { ko: '잠금 비밀번호', en: 'Lock Password' },
+  'settings.setPassword': { ko: '비밀번호 설정', en: 'Set Password' },
+  'settings.changePassword': { ko: '비밀번호 변경', en: 'Change Password' },
+  'settings.removePassword': { ko: '비밀번호 삭제', en: 'Remove Password' },
+  'settings.currentPassword': { ko: '현재 비밀번호', en: 'Current Password' },
+  'settings.newPassword': { ko: '새 비밀번호', en: 'New Password' },
+  'settings.confirmPassword': { ko: '비밀번호 확인', en: 'Confirm Password' },
+  'settings.passwordMismatch': { ko: '비밀번호가 일치하지 않습니다', en: 'Passwords do not match' },
+  'settings.passwordTooShort': { ko: '비밀번호는 4자 이상이어야 합니다', en: 'Password must be at least 4 characters' },
+  'settings.passwordSet': { ko: '비밀번호가 설정되었습니다', en: 'Password has been set' },
+  'settings.passwordChanged': { ko: '비밀번호가 변경되었습니다', en: 'Password has been changed' },
+  'settings.passwordRemoved': { ko: '비밀번호가 삭제되었습니다', en: 'Password has been removed' },
+  'settings.wrongPassword': { ko: '비밀번호가 올바르지 않습니다', en: 'Incorrect password' },
+  'settings.useTouchID': { ko: 'Touch ID 사용', en: 'Use Touch ID' },
+  'settings.useTouchIDDesc': { ko: '지문 인식으로 앱 잠금을 해제합니다', en: 'Unlock app with fingerprint' },
+  'settings.touchIDNotAvailable': { ko: 'Touch ID를 사용할 수 없는 기기입니다', en: 'Touch ID is not available on this device' },
+  'settings.confirmRemovePassword': { ko: '비밀번호를 삭제하면 앱 잠금이 비활성화됩니다. 계속하시겠습니까?', en: 'Removing the password will disable app lock. Continue?' },
+
+  // Lock Screen
+  'lock.title': { ko: 'Rclone GUI', en: 'Rclone GUI' },
+  'lock.subtitle': { ko: '잠금이 설정되어 있습니다', en: 'App is locked' },
+  'lock.enterPassword': { ko: '비밀번호를 입력하세요', en: 'Enter your password' },
+  'lock.unlock': { ko: '잠금 해제', en: 'Unlock' },
+  'lock.useTouchID': { ko: 'Touch ID로 잠금 해제', en: 'Unlock with Touch ID' },
+  'lock.wrongPassword': { ko: '비밀번호가 올바르지 않습니다', en: 'Incorrect password' },
+  'lock.touchIDFailed': { ko: 'Touch ID 인증에 실패했습니다', en: 'Touch ID authentication failed' },
 };
 
 export function t(key: string): string {
