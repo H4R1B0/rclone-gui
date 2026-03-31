@@ -41,6 +41,21 @@ interface RcloneAPI {
   getOptions: () => Promise<Record<string, unknown>>;
   saveSettings: (settings: Record<string, unknown>) => Promise<void>;
   loadSettings: () => Promise<Record<string, unknown> | null>;
+
+  // app lock
+  appLockSetPassword: (password: string) => Promise<void>;
+  appLockVerifyPassword: (password: string) => Promise<boolean>;
+  appLockRemovePassword: () => Promise<void>;
+  appLockHasPassword: () => Promise<boolean>;
+  appLockPromptTouchID: () => Promise<boolean>;
+  appLockCanUseTouchID: () => Promise<boolean>;
+  appLockGetConfig: () => Promise<AppLockConfig>;
+  appLockSaveConfig: (config: AppLockConfig) => Promise<void>;
+}
+
+interface AppLockConfig {
+  appLockEnabled: boolean;
+  useTouchID: boolean;
 }
 
 interface RcloneProvider {

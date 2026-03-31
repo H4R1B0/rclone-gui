@@ -1,6 +1,6 @@
 import { IpcMain } from 'electron';
-import { app } from 'electron';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { app, safeStorage, systemPreferences } from 'electron';
+import { readFileSync, writeFileSync, existsSync, unlinkSync } from 'fs';
 import path from 'path';
 import { RcloneDaemon } from './rclone/daemon';
 
@@ -153,5 +153,64 @@ export function registerIpcHandlers(ipcMain: IpcMain, daemon: RcloneDaemon) {
     } catch {
       return null;
     }
+  });
+
+  // --- app lock ---
+  const lockPasswordPath = path.join(app.getPath('userData'), 'app-lock.enc');
+  const lockConfigPath = path.join(app.getPath('userData'), 'app-lock-config.json');
+
+  ipcMain.handle('appLock:setPassword', async (_e, password: string) => {
+    if (!safeStorage.isEncryptionAvailable()) {
+      throw new Error('Encryption is not available on this system');
+    }
+    const encrypted = safeStorage.encryptString(password);
+    writeFileSync(lockPasswordPath, encrypted);
+  });
+
+  ipcMain.handle('appLock:verifyPassword', async (_e, password: string) => {
+    if (!existsSync(lockPasswordPath)) return false;
+    try {
+      const encrypted = readFileSync(lockPasswordPath);
+      const stored = safeStorage.decryptString(encrypted);
+      return stored === password;
+    } catch {
+      return false;
+    }
+  });
+
+  ipcMain.handle('appLock:removePassword', async () => {
+    if (existsSync(lockPasswordPath)) {
+      unlinkSync(lockPasswordPath);
+    }
+  });
+
+  ipcMain.handle('appLock:hasPassword', async () => {
+    return existsSync(lockPasswordPath);
+  });
+
+  ipcMain.handle('appLock:promptTouchID', async () => {
+    try {
+      await systemPreferences.promptTouchID('Rclone GUI 잠금 해제');
+      return true;
+    } catch {
+      return false;
+    }
+  });
+
+  ipcMain.handle('appLock:canUseTouchID', async () => {
+    return systemPreferences.canPromptTouchID();
+  });
+
+  ipcMain.handle('appLock:getConfig', async () => {
+    if (!existsSync(lockConfigPath)) return { appLockEnabled: false, useTouchID: false };
+    try {
+      return JSON.parse(readFileSync(lockConfigPath, 'utf-8'));
+    } catch {
+      return { appLockEnabled: false, useTouchID: false };
+    }
+  });
+
+  ipcMain.handle('appLock:saveConfig', async (_e, config: { appLockEnabled: boolean; useTouchID: boolean }) => {
+    writeFileSync(lockConfigPath, JSON.stringify(config, null, 2), 'utf-8');
   });
 }

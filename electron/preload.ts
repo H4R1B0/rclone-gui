@@ -47,4 +47,14 @@ contextBridge.exposeInMainWorld('rcloneAPI', {
   getOptions: () => ipcRenderer.invoke('rclone:getOptions'),
   saveSettings: (settings: Record<string, unknown>) => ipcRenderer.invoke('settings:save', settings),
   loadSettings: () => ipcRenderer.invoke('settings:load'),
+
+  // app lock
+  appLockSetPassword: (password: string) => ipcRenderer.invoke('appLock:setPassword', password),
+  appLockVerifyPassword: (password: string) => ipcRenderer.invoke('appLock:verifyPassword', password),
+  appLockRemovePassword: () => ipcRenderer.invoke('appLock:removePassword'),
+  appLockHasPassword: () => ipcRenderer.invoke('appLock:hasPassword'),
+  appLockPromptTouchID: () => ipcRenderer.invoke('appLock:promptTouchID'),
+  appLockCanUseTouchID: () => ipcRenderer.invoke('appLock:canUseTouchID'),
+  appLockGetConfig: () => ipcRenderer.invoke('appLock:getConfig'),
+  appLockSaveConfig: (config: { appLockEnabled: boolean; useTouchID: boolean }) => ipcRenderer.invoke('appLock:saveConfig', config),
 });
