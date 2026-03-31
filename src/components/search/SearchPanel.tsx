@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useSearchStore } from '../../stores/searchStore';
 import { useSearch } from '../../hooks/useSearch';
 import { usePanelStore } from '../../stores/panelStore';
-import { Search, Loader2, Folder, File as FileIcon, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Search, Loader2, Folder, File as FileIcon, ArrowUpDown, ArrowUp, ArrowDown, StopCircle } from 'lucide-react';
 import { ProviderIconSvg } from '../common/ProviderIconSvg';
 import { useT } from '../../lib/i18n';
 
@@ -41,17 +41,17 @@ export function SearchPanel() {
     setQuery, toggleCloud, reset,
   } = useSearchStore();
 
-  const { performSearch } = useSearch();
+  const { performSearch, abortSearch } = useSearch();
   const { remotes, activePanel, setPath, setRemote } = usePanelStore();
   const inputRef = useRef<HTMLInputElement>(null);
   const [sortKey, setSortKey] = useState<SortKey>('Name');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [remoteTypes, setRemoteTypes] = useState<Record<string, string>>({});
 
-  // Auto-focus on mount
+  // Auto-focus on mount, abort search on unmount
   useEffect(() => {
     setTimeout(() => inputRef.current?.focus(), 100);
-    return () => { reset(); };
+    return () => { abortSearch(); reset(); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load remote types for icons
@@ -155,6 +155,17 @@ export function SearchPanel() {
             {isSearching ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
             {t('search.button')}
           </button>
+          {isSearching && (
+            <button
+              type="button"
+              onClick={abortSearch}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-danger/10 hover:bg-danger/20 text-danger text-sm font-medium transition-colors"
+              title={t('search.stop')}
+            >
+              <StopCircle size={14} />
+              {t('search.stop')}
+            </button>
+          )}
         </form>
       </div>
 

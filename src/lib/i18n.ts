@@ -193,6 +193,7 @@ const translations: Record<string, Record<Locale, string>> = {
   'search.colDate': { ko: '날짜', en: 'Date' },
   'search.colFolder': { ko: '폴더 위치', en: 'Folder' },
   'search.resultCount': { ko: '개 결과', en: ' results' },
+  'search.stop': { ko: '중지', en: 'Stop' },
 };
 
 export function t(key: string): string {
