@@ -1,5 +1,6 @@
+import { useState, useRef, useEffect } from 'react';
 import { usePanelStore } from '../../stores/panelStore';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Monitor, Cloud } from 'lucide-react';
 import { useT } from '../../lib/i18n';
 
 interface TabBarProps {
@@ -11,8 +12,25 @@ export function TabBar({ side }: TabBarProps) {
   const switchTab = usePanelStore((s) => s.switchTab);
   const closeTab = usePanelStore((s) => s.closeTab);
   const addTab = usePanelStore((s) => s.addTab);
-  const panel = usePanelStore((s) => s[side]);
+  const remotes = usePanelStore((s) => s.remotes);
   const t = useT();
+
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  // Close menu on outside click
+  useEffect(() => {
+    if (!showMenu) return;
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node) &&
+          btnRef.current && !btnRef.current.contains(e.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showMenu]);
 
   const displayLabel = (label: string) => {
     if (label === 'local') return t('panel.myPc');
@@ -20,53 +38,79 @@ export function TabBar({ side }: TabBarProps) {
     return label;
   };
 
-  const handleAddTab = () => {
-    // New tab inherits current panel mode
-    if (panel.mode === 'local') {
-      addTab(side, 'local', '/', '', 'local');
+  const handleAddLocal = () => {
+    addTab(side, 'local', '/', '', 'local');
+    setShowMenu(false);
+  };
+
+  const handleAddCloud = (remote?: string) => {
+    if (remote) {
+      addTab(side, 'cloud', `${remote}:`, '', remote);
     } else {
       addTab(side, 'cloud', '', '', 'cloud');
     }
+    setShowMenu(false);
   };
 
-  // Single tab: show current cloud name + add button
-  if (sideState.tabs.length <= 1) {
-    const activeTab = sideState.tabs[0];
-    const label = activeTab?.remote
-      ? activeTab.remote.replace(/:$/, '')
-      : displayLabel(activeTab?.label ?? '');
-
-    return (
-      <div className="flex items-center bg-surface border-b border-border">
-        {activeTab?.remote ? (
-          <span className="px-3 py-1 text-[11px] font-medium text-accent truncate max-w-[160px]">
-            {label}
-          </span>
-        ) : null}
-        <div className="flex-1" />
-        <button
-          onClick={handleAddTab}
-          className="px-2 py-1 text-text-muted hover:text-accent hover:bg-surface-overlay transition-colors"
-          title={t('panel.newTab')}
+  const addButton = (
+    <div className="relative flex-shrink-0">
+      <button
+        ref={btnRef}
+        onClick={() => setShowMenu((v) => !v)}
+        className="px-2 py-1.5 text-text-muted hover:text-accent hover:bg-surface-overlay transition-colors"
+        title={t('panel.newTab')}
+      >
+        <Plus size={12} />
+      </button>
+      {showMenu && (
+        <div
+          ref={menuRef}
+          className={`absolute top-full z-50 mt-1 min-w-[180px] bg-surface-raised border border-border rounded-lg shadow-lg py-1 overflow-hidden ${side === 'right' ? 'right-0' : 'left-0'}`}
         >
-          <Plus size={12} />
-        </button>
-      </div>
-    );
-  }
+          <button
+            onClick={handleAddLocal}
+            className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-text hover:bg-surface-overlay transition-colors"
+          >
+            <Monitor size={14} className="text-text-muted flex-shrink-0" />
+            {t('panel.myPc')}
+          </button>
+          {remotes.length > 0 && (
+            <div className="border-t border-border my-1" />
+          )}
+          {remotes.map((name) => (
+            <button
+              key={name}
+              onClick={() => handleAddCloud(name)}
+              className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-text hover:bg-surface-overlay transition-colors"
+            >
+              <Cloud size={14} className="text-accent flex-shrink-0" />
+              <span className="truncate">{name}</span>
+            </button>
+          ))}
+          {remotes.length === 0 && (
+            <div className="px-3 py-2 text-[11px] text-text-muted">
+              {t('remote.noCloud')}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 
   return (
-    <div className="flex items-center bg-surface border-b border-border overflow-x-auto">
+    <div className="flex items-center bg-surface border-b border-border">
       {sideState.tabs.map((tab) => {
         const isActive = tab.id === sideState.activeTabId;
-        const label = tab.remote
-          ? (tab.path ? tab.path.split('/').pop() : tab.remote)
-          : displayLabel(tab.label);
+        const label = tab.mode === 'local'
+          ? t('panel.myPc')
+          : tab.remote
+            ? (tab.path ? tab.path.split('/').pop() : tab.remote)
+            : displayLabel(tab.label);
 
         return (
           <div
             key={tab.id}
-            className={`flex items-center gap-1 px-3 py-1.5 text-[11px] cursor-pointer border-r border-border min-w-0 max-w-[160px] transition-colors ${
+            className={`flex items-center gap-1 px-3 py-1.5 text-[11px] cursor-pointer border-r border-border min-w-0 flex-1 transition-colors ${
               isActive
                 ? 'bg-surface-raised text-text'
                 : 'text-text-muted hover:text-text hover:bg-surface-overlay'
@@ -85,13 +129,7 @@ export function TabBar({ side }: TabBarProps) {
           </div>
         );
       })}
-      <button
-        onClick={handleAddTab}
-        className="px-2 py-1.5 text-text-muted hover:text-accent hover:bg-surface-overlay transition-colors flex-shrink-0"
-        title={t('panel.newTab')}
-      >
-        <Plus size={12} />
-      </button>
+      {addButton}
     </div>
   );
 }
