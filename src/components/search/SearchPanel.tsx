@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useSearchStore } from '../../stores/searchStore';
 import { useSearch } from '../../hooks/useSearch';
 import { usePanelStore } from '../../stores/panelStore';
+import { usePanelFiles } from '../../hooks/useRclone';
 import { Search, Loader2, Folder, File as FileIcon, ArrowUpDown, ArrowUp, ArrowDown, StopCircle } from 'lucide-react';
 import { ProviderIconSvg } from '../common/ProviderIconSvg';
 import { useT } from '../../lib/i18n';
@@ -34,22 +35,31 @@ function getFolderPath(path: string): string {
   return parts.length > 0 ? parts.join('/') || '/' : '/';
 }
 
-export function SearchPanel() {
+interface SearchPanelProps {
+  onNavigate?: () => void;
+}
+
+export function SearchPanel({ onNavigate }: SearchPanelProps) {
   const t = useT();
   const {
     query, isSearching, hasSearched, results, error, selectedClouds,
-    setQuery, toggleCloud,
+    setQuery, toggleCloud, setSelectedClouds,
   } = useSearchStore();
 
   const { performSearch, abortSearch } = useSearch();
-  const { remotes, activePanel, setPath, setRemote } = usePanelStore();
+  const { remotes, navigateTo } = usePanelStore();
+  const { loadFiles } = usePanelFiles('right');
   const inputRef = useRef<HTMLInputElement>(null);
   const [sortKey, setSortKey] = useState<SortKey>('Name');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [remoteTypes, setRemoteTypes] = useState<Record<string, string>>({});
 
-  // Auto-focus on mount, abort active search on unmount but preserve results
+  // Initialize: select all clouds, auto-focus, abort on unmount
   useEffect(() => {
+    const cloudRemotes = remotes.filter(r => r !== '/');
+    if (selectedClouds.length === 0 && cloudRemotes.length > 0) {
+      setSelectedClouds(cloudRemotes);
+    }
     setTimeout(() => inputRef.current?.focus(), 100);
     return () => { abortSearch(); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -82,7 +92,7 @@ export function SearchPanel() {
     performSearch();
   };
 
-  const handleResultClick = (remoteFs: string, path: string, isDir: boolean) => {
+  const handleNavigateToFolder = (remoteFs: string, path: string, isDir: boolean) => {
     let dirPath = '';
     if (isDir) {
       dirPath = path;
@@ -91,10 +101,10 @@ export function SearchPanel() {
       parts.pop();
       dirPath = parts.join('/');
     }
-    setRemote(activePanel, remoteFs);
-    setTimeout(() => {
-      setPath(activePanel, dirPath);
-    }, 50);
+    const fs = remoteFs.endsWith(':') ? remoteFs : `${remoteFs}:`;
+    navigateTo('right', fs, dirPath);
+    loadFiles(fs, dirPath);
+    onNavigate?.();
   };
 
   const handleSort = (key: SortKey) => {
@@ -175,21 +185,24 @@ export function SearchPanel() {
         {cloudRemotes.length === 0 ? (
           <span className="text-xs text-text-muted">{t('search.noCloud')}</span>
         ) : (
-          cloudRemotes.map(remote => (
-            <button
-              key={remote}
-              type="button"
-              onClick={() => toggleCloud(remote)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all
-                ${selectedClouds.includes(remote)
-                  ? 'bg-accent/10 text-accent border-accent/30 shadow-sm'
-                  : 'bg-surface-raised text-text-muted border-border hover:border-accent/20 hover:text-text'
-                }`}
-            >
-              <ProviderIconSvg prefix={remoteTypes[remote] ?? ''} size={14} />
-              {remote}
-            </button>
-          ))
+          cloudRemotes.map(remote => {
+            const isActive = selectedClouds.includes(remote);
+            return (
+              <button
+                key={remote}
+                type="button"
+                onClick={() => toggleCloud(remote)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all
+                  ${isActive
+                    ? 'bg-accent/10 text-accent border-accent/30 shadow-sm'
+                    : 'bg-surface-raised text-text-muted border-border hover:border-accent/20 hover:text-text'
+                  }`}
+              >
+                <ProviderIconSvg prefix={remoteTypes[remote] ?? ''} size={14} />
+                {remote}
+              </button>
+            );
+          })
         )}
       </div>
 
@@ -263,8 +276,7 @@ export function SearchPanel() {
               {sortedResults.map((file, idx) => (
                 <tr
                   key={`${file.RemoteFs}-${file.Path}-${idx}`}
-                  onClick={() => handleResultClick(file.RemoteFs, file.Path, file.IsDir)}
-                  className="hover:bg-surface-overlay cursor-pointer transition-colors border-b border-border/50 group"
+                  className="hover:bg-surface-overlay transition-colors border-b border-border/50 group"
                 >
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-2.5">
@@ -286,10 +298,19 @@ export function SearchPanel() {
                   <td className="px-3 py-2.5 text-text-muted tabular-nums">
                     {formatDate(file.ModTime)}
                   </td>
-                  <td className="px-3 py-2.5">
-                    <span className="text-text-muted truncate block max-w-[200px]" title={getFolderPath(file.Path)}>
+                  <td
+                    className="px-3 py-2.5 cursor-pointer relative group/folder"
+                    onDoubleClick={(e) => {
+                      e.stopPropagation();
+                      handleNavigateToFolder(file.RemoteFs, file.Path, file.IsDir);
+                    }}
+                  >
+                    <span className="text-text-muted group-hover/folder:text-accent group-hover/folder:underline truncate block max-w-[200px] transition-colors">
                       {getFolderPath(file.Path)}
                     </span>
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1.5 rounded-lg bg-surface-raised border border-border shadow-lg text-xs text-text whitespace-nowrap opacity-0 pointer-events-none group-hover/folder:opacity-100 transition-opacity z-50">
+                      {t('search.folderNavigateHint')}
+                    </div>
                   </td>
                 </tr>
               ))}

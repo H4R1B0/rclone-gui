@@ -53,8 +53,7 @@ export function useSearch() {
     setResults([]);
 
     try {
-      const allCloudRemotes = remotes.filter((r) => r !== '/');
-      const targets = selectedClouds.length > 0 ? selectedClouds : allCloudRemotes;
+      const targets = selectedClouds.length > 0 ? selectedClouds : [];
 
       if (targets.length === 0) {
         setSearching(false);

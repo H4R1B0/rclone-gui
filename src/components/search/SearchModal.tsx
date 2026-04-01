@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useSearchStore } from '../../stores/searchStore';
 import { useSearch } from '../../hooks/useSearch';
 import { usePanelStore } from '../../stores/panelStore';
+import { usePanelFiles } from '../../hooks/useRclone';
 import { Search, X, Loader2, Folder, File as FileIcon, Cloud } from 'lucide-react';
 
 export function SearchModal() {
@@ -11,7 +12,8 @@ export function SearchModal() {
   } = useSearchStore();
   
   const { performSearch } = useSearch();
-  const { remotes, activePanel, setPath, setRemote } = usePanelStore();
+  const { remotes, navigateTo } = usePanelStore();
+  const { loadFiles } = usePanelFiles('right');
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Focus input when opened
@@ -47,7 +49,6 @@ export function SearchModal() {
   };
 
   const handleResultClick = (remoteFs: string, path: string, isDir: boolean) => {
-    // Determine the directory path (remove the filename if it is a file)
     let dirPath = '';
     if (isDir) {
       dirPath = path;
@@ -56,14 +57,10 @@ export function SearchModal() {
       parts.pop();
       dirPath = parts.join('/');
     }
-    
-    // Set remote and path on the active panel
-    setRemote(activePanel, remoteFs);
-    // Add small delay to let remote set properly before setting path
-    setTimeout(() => {
-      setPath(activePanel, dirPath);
-      setIsOpen(false);
-    }, 50);
+    const fs = remoteFs.endsWith(':') ? remoteFs : `${remoteFs}:`;
+    navigateTo('right', fs, dirPath);
+    loadFiles(fs, dirPath);
+    setIsOpen(false);
   };
 
   // cloud remotes

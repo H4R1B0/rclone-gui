@@ -87,6 +87,9 @@ interface DualPanelStore {
   setRemotes: (remotes: string[]) => void;
   setRemotesLoading: (loading: boolean) => void;
 
+  // Navigation: set remote + path atomically (for search result clicks, etc.)
+  navigateTo: (side: 'left' | 'right', remote: string, path: string) => void;
+
   // Tab operations
   addTab: (side: 'left' | 'right', mode: PanelMode, remote: string, path: string, label: string) => void;
   closeTab: (side: 'left' | 'right', tabId: string) => void;
@@ -205,6 +208,23 @@ export const usePanelStore = create<DualPanelStore>((set) => ({
 
   setRemotes: (remotes) => set({ remotes }),
   setRemotesLoading: (loading) => set({ remotesLoading: loading }),
+
+  navigateTo: (side, remote, path) =>
+    set((s) => {
+      const key = sideKey(side);
+      const updated = updateActiveTab(s[key], (t) => ({
+        ...t,
+        mode: remote === '/' ? 'local' : 'cloud',
+        remote,
+        path,
+        files: [],
+        selectedFiles: new Set(),
+        error: null,
+        label: remote === '/' ? 'local' : remote === '' ? 'cloud' : remote,
+      }));
+      const next = { ...s, [key]: updated };
+      return { ...next, ...recompute(next) };
+    }),
 
   // --- Tab operations ---
   addTab: (side, mode, remote, path, label) =>
