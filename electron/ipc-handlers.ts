@@ -175,6 +175,14 @@ export function registerIpcHandlers(ipcMain: IpcMain, daemon: RcloneDaemon) {
     });
   });
 
+  ipcMain.handle('rclone:hashFile', async (_e, fs: string, remote: string) => {
+    try {
+      return await api.call('operations/hashfile', { fs, remote, hashTypes: ['md5', 'sha1'] });
+    } catch {
+      return {};
+    }
+  });
+
   ipcMain.handle('rclone:getAbout', async (_e, fs: string) => {
     try {
       return await api.call('operations/about', { fs });

@@ -45,6 +45,7 @@ contextBridge.exposeInMainWorld('rcloneAPI', {
     ipcRenderer.invoke('rclone:moveDir', srcFs, srcRemote, dstFs, dstRemote),
   renameFile: (fs: string, oldName: string, newName: string) =>
     ipcRenderer.invoke('rclone:renameFile', fs, oldName, newName),
+  hashFile: (fs: string, remote: string) => ipcRenderer.invoke('rclone:hashFile', fs, remote),
   getAbout: (fs: string) => ipcRenderer.invoke('rclone:getAbout', fs),
 
   // transfers

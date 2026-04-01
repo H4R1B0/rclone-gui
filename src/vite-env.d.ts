@@ -30,6 +30,7 @@ interface RcloneAPI {
   copyDir: (srcFs: string, srcRemote: string, dstFs: string, dstRemote: string) => Promise<{ jobid: number }>;
   moveDir: (srcFs: string, srcRemote: string, dstFs: string, dstRemote: string) => Promise<{ jobid: number }>;
   renameFile: (fs: string, oldName: string, newName: string) => Promise<void>;
+  hashFile: (fs: string, remote: string) => Promise<Record<string, string>>;
   getAbout: (fs: string) => Promise<RcloneAbout | null>;
 
   // transfers
