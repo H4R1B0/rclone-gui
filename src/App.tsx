@@ -139,7 +139,7 @@ export default function App() {
           ) : activeView === 'account' ? (
             <AccountSetup onClose={() => { setActiveView('explore'); loadRemotes(); }} />
           ) : activeView === 'search' ? (
-            <SearchPanel />
+            <SearchPanel onNavigate={() => setActiveView('explore')} />
           ) : (
             <DualPanel />
           )}

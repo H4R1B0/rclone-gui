@@ -194,6 +194,7 @@ const translations: Record<string, Record<Locale, string>> = {
   'search.colFolder': { ko: '폴더 위치', en: 'Folder' },
   'search.resultCount': { ko: '개 결과', en: ' results' },
   'search.stop': { ko: '중지', en: 'Stop' },
+  'search.folderNavigateHint': { ko: '더블클릭하여 폴더로 이동', en: 'Double-click to navigate to folder' },
 };
 
 export function t(key: string): string {

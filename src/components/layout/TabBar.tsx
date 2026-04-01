@@ -29,10 +29,20 @@ export function TabBar({ side }: TabBarProps) {
     }
   };
 
-  // Don't show tab bar if there's only 1 tab
+  // Single tab: show current cloud name + add button
   if (sideState.tabs.length <= 1) {
+    const activeTab = sideState.tabs[0];
+    const label = activeTab?.remote
+      ? activeTab.remote.replace(/:$/, '')
+      : displayLabel(activeTab?.label ?? '');
+
     return (
       <div className="flex items-center bg-surface border-b border-border">
+        {activeTab?.remote ? (
+          <span className="px-3 py-1 text-[11px] font-medium text-accent truncate max-w-[160px]">
+            {label}
+          </span>
+        ) : null}
         <div className="flex-1" />
         <button
           onClick={handleAddTab}
