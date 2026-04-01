@@ -54,8 +54,27 @@ const translations: Record<string, Record<Locale, string>> = {
   'file.dropHint': { ko: '여기에 놓기 — 드롭: 복사 / Option+드롭: 이동', en: 'Drop here — Drop: Copy / Option+Drop: Move' },
 
   // Context menu
+  'ctx.open': { ko: '열기', en: 'Open' },
+  'ctx.cut': { ko: '잘라내기', en: 'Cut' },
+  'ctx.copy': { ko: '복사', en: 'Copy' },
+  'ctx.paste': { ko: '붙여넣기', en: 'Paste' },
   'ctx.rename': { ko: '이름 변경', en: 'Rename' },
-  'ctx.copyToOther': { ko: '반대편에 복사', en: 'Copy to Other Panel' },
+  'ctx.play': { ko: '재생', en: 'Play' },
+  'ctx.properties': { ko: '속성', en: 'Properties' },
+  'ctx.newFolder': { ko: '새 폴더', en: 'New Folder' },
+
+  // Properties modal
+  'properties.title': { ko: '속성', en: 'Properties' },
+  'properties.name': { ko: '이름', en: 'Name' },
+  'properties.type': { ko: '유형', en: 'Type' },
+  'properties.size': { ko: '크기', en: 'Size' },
+  'properties.modified': { ko: '수정일', en: 'Modified' },
+  'properties.path': { ko: '경로', en: 'Path' },
+  'properties.remote': { ko: '리모트', en: 'Remote' },
+  'properties.hash': { ko: '해시', en: 'Hash' },
+  'properties.file': { ko: '파일', en: 'File' },
+  'properties.folder': { ko: '폴더', en: 'Folder' },
+  'properties.loading': { ko: '로딩 중...', en: 'Loading...' },
 
   // Remote selector
   'remote.connect': { ko: '클라우드 연결', en: 'Connect Cloud' },
