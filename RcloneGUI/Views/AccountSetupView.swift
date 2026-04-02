@@ -12,6 +12,7 @@ struct AccountSetupView: View {
     @Environment(AppState.self) private var appState
     @State private var step: AccountStep = .list
     @State private var error: String?
+    @State private var showCryptSetup = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -42,11 +43,15 @@ struct AccountSetupView: View {
                 Text(L10n.t("account.title"))
                     .font(.title2.bold())
                 Spacer()
+                Button(action: { showCryptSetup = true }) {
+                    Label(L10n.t("crypt.title"), systemImage: "lock.shield")
+                }
                 Button(action: { step = .pickProvider }) {
                     Label(L10n.t("account.add"), systemImage: "plus")
                 }
             }
             .padding()
+            .sheet(isPresented: $showCryptSetup) { CryptSetupSheet() }
 
             Divider()
 

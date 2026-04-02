@@ -163,6 +163,19 @@ enum L10n {
         "lock.passwordTooShort": ["ko": "비밀번호는 4자 이상이어야 합니다", "en": "Password must be at least 4 characters"],
         "lock.passwordSaveFailed": ["ko": "비밀번호 저장에 실패했습니다", "en": "Failed to save password"],
 
+        // Crypt
+        "crypt.title":         ["ko": "암호화 리모트", "en": "Encrypted Remote"],
+        "crypt.name":          ["ko": "암호화 리모트 이름", "en": "Encrypted Remote Name"],
+        "crypt.baseRemote":    ["ko": "기본 리모트", "en": "Base Remote"],
+        "crypt.passwords":     ["ko": "비밀번호", "en": "Passwords"],
+        "crypt.password":      ["ko": "암호화 비밀번호", "en": "Encryption Password"],
+        "crypt.password2":     ["ko": "솔트 비밀번호 (선택)", "en": "Salt Password (optional)"],
+        "crypt.password2Help": ["ko": "추가 보안을 위한 두 번째 비밀번호", "en": "Second password for additional security"],
+        "crypt.options":       ["ko": "암호화 옵션", "en": "Encryption Options"],
+        "crypt.filenameEnc":   ["ko": "파일명 암호화", "en": "Filename Encryption"],
+        "crypt.off":           ["ko": "끄기", "en": "Off"],
+        "crypt.dirNameEnc":    ["ko": "디렉토리명 암호화", "en": "Directory Name Encryption"],
+
         // Sync
         "toolbar.sync":          ["ko": "동기화", "en": "Sync"],
         "sync.profiles":         ["ko": "동기화 프로필", "en": "Sync Profiles"],
