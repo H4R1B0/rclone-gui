@@ -1,9 +1,10 @@
 import SwiftUI
 
 struct NewFolderSheet: View {
-    @Bindable var viewModel: PanelViewModel
+    @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
-    @State private var folderName: String = ""
+    let side: PanelSide
+    @State private var folderName = ""
     @State private var errorMessage: String?
 
     var body: some View {
@@ -16,15 +17,12 @@ struct NewFolderSheet: View {
                 .onSubmit { create() }
 
             if let error = errorMessage {
-                Text(error)
-                    .foregroundColor(.red)
-                    .font(.caption)
+                Text(error).foregroundColor(.red).font(.caption)
             }
 
             HStack {
                 Button("Cancel") { dismiss() }
                     .keyboardShortcut(.cancelAction)
-
                 Button("Create") { create() }
                     .keyboardShortcut(.defaultAction)
                     .disabled(folderName.trimmingCharacters(in: .whitespaces).isEmpty)
@@ -39,7 +37,7 @@ struct NewFolderSheet: View {
         guard !name.isEmpty else { return }
         Task {
             do {
-                try await viewModel.mkdir(name: name)
+                try await appState.panels.createFolder(side: side, name: name)
                 dismiss()
             } catch {
                 errorMessage = error.localizedDescription

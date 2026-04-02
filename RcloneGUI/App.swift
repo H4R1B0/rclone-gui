@@ -1,5 +1,17 @@
 import SwiftUI
 
+// MARK: - Notification Names (keyboard shortcuts from menu commands)
+
+extension Notification.Name {
+    static let requestRename = Notification.Name("requestRename")
+    static let requestCopy = Notification.Name("requestCopy")
+    static let requestCut = Notification.Name("requestCut")
+    static let requestDelete = Notification.Name("requestDelete")
+    static let requestNewFolder = Notification.Name("requestNewFolder")
+    static let requestPaste = Notification.Name("requestPaste")
+    static let requestSelectAll = Notification.Name("requestSelectAll")
+}
+
 @main
 struct RcloneGUIApp: App {
     @State private var appState = AppState()

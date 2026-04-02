@@ -27,7 +27,7 @@
 		E2A718F0942E1263FF0C853D /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE9EB594683D318ED922F6 /* AppState.swift */; };
 		EE5262051872458647D6BEF8 /* RemoteSelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E32FEF6A8F7293D51A39017 /* RemoteSelectorView.swift */; };
 		F39BA4DABB76CA75A5A2F9F6 /* PanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9236ABEC694BF01FE281DF39 /* PanelView.swift */; };
-		F402E75BE90AA349A3D1377C /* ContextMenuBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95081456D75919992AED171 /* ContextMenuBuilder.swift */; };
+		A1B2C3D4E5F60718293A4B5C /* PropertiesSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E2F3A4B5C60718293A4B5C /* PropertiesSheet.swift */; };
 		F95D1084ED438C375089F0CE /* TransferViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5150A4D8F6C0212533E53DD8 /* TransferViewModel.swift */; };
 		FAE1AC8FEAA9889057D1DAD9 /* FileTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87351B73D23FEAE3793DFD33 /* FileTableView.swift */; };
 /* End PBXBuildFile section */
@@ -56,7 +56,7 @@
 		B0738E70B6EF3196F869BAEA /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		B5FBB2AFC29F900A57EABD79 /* NewFolderSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewFolderSheet.swift; sourceTree = "<group>"; };
 		D882FD253104D9E1A8B2876C /* AccountSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountSetupView.swift; sourceTree = "<group>"; };
-		E95081456D75919992AED171 /* ContextMenuBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextMenuBuilder.swift; sourceTree = "<group>"; };
+		D1E2F3A4B5C60718293A4B5C /* PropertiesSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertiesSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -98,7 +98,7 @@
 				0FA6F988B99CFEE046DCA715 /* AddressBarView.swift */,
 				28CD19DBE9956E559A09821D /* ConfirmDeleteSheet.swift */,
 				B0738E70B6EF3196F869BAEA /* ContentView.swift */,
-				E95081456D75919992AED171 /* ContextMenuBuilder.swift */,
+				D1E2F3A4B5C60718293A4B5C /* PropertiesSheet.swift */,
 				9F5C3E653BE8EB1EF3B1633F /* DualPanelView.swift */,
 				87351B73D23FEAE3793DFD33 /* FileTableView.swift */,
 				B5FBB2AFC29F900A57EABD79 /* NewFolderSheet.swift */,
@@ -259,7 +259,7 @@
 				E2A718F0942E1263FF0C853D /* AppState.swift in Sources */,
 				403A7333848641306F3A1A5E /* ConfirmDeleteSheet.swift in Sources */,
 				7AFDDB9AAA2B36856AF1065E /* ContentView.swift in Sources */,
-				F402E75BE90AA349A3D1377C /* ContextMenuBuilder.swift in Sources */,
+				A1B2C3D4E5F60718293A4B5C /* PropertiesSheet.swift in Sources */,
 				41269793AA9F40351BC221A0 /* DualPanelView.swift in Sources */,
 				FAE1AC8FEAA9889057D1DAD9 /* FileTableView.swift in Sources */,
 				44ED77D032B7DADB098CD7F6 /* NewFolderSheet.swift in Sources */,
