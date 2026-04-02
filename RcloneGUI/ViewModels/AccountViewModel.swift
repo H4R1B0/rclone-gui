@@ -2,8 +2,9 @@ import Foundation
 import RcloneKit
 
 @Observable
-public final class AccountViewModel {
+final class AccountViewModel {
     var remotes: [Remote] = []
+    var providers: [RcloneProvider] = []
     var isLoading: Bool = false
     var error: String?
 
@@ -12,6 +13,8 @@ public final class AccountViewModel {
     init(client: RcloneClientProtocol) {
         self.client = client
     }
+
+    // MARK: - Remote Management
 
     @MainActor
     func loadRemotes() async {
@@ -32,8 +35,16 @@ public final class AccountViewModel {
     }
 
     @MainActor
-    func addRemote(name: String, type: String, parameters: [String: String]) async throws {
+    func createRemote(name: String, type: String, parameters: [String: String]) async throws {
         try await RcloneAPI.createRemote(using: client, name: name, type: type, parameters: parameters)
+        await loadRemotes()
+    }
+
+    /// Update remote: delete old, create new (TypeScript pattern: allows name change)
+    @MainActor
+    func updateRemote(oldName: String, newName: String, type: String, parameters: [String: String]) async throws {
+        try await RcloneAPI.deleteRemote(using: client, name: oldName)
+        try await RcloneAPI.createRemote(using: client, name: newName, type: type, parameters: parameters)
         await loadRemotes()
     }
 
@@ -41,5 +52,27 @@ public final class AccountViewModel {
     func deleteRemote(name: String) async throws {
         try await RcloneAPI.deleteRemote(using: client, name: name)
         await loadRemotes()
+    }
+
+    // MARK: - Provider Management
+
+    @MainActor
+    func loadProviders() async {
+        do {
+            providers = try await RcloneAPI.getProviders(using: client)
+        } catch {
+            self.error = error.localizedDescription
+        }
+    }
+
+    /// Get current config values for a remote (for editing)
+    func getRemoteConfig(name: String) async throws -> [String: String] {
+        let dict = try await RcloneAPI.getRemoteConfig(using: client, name: name)
+        // Convert all values to strings for form display
+        var config: [String: String] = [:]
+        for (key, value) in dict {
+            config[key] = "\(value)"
+        }
+        return config
     }
 }
