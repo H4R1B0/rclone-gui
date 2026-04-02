@@ -13,6 +13,7 @@
 		2AD7F3888315638DD5A44269 /* PanelViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0144915081E072ECFA22FEDF /* PanelViewModel.swift */; };
 		3F88688B3360221450CB57C1 /* FileBrowser in Frameworks */ = {isa = PBXBuildFile; productRef = EDCA180A72D526DF98ED4F25 /* FileBrowser */; };
 		403A7333848641306F3A1A5E /* ConfirmDeleteSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28CD19DBE9956E559A09821D /* ConfirmDeleteSheet.swift */; };
+		40D08091F09CE22B1ECC0FD3 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39DF55222BD1BD31D06AC192 /* L10n.swift */; };
 		41269793AA9F40351BC221A0 /* DualPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F5C3E653BE8EB1EF3B1633F /* DualPanelView.swift */; };
 		44ED77D032B7DADB098CD7F6 /* NewFolderSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FBB2AFC29F900A57EABD79 /* NewFolderSheet.swift */; };
 		476F4B9732C769421B2622C6 /* ToolbarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C04A2E139EC112650A12B32 /* ToolbarView.swift */; };
@@ -49,6 +50,7 @@
 		1C04A2E139EC112650A12B32 /* ToolbarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolbarView.swift; sourceTree = "<group>"; };
 		28CD19DBE9956E559A09821D /* ConfirmDeleteSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfirmDeleteSheet.swift; sourceTree = "<group>"; };
 		2C41759A1630C8D6BF41A9E5 /* StatusBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarView.swift; sourceTree = "<group>"; };
+		39DF55222BD1BD31D06AC192 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
 		5150A4D8F6C0212533E53DD8 /* TransferViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferViewModel.swift; sourceTree = "<group>"; };
 		57B2EB5935174016E994EACA /* RcloneGUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RcloneGUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		58A22AE36DDDC9069C606251 /* FileBrowser */ = {isa = PBXFileReference; lastKnownFileType = folder; name = FileBrowser; path = Packages/FileBrowser; sourceTree = SOURCE_ROOT; };
@@ -100,6 +102,7 @@
 			isa = PBXGroup;
 			children = (
 				A9A677D7F57716D008D17B43 /* FormatUtils.swift */,
+				39DF55222BD1BD31D06AC192 /* L10n.swift */,
 				05D52EE497A536CF66B6BA14 /* PathUtils.swift */,
 			);
 			path = Utilities;
@@ -291,6 +294,7 @@
 				41269793AA9F40351BC221A0 /* DualPanelView.swift in Sources */,
 				FAE1AC8FEAA9889057D1DAD9 /* FileTableView.swift in Sources */,
 				83C3017DFCE8E01FC33C1B03 /* FormatUtils.swift in Sources */,
+				40D08091F09CE22B1ECC0FD3 /* L10n.swift in Sources */,
 				44ED77D032B7DADB098CD7F6 /* NewFolderSheet.swift in Sources */,
 				F39BA4DABB76CA75A5A2F9F6 /* PanelView.swift in Sources */,
 				2AD7F3888315638DD5A44269 /* PanelViewModel.swift in Sources */,
