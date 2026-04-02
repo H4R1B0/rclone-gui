@@ -28,6 +28,8 @@ struct ContentView: View {
                     AccountSetupView()
                 case .search:
                     SearchPanelView()
+                case .sync:
+                    SyncView()
                 }
 
                 // Transfer area (resizable)

@@ -207,6 +207,37 @@ public enum RcloneAPI {
         _ = try await client.call("core/bwlimit", params: ["rate": rate])
     }
 
+    // MARK: - Sync Operations
+
+    /// One-way sync: make destination identical to source (deletes extra files in dst)
+    public static func syncSync(
+        using client: RcloneClientProtocol,
+        srcFs: String, srcRemote: String,
+        dstFs: String, dstRemote: String,
+        async: Bool = true
+    ) async throws -> Int {
+        let result = try await client.call("sync/sync", params: [
+            "srcFs": "\(srcFs)\(srcRemote)",
+            "dstFs": "\(dstFs)\(dstRemote)",
+            "_async": async
+        ])
+        return result["jobid"] as? Int ?? 0
+    }
+
+    /// Bidirectional sync
+    public static func bisync(
+        using client: RcloneClientProtocol,
+        path1: String, path2: String,
+        async: Bool = true
+    ) async throws -> Int {
+        let result = try await client.call("sync/bisync", params: [
+            "path1": path1,
+            "path2": path2,
+            "_async": async
+        ])
+        return result["jobid"] as? Int ?? 0
+    }
+
     // MARK: - Hash
 
     public static func hashFile(

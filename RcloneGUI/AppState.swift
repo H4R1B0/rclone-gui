@@ -5,6 +5,7 @@ enum ActiveView {
     case explore
     case account
     case search
+    case sync
 }
 
 @Observable
@@ -17,6 +18,7 @@ final class AppState {
     let search: SearchViewModel
     let settings: SettingsViewModel
     let appLock: AppLockViewModel
+    let sync: SyncViewModel
 
     var activeView: ActiveView = .explore
     var showSettings: Bool = false
@@ -34,6 +36,7 @@ final class AppState {
         self.search = SearchViewModel(client: client)
         self.settings = SettingsViewModel(client: client)
         self.appLock = AppLockViewModel()
+        self.sync = SyncViewModel(client: client)
     }
 
     @MainActor
