@@ -27,10 +27,7 @@ struct ContentView: View {
                 case .account:
                     AccountSetupView()
                 case .search:
-                    // Phase 2
-                    Text("Search — Coming Soon")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .foregroundColor(.secondary)
+                    SearchPanelView()
                 }
 
                 // Transfer area (resizable)

@@ -14,11 +14,13 @@ final class AppState {
     let transfers: TransferViewModel
     let accounts: AccountViewModel
     let clipboard: ClipboardState
+    let search: SearchViewModel
+    let settings: SettingsViewModel
 
     var activeView: ActiveView = .explore
     var showSettings: Bool = false
     var showTransfers: Bool = true
-    var transferHeight: Double = 200  // min 80, max 600
+    var transferHeight: Double = 200
     var ready: Bool = false
 
     init() {
@@ -28,26 +30,29 @@ final class AppState {
         self.transfers = TransferViewModel(client: client)
         self.accounts = AccountViewModel(client: client)
         self.clipboard = ClipboardState()
+        self.search = SearchViewModel(client: client)
+        self.settings = SettingsViewModel(client: client)
     }
 
     @MainActor
     func startup() async {
-        // 1. Initialize librclone
         client.initialize()
 
-        // 2. Load remotes
         await panels.loadRemotes()
         await accounts.loadRemotes()
         await accounts.loadProviders()
 
-        // 3. Set initial path to home directory for both panels
+        // 검색 클라우드 필터 초기화
+        search.initializeClouds(remotes: panels.remotes)
+
+        // 저장된 rclone 옵션 적용
+        await settings.applyToRclone()
+
         let homePath = NSHomeDirectory()
         await panels.loadFiles(side: .left, remote: "/", path: homePath)
         await panels.loadFiles(side: .right, remote: "/", path: homePath)
 
-        // 4. Start transfer polling
         transfers.startPolling()
-
         ready = true
     }
 
