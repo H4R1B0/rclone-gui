@@ -45,6 +45,7 @@ struct FileTableView: View {
                 .contextMenu { emptyAreaMenu }
             }
         }
+        .focusable()
         .sheet(isPresented: $showNewFolder) {
             NewFolderSheet(side: side)
         }
@@ -53,6 +54,46 @@ struct FileTableView: View {
         }
         .sheet(item: $showProperties) { file in
             PropertiesSheet(file: file, side: side)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .requestCopy)) { _ in
+            guard appState.panels.activePanel == side else { return }
+            let selected = tab.files.filter { tab.selectedFiles.contains($0.name) }
+            guard !selected.isEmpty else { return }
+            appState.clipboard.copy(
+                fs: tab.remote,
+                path: tab.path,
+                selectedFiles: selected.map { ($0.name, $0.isDir) }
+            )
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .requestCut)) { _ in
+            guard appState.panels.activePanel == side else { return }
+            let selected = tab.files.filter { tab.selectedFiles.contains($0.name) }
+            guard !selected.isEmpty else { return }
+            appState.clipboard.cut(
+                fs: tab.remote,
+                path: tab.path,
+                selectedFiles: selected.map { ($0.name, $0.isDir) }
+            )
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .requestPaste)) { _ in
+            guard appState.panels.activePanel == side else { return }
+            guard appState.clipboard.hasData else { return }
+            Task {
+                try? await appState.panels.paste(side: side, clipboard: appState.clipboard)
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .requestDelete)) { _ in
+            guard appState.panels.activePanel == side else { return }
+            guard !tab.selectedFiles.isEmpty else { return }
+            showDeleteConfirm = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .requestSelectAll)) { _ in
+            guard appState.panels.activePanel == side else { return }
+            appState.panels.selectAll(side: side)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .requestNewFolder)) { _ in
+            guard appState.panels.activePanel == side else { return }
+            showNewFolder = true
         }
     }
 

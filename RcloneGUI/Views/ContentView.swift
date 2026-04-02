@@ -49,6 +49,9 @@ struct ContentView: View {
                         .transition(.opacity)
                 }
             }
+            .onReceive(NotificationCenter.default.publisher(for: .requestSearch)) { _ in
+                appState.activeView = .search
+            }
             .sheet(isPresented: Bindable(appState).showSettings) {
                 SettingsSheet()
             }

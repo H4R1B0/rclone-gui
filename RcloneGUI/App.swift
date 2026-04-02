@@ -10,6 +10,7 @@ extension Notification.Name {
     static let requestNewFolder = Notification.Name("requestNewFolder")
     static let requestPaste = Notification.Name("requestPaste")
     static let requestSelectAll = Notification.Name("requestSelectAll")
+    static let requestSearch = Notification.Name("requestSearch")
 }
 
 @main
@@ -48,6 +49,13 @@ struct RcloneGUIApp: App {
                     NotificationCenter.default.post(name: .requestPaste, object: nil)
                 }
                 .keyboardShortcut("v", modifiers: .command)
+            }
+
+            CommandGroup(after: .toolbar) {
+                Button("Search") {
+                    NotificationCenter.default.post(name: .requestSearch, object: nil)
+                }
+                .keyboardShortcut("f", modifiers: .command)
             }
 
             CommandGroup(after: .pasteboard) {
