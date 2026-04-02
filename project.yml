@@ -8,11 +8,11 @@ options:
 
 packages:
   RcloneKit:
-    path: ../Packages/RcloneKit
+    path: Packages/RcloneKit
   FileBrowser:
-    path: ../Packages/FileBrowser
+    path: Packages/FileBrowser
   TransferEngine:
-    path: ../Packages/TransferEngine
+    path: Packages/TransferEngine
 
 targets:
   RcloneGUI:
@@ -22,6 +22,9 @@ targets:
       - path: RcloneGUI
         excludes:
           - "**/.DS_Store"
+          - "**/.build"
+          - "**/.swiftpm"
+          - Info.plist
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.rclone-gui.RcloneGUI
@@ -34,7 +37,7 @@ targets:
         LD_RUNPATH_SEARCH_PATHS:
           - "@executable_path/../Frameworks"
         LIBRARY_SEARCH_PATHS:
-          - "$(PROJECT_DIR)/../Resources/lib"
+          - "$(PROJECT_DIR)/Resources/lib"
         OTHER_LDFLAGS:
           - "-lrclone"
     dependencies:
@@ -44,7 +47,7 @@ targets:
     postCompileScripts:
       - script: |
           # Copy librclone.dylib to Frameworks
-          DYLIB_SRC="${PROJECT_DIR}/../Resources/lib/librclone.dylib"
+          DYLIB_SRC="${PROJECT_DIR}/Resources/lib/librclone.dylib"
           DYLIB_DST="${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}"
           if [ -f "$DYLIB_SRC" ]; then
             mkdir -p "$DYLIB_DST"
