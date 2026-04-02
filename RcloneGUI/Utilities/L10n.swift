@@ -147,5 +147,20 @@ enum L10n {
         // Status bar
         "status.active":        ["ko": "%d개 전송 중", "en": "%d active"],
         "status.recentErrors":  ["ko": "최근 오류", "en": "Recent Errors"],
+
+        // Lock
+        "lock.security":        ["ko": "보안", "en": "Security"],
+        "lock.enable":          ["ko": "앱 잠금 활성화", "en": "Enable App Lock"],
+        "lock.useTouchID":      ["ko": "Touch ID 사용", "en": "Use Touch ID"],
+        "lock.password":        ["ko": "비밀번호", "en": "Password"],
+        "lock.confirmPassword": ["ko": "비밀번호 확인", "en": "Confirm Password"],
+        "lock.unlock":          ["ko": "잠금 해제", "en": "Unlock"],
+        "lock.wrongPassword":   ["ko": "비밀번호가 틀렸습니다", "en": "Wrong password"],
+        "lock.setPassword":     ["ko": "비밀번호 설정", "en": "Set Password"],
+        "lock.changePassword":  ["ko": "비밀번호 변경", "en": "Change Password"],
+        "lock.removePassword":  ["ko": "비밀번호 제거", "en": "Remove Password"],
+        "lock.passwordMismatch": ["ko": "비밀번호가 일치하지 않습니다", "en": "Passwords don't match"],
+        "lock.passwordTooShort": ["ko": "비밀번호는 4자 이상이어야 합니다", "en": "Password must be at least 4 characters"],
+        "lock.passwordSaveFailed": ["ko": "비밀번호 저장에 실패했습니다", "en": "Failed to save password"],
     ]
 }

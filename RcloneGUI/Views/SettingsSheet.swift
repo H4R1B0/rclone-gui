@@ -6,6 +6,7 @@ struct SettingsSheet: View {
 
     @State private var pendingLocale: String = "ko"
     @State private var showRestartAlert = false
+    @State private var showSetPassword = false
 
     private var settings: SettingsViewModel { appState.settings }
 
@@ -40,6 +41,47 @@ struct SettingsSheet: View {
                             }
                             .pickerStyle(.segmented)
                             .frame(width: 200)
+                        }
+                        .padding(.vertical, 4)
+                    }
+
+                    // 보안
+                    GroupBox(L10n.t("lock.security")) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Toggle(L10n.t("lock.enable"), isOn: Bindable(appState.appLock).isEnabled)
+                                .font(.system(size: 12))
+                                .onChange(of: appState.appLock.isEnabled) {
+                                    if appState.appLock.isEnabled && !appState.appLock.hasPassword() {
+                                        showSetPassword = true
+                                    }
+                                    appState.appLock.saveConfig()
+                                }
+
+                            if appState.appLock.isEnabled {
+                                if appState.appLock.canUseTouchID {
+                                    Toggle(L10n.t("lock.useTouchID"), isOn: Bindable(appState.appLock).useTouchID)
+                                        .font(.system(size: 12))
+                                        .onChange(of: appState.appLock.useTouchID) {
+                                            appState.appLock.saveConfig()
+                                        }
+                                }
+
+                                HStack {
+                                    Button(appState.appLock.hasPassword() ? L10n.t("lock.changePassword") : L10n.t("lock.setPassword")) {
+                                        showSetPassword = true
+                                    }
+                                    .controlSize(.small)
+
+                                    if appState.appLock.hasPassword() {
+                                        Button(L10n.t("lock.removePassword"), role: .destructive) {
+                                            appState.appLock.removePassword()
+                                            appState.appLock.isEnabled = false
+                                            appState.appLock.saveConfig()
+                                        }
+                                        .controlSize(.small)
+                                    }
+                                }
+                            }
                         }
                         .padding(.vertical, 4)
                     }
@@ -117,6 +159,9 @@ struct SettingsSheet: View {
             if pendingLocale != settings.locale {
                 showRestartAlert = true
             }
+        }
+        .sheet(isPresented: $showSetPassword) {
+            SetPasswordSheet()
         }
         .alert(L10n.t("app.restart.title"), isPresented: $showRestartAlert) {
             Button(L10n.t("cancel")) { pendingLocale = settings.locale }

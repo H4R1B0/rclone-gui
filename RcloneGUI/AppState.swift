@@ -16,6 +16,7 @@ final class AppState {
     let clipboard: ClipboardState
     let search: SearchViewModel
     let settings: SettingsViewModel
+    let appLock: AppLockViewModel
 
     var activeView: ActiveView = .explore
     var showSettings: Bool = false
@@ -32,11 +33,13 @@ final class AppState {
         self.clipboard = ClipboardState()
         self.search = SearchViewModel(client: client)
         self.settings = SettingsViewModel(client: client)
+        self.appLock = AppLockViewModel()
     }
 
     @MainActor
     func startup() async {
         L10n.locale = settings.locale
+        appLock.checkLockStatus()
         client.initialize()
 
         await panels.loadRemotes()

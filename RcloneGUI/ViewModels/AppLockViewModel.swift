@@ -1,0 +1,137 @@
+import Foundation
+import LocalAuthentication
+import Security
+
+@Observable
+final class AppLockViewModel {
+    var isLocked: Bool? = nil  // nil=checking, true=locked, false=unlocked
+    var isEnabled: Bool = false
+    var useTouchID: Bool = false
+    var canUseTouchID: Bool = false
+    var errorMessage: String?
+
+    private let keychainService = "com.rclone-gui.applock"
+    private let keychainAccount = "password"
+    private let configURL: URL
+
+    init() {
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let appDir = appSupport.appendingPathComponent("RcloneGUI")
+        try? FileManager.default.createDirectory(at: appDir, withIntermediateDirectories: true)
+        configURL = appDir.appendingPathComponent("app-lock-config.json")
+        loadConfig()
+        checkTouchIDAvailability()
+    }
+
+    // MARK: - Keychain
+
+    func setPassword(_ password: String) -> Bool {
+        removePassword()
+        guard let data = password.data(using: .utf8) else { return false }
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: keychainService,
+            kSecAttrAccount as String: keychainAccount,
+            kSecValueData as String: data
+        ]
+        return SecItemAdd(query as CFDictionary, nil) == errSecSuccess
+    }
+
+    func verifyPassword(_ input: String) -> Bool {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: keychainService,
+            kSecAttrAccount as String: keychainAccount,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        guard status == errSecSuccess,
+              let data = result as? Data,
+              let stored = String(data: data, encoding: .utf8)
+        else { return false }
+        return stored == input
+    }
+
+    func removePassword() {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: keychainService,
+            kSecAttrAccount as String: keychainAccount
+        ]
+        SecItemDelete(query as CFDictionary)
+    }
+
+    func hasPassword() -> Bool {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: keychainService,
+            kSecAttrAccount as String: keychainAccount,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        return SecItemCopyMatching(query as CFDictionary, nil) == errSecSuccess
+    }
+
+    // MARK: - Touch ID
+
+    func checkTouchIDAvailability() {
+        let context = LAContext()
+        var error: NSError?
+        canUseTouchID = context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error)
+    }
+
+    @MainActor
+    func promptTouchID() async -> Bool {
+        let context = LAContext()
+        do {
+            let result = try await context.evaluatePolicy(
+                .deviceOwnerAuthenticationWithBiometrics,
+                localizedReason: "Rclone GUI 잠금 해제"
+            )
+            if result {
+                isLocked = false
+                errorMessage = nil
+            }
+            return result
+        } catch {
+            errorMessage = error.localizedDescription
+            return false
+        }
+    }
+
+    // MARK: - Config
+
+    func saveConfig() {
+        let dict: [String: Any] = [
+            "appLockEnabled": isEnabled,
+            "useTouchID": useTouchID
+        ]
+        if let data = try? JSONSerialization.data(withJSONObject: dict) {
+            try? data.write(to: configURL)
+        }
+    }
+
+    func loadConfig() {
+        guard let data = try? Data(contentsOf: configURL),
+              let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+        else { return }
+        isEnabled = dict["appLockEnabled"] as? Bool ?? false
+        useTouchID = dict["useTouchID"] as? Bool ?? false
+    }
+
+    // MARK: - Lock Status
+
+    func checkLockStatus() {
+        if isEnabled && hasPassword() {
+            isLocked = true
+        } else {
+            isLocked = false
+        }
+    }
+
+    func unlock() {
+        isLocked = false
+        errorMessage = nil
+    }
+}

@@ -43,6 +43,12 @@ struct ContentView: View {
                 StatusBarView()
             }
             .frame(minWidth: 900, minHeight: 600)
+            .overlay {
+                if appState.appLock.isLocked == true {
+                    LockScreenView()
+                        .transition(.opacity)
+                }
+            }
             .sheet(isPresented: Bindable(appState).showSettings) {
                 SettingsSheet()
             }
