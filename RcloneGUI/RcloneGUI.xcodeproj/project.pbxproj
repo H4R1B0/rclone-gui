@@ -1,0 +1,504 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		2A94EE393864ED361EE908A2 /* TransferItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 752A245B0A825D49B34919F2 /* TransferItemView.swift */; };
+		2AD7F3888315638DD5A44269 /* PanelViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0144915081E072ECFA22FEDF /* PanelViewModel.swift */; };
+		3F88688B3360221450CB57C1 /* FileBrowser in Frameworks */ = {isa = PBXBuildFile; productRef = EDCA180A72D526DF98ED4F25 /* FileBrowser */; };
+		403A7333848641306F3A1A5E /* ConfirmDeleteSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28CD19DBE9956E559A09821D /* ConfirmDeleteSheet.swift */; };
+		41269793AA9F40351BC221A0 /* DualPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F5C3E653BE8EB1EF3B1633F /* DualPanelView.swift */; };
+		44ED77D032B7DADB098CD7F6 /* NewFolderSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FBB2AFC29F900A57EABD79 /* NewFolderSheet.swift */; };
+		4811E55E478DBE1664F04A2E /* TransferEngine in Frameworks */ = {isa = PBXBuildFile; productRef = 7D29C3486EA14EAAC8508731 /* TransferEngine */; };
+		6B955B64ED84261BDFC765D2 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 6B9DD946499F99FC5F3E724C /* Localizable.xcstrings */; };
+		6EF2554917D6D43F4FFB40C9 /* StatusBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C41759A1630C8D6BF41A9E5 /* StatusBarView.swift */; };
+		7AFDDB9AAA2B36856AF1065E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0738E70B6EF3196F869BAEA /* ContentView.swift */; };
+		7EDEF2A47808040A7D3EBED3 /* AddressBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA6F988B99CFEE046DCA715 /* AddressBarView.swift */; };
+		9211ECB7A03A29472D7A6488 /* TransferPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F133825785E7B192F3C4495 /* TransferPanelView.swift */; };
+		A5D3D5FBE9516269E5FF0A6E /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3CD57E91417206AF17DDB71 /* App.swift */; };
+		B9C0CA6CA23DC2323B14C326 /* AccountListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 259FA809E4185B43E571D6A9 /* AccountListView.swift */; };
+		BA935CD5B8638757177817B5 /* AccountSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D882FD253104D9E1A8B2876C /* AccountSetupView.swift */; };
+		D237F908ECBE83811F1434A5 /* AccountViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 051EC24A61AA65FEFC569813 /* AccountViewModel.swift */; };
+		DAE1A8FD692578AEB8BC852E /* RcloneKit in Frameworks */ = {isa = PBXBuildFile; productRef = DFFC37DF129E4F0FB447056A /* RcloneKit */; };
+		E2A718F0942E1263FF0C853D /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AE9EB594683D318ED922F6 /* AppState.swift */; };
+		EE5262051872458647D6BEF8 /* RemoteSelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E32FEF6A8F7293D51A39017 /* RemoteSelectorView.swift */; };
+		F39BA4DABB76CA75A5A2F9F6 /* PanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9236ABEC694BF01FE281DF39 /* PanelView.swift */; };
+		F402E75BE90AA349A3D1377C /* ContextMenuBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95081456D75919992AED171 /* ContextMenuBuilder.swift */; };
+		F95D1084ED438C375089F0CE /* TransferViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5150A4D8F6C0212533E53DD8 /* TransferViewModel.swift */; };
+		FAE1AC8FEAA9889057D1DAD9 /* FileTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87351B73D23FEAE3793DFD33 /* FileTableView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		00AE9EB594683D318ED922F6 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		0144915081E072ECFA22FEDF /* PanelViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelViewModel.swift; sourceTree = "<group>"; };
+		051EC24A61AA65FEFC569813 /* AccountViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountViewModel.swift; sourceTree = "<group>"; };
+		0FA6F988B99CFEE046DCA715 /* AddressBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddressBarView.swift; sourceTree = "<group>"; };
+		259FA809E4185B43E571D6A9 /* AccountListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountListView.swift; sourceTree = "<group>"; };
+		28CD19DBE9956E559A09821D /* ConfirmDeleteSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfirmDeleteSheet.swift; sourceTree = "<group>"; };
+		2C41759A1630C8D6BF41A9E5 /* StatusBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarView.swift; sourceTree = "<group>"; };
+		5150A4D8F6C0212533E53DD8 /* TransferViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferViewModel.swift; sourceTree = "<group>"; };
+		57B2EB5935174016E994EACA /* RcloneGUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RcloneGUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		58A22AE36DDDC9069C606251 /* FileBrowser */ = {isa = PBXFileReference; lastKnownFileType = folder; name = FileBrowser; path = ../Packages/FileBrowser; sourceTree = SOURCE_ROOT; };
+		5E32FEF6A8F7293D51A39017 /* RemoteSelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteSelectorView.swift; sourceTree = "<group>"; };
+		6B9DD946499F99FC5F3E724C /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		752A245B0A825D49B34919F2 /* TransferItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferItemView.swift; sourceTree = "<group>"; };
+		78D37DC600F3C0AB0B7FB065 /* RcloneKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = RcloneKit; path = ../Packages/RcloneKit; sourceTree = SOURCE_ROOT; };
+		7F133825785E7B192F3C4495 /* TransferPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferPanelView.swift; sourceTree = "<group>"; };
+		87351B73D23FEAE3793DFD33 /* FileTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileTableView.swift; sourceTree = "<group>"; };
+		9236ABEC694BF01FE281DF39 /* PanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelView.swift; sourceTree = "<group>"; };
+		9F5C3E653BE8EB1EF3B1633F /* DualPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DualPanelView.swift; sourceTree = "<group>"; };
+		A3CD57E91417206AF17DDB71 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
+		A5F00A1E54B382E45EE893F4 /* TransferEngine */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TransferEngine; path = ../Packages/TransferEngine; sourceTree = SOURCE_ROOT; };
+		B0738E70B6EF3196F869BAEA /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		B5FBB2AFC29F900A57EABD79 /* NewFolderSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewFolderSheet.swift; sourceTree = "<group>"; };
+		D882FD253104D9E1A8B2876C /* AccountSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountSetupView.swift; sourceTree = "<group>"; };
+		E256F495B257175B117ECC09 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		E95081456D75919992AED171 /* ContextMenuBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextMenuBuilder.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		487C517CC7C64C8610DC8F01 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DAE1A8FD692578AEB8BC852E /* RcloneKit in Frameworks */,
+				3F88688B3360221450CB57C1 /* FileBrowser in Frameworks */,
+				4811E55E478DBE1664F04A2E /* TransferEngine in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		08D320368E1985B4B65CC1E8 = {
+			isa = PBXGroup;
+			children = (
+				D19C3E809F250D9885F78889 /* Packages */,
+				EA78287C2567114A91DE54B4 /* RcloneGUI */,
+				61860BCB1D587FB16C934EFA /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		61860BCB1D587FB16C934EFA /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				57B2EB5935174016E994EACA /* RcloneGUI.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		75FE0B993AF7FD3D2421DBDA /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				259FA809E4185B43E571D6A9 /* AccountListView.swift */,
+				D882FD253104D9E1A8B2876C /* AccountSetupView.swift */,
+				0FA6F988B99CFEE046DCA715 /* AddressBarView.swift */,
+				28CD19DBE9956E559A09821D /* ConfirmDeleteSheet.swift */,
+				B0738E70B6EF3196F869BAEA /* ContentView.swift */,
+				E95081456D75919992AED171 /* ContextMenuBuilder.swift */,
+				9F5C3E653BE8EB1EF3B1633F /* DualPanelView.swift */,
+				87351B73D23FEAE3793DFD33 /* FileTableView.swift */,
+				B5FBB2AFC29F900A57EABD79 /* NewFolderSheet.swift */,
+				9236ABEC694BF01FE281DF39 /* PanelView.swift */,
+				5E32FEF6A8F7293D51A39017 /* RemoteSelectorView.swift */,
+				2C41759A1630C8D6BF41A9E5 /* StatusBarView.swift */,
+				752A245B0A825D49B34919F2 /* TransferItemView.swift */,
+				7F133825785E7B192F3C4495 /* TransferPanelView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		BFB47F516659086949ECA886 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				6B9DD946499F99FC5F3E724C /* Localizable.xcstrings */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		D19C3E809F250D9885F78889 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				58A22AE36DDDC9069C606251 /* FileBrowser */,
+				78D37DC600F3C0AB0B7FB065 /* RcloneKit */,
+				A5F00A1E54B382E45EE893F4 /* TransferEngine */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		EA78287C2567114A91DE54B4 /* RcloneGUI */ = {
+			isa = PBXGroup;
+			children = (
+				A3CD57E91417206AF17DDB71 /* App.swift */,
+				00AE9EB594683D318ED922F6 /* AppState.swift */,
+				E256F495B257175B117ECC09 /* Info.plist */,
+				BFB47F516659086949ECA886 /* Resources */,
+				F264F73329BC49ACB742ED58 /* ViewModels */,
+				75FE0B993AF7FD3D2421DBDA /* Views */,
+			);
+			path = RcloneGUI;
+			sourceTree = "<group>";
+		};
+		F264F73329BC49ACB742ED58 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				051EC24A61AA65FEFC569813 /* AccountViewModel.swift */,
+				0144915081E072ECFA22FEDF /* PanelViewModel.swift */,
+				5150A4D8F6C0212533E53DD8 /* TransferViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		924C126636D65D7EBB8721A7 /* RcloneGUI */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5AF94BF846F144AA44FEF9E7 /* Build configuration list for PBXNativeTarget "RcloneGUI" */;
+			buildPhases = (
+				ED2F0A5B49BB53AA7CE20172 /* Sources */,
+				6EEF2582977FF57E3147A21F /* Copy librclone.dylib */,
+				243CC8BA64CB1F08AFB5E2CC /* Resources */,
+				487C517CC7C64C8610DC8F01 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = RcloneGUI;
+			packageProductDependencies = (
+				DFFC37DF129E4F0FB447056A /* RcloneKit */,
+				EDCA180A72D526DF98ED4F25 /* FileBrowser */,
+				7D29C3486EA14EAAC8508731 /* TransferEngine */,
+			);
+			productName = RcloneGUI;
+			productReference = 57B2EB5935174016E994EACA /* RcloneGUI.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		68FCE6318BDCB6C0EF3E0AD2 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = 7EBEE40110F9377780025CCC /* Build configuration list for PBXProject "RcloneGUI" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+				ko,
+			);
+			mainGroup = 08D320368E1985B4B65CC1E8;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				B34AFB277AA878FE6950E5A0 /* XCLocalSwiftPackageReference "../Packages/FileBrowser" */,
+				1539F1F959EEA087F1FD6371 /* XCLocalSwiftPackageReference "../Packages/RcloneKit" */,
+				12C0BD94FB06E26525529FF3 /* XCLocalSwiftPackageReference "../Packages/TransferEngine" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 61860BCB1D587FB16C934EFA /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				924C126636D65D7EBB8721A7 /* RcloneGUI */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		243CC8BA64CB1F08AFB5E2CC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6B955B64ED84261BDFC765D2 /* Localizable.xcstrings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		6EEF2582977FF57E3147A21F /* Copy librclone.dylib */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Copy librclone.dylib";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Copy librclone.dylib to Frameworks\nDYLIB_SRC=\"${PROJECT_DIR}/../Resources/lib/librclone.dylib\"\nDYLIB_DST=\"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}\"\nif [ -f \"$DYLIB_SRC\" ]; then\n  mkdir -p \"$DYLIB_DST\"\n  cp \"$DYLIB_SRC\" \"$DYLIB_DST/\"\n  # Fix install name\n  install_name_tool -id \"@rpath/librclone.dylib\" \"$DYLIB_DST/librclone.dylib\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		ED2F0A5B49BB53AA7CE20172 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B9C0CA6CA23DC2323B14C326 /* AccountListView.swift in Sources */,
+				BA935CD5B8638757177817B5 /* AccountSetupView.swift in Sources */,
+				D237F908ECBE83811F1434A5 /* AccountViewModel.swift in Sources */,
+				7EDEF2A47808040A7D3EBED3 /* AddressBarView.swift in Sources */,
+				A5D3D5FBE9516269E5FF0A6E /* App.swift in Sources */,
+				E2A718F0942E1263FF0C853D /* AppState.swift in Sources */,
+				403A7333848641306F3A1A5E /* ConfirmDeleteSheet.swift in Sources */,
+				7AFDDB9AAA2B36856AF1065E /* ContentView.swift in Sources */,
+				F402E75BE90AA349A3D1377C /* ContextMenuBuilder.swift in Sources */,
+				41269793AA9F40351BC221A0 /* DualPanelView.swift in Sources */,
+				FAE1AC8FEAA9889057D1DAD9 /* FileTableView.swift in Sources */,
+				44ED77D032B7DADB098CD7F6 /* NewFolderSheet.swift in Sources */,
+				F39BA4DABB76CA75A5A2F9F6 /* PanelView.swift in Sources */,
+				2AD7F3888315638DD5A44269 /* PanelViewModel.swift in Sources */,
+				EE5262051872458647D6BEF8 /* RemoteSelectorView.swift in Sources */,
+				6EF2554917D6D43F4FFB40C9 /* StatusBarView.swift in Sources */,
+				2A94EE393864ED361EE908A2 /* TransferItemView.swift in Sources */,
+				9211ECB7A03A29472D7A6488 /* TransferPanelView.swift in Sources */,
+				F95D1084ED438C375089F0CE /* TransferViewModel.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		4A0DC060C7AC17EE20B8D793 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		B8D0EABE39944BBD3835552B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		C6EB709B548999602828CE88 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = RcloneGUI/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/../Resources/lib",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0.0;
+				OTHER_LDFLAGS = (
+					"-lrclone",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.rclone-gui.RcloneGUI";
+				PRODUCT_NAME = RcloneGUI;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.10;
+			};
+			name = Debug;
+		};
+		DA68FB39CB846A85037C9F21 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = RcloneGUI/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/../Resources/lib",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0.0;
+				OTHER_LDFLAGS = (
+					"-lrclone",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.rclone-gui.RcloneGUI";
+				PRODUCT_NAME = RcloneGUI;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.10;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		5AF94BF846F144AA44FEF9E7 /* Build configuration list for PBXNativeTarget "RcloneGUI" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C6EB709B548999602828CE88 /* Debug */,
+				DA68FB39CB846A85037C9F21 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		7EBEE40110F9377780025CCC /* Build configuration list for PBXProject "RcloneGUI" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B8D0EABE39944BBD3835552B /* Debug */,
+				4A0DC060C7AC17EE20B8D793 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		12C0BD94FB06E26525529FF3 /* XCLocalSwiftPackageReference "../Packages/TransferEngine" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../Packages/TransferEngine;
+		};
+		1539F1F959EEA087F1FD6371 /* XCLocalSwiftPackageReference "../Packages/RcloneKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../Packages/RcloneKit;
+		};
+		B34AFB277AA878FE6950E5A0 /* XCLocalSwiftPackageReference "../Packages/FileBrowser" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../Packages/FileBrowser;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		7D29C3486EA14EAAC8508731 /* TransferEngine */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = TransferEngine;
+		};
+		DFFC37DF129E4F0FB447056A /* RcloneKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = RcloneKit;
+		};
+		EDCA180A72D526DF98ED4F25 /* FileBrowser */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FileBrowser;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 68FCE6318BDCB6C0EF3E0AD2 /* Project object */;
+}
