@@ -10,6 +10,7 @@ struct FileTableView: View {
     @State private var showProperties: FileItem?
     @State private var renamingFile: String? // file name being renamed
     @State private var renameText = ""
+    @State private var quickLookURL: URL?
 
     private var tab: TabState {
         appState.panels.side(side).activeTab
@@ -54,6 +55,19 @@ struct FileTableView: View {
         }
         .sheet(item: $showProperties) { file in
             PropertiesSheet(file: file, side: side)
+        }
+        .sheet(isPresented: Binding(
+            get: { quickLookURL != nil },
+            set: { if !$0 { quickLookURL = nil } }
+        )) {
+            if let url = quickLookURL {
+                QuickLookPreview(url: url)
+                    .frame(width: 600, height: 500)
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .requestQuickLook)) { _ in
+            guard appState.panels.activePanel == side else { return }
+            handleQuickLook()
         }
         .onReceive(NotificationCenter.default.publisher(for: .requestCopy)) { _ in
             guard appState.panels.activePanel == side else { return }
@@ -253,6 +267,16 @@ struct FileTableView: View {
     }
 
     // MARK: - Actions
+
+    private func handleQuickLook() {
+        guard tab.remote == "/" else { return }  // Only local files
+        guard let fileName = tab.selectedFiles.first,
+              let file = tab.files.first(where: { $0.name == fileName }),
+              !file.isDir
+        else { return }
+        let fullPath = tab.path.isEmpty ? "/\(file.name)" : "/\(tab.path)/\(file.name)"
+        quickLookURL = URL(fileURLWithPath: fullPath)
+    }
 
     private func performCopy() {
         let selected = tab.files.filter { tab.selectedFiles.contains($0.name) }

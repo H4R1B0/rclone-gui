@@ -11,6 +11,8 @@ extension Notification.Name {
     static let requestPaste = Notification.Name("requestPaste")
     static let requestSelectAll = Notification.Name("requestSelectAll")
     static let requestSearch = Notification.Name("requestSearch")
+    static let requestQuickLook = Notification.Name("requestQuickLook")
+    static let requestBookmark = Notification.Name("requestBookmark")
 }
 
 @main
@@ -56,6 +58,16 @@ struct RcloneGUIApp: App {
                     NotificationCenter.default.post(name: .requestSearch, object: nil)
                 }
                 .keyboardShortcut("f", modifiers: .command)
+
+                Button("Quick Look") {
+                    NotificationCenter.default.post(name: .requestQuickLook, object: nil)
+                }
+                .keyboardShortcut(" ", modifiers: [])
+
+                Button("Bookmark") {
+                    NotificationCenter.default.post(name: .requestBookmark, object: nil)
+                }
+                .keyboardShortcut("d", modifiers: .command)
             }
 
             CommandGroup(after: .pasteboard) {
