@@ -17,7 +17,7 @@ let package = Package(
             dependencies: ["CRclone"],
             path: "Sources/RcloneKit",
             linkerSettings: [
-                .unsafeFlags(["-L../../Resources/lib", "-Wl,-rpath,@executable_path/../Frameworks"]),
+                .unsafeFlags(["-L../../Resources/lib"]),
             ]
         ),
         .testTarget(
