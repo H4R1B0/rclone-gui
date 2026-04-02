@@ -9,10 +9,10 @@ struct NewFolderSheet: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            Text("New Folder")
+            Text(L10n.t("file.newFolder.title"))
                 .font(.headline)
 
-            TextField("Folder name", text: $folderName)
+            TextField(L10n.t("file.newFolder.placeholder"), text: $folderName)
                 .textFieldStyle(.roundedBorder)
                 .onSubmit { create() }
 
@@ -21,9 +21,9 @@ struct NewFolderSheet: View {
             }
 
             HStack {
-                Button("Cancel") { dismiss() }
+                Button(L10n.t("cancel")) { dismiss() }
                     .keyboardShortcut(.cancelAction)
-                Button("Create") { create() }
+                Button(L10n.t("create")) { create() }
                     .keyboardShortcut(.defaultAction)
                     .disabled(folderName.trimmingCharacters(in: .whitespaces).isEmpty)
             }

@@ -30,14 +30,14 @@ struct PropertiesSheet: View {
 
             // Basic info
             VStack(alignment: .leading, spacing: 8) {
-                infoRow("Name", file.name)
-                infoRow("Type", file.isDir ? "Folder" : (file.mimeType ?? "File"))
+                infoRow(L10n.t("properties.name"), file.name)
+                infoRow(L10n.t("properties.type"), file.isDir ? L10n.t("properties.folder") : (file.mimeType ?? L10n.t("properties.file")))
                 if !file.isDir {
-                    infoRow("Size", FormatUtils.formatBytes(file.size))
+                    infoRow(L10n.t("properties.size"), FormatUtils.formatBytes(file.size))
                 }
-                infoRow("Modified", FormatUtils.formatDate(file.modTime))
-                infoRow("Path", file.path)
-                infoRow("Remote", tab.remote)
+                infoRow(L10n.t("properties.modified"), FormatUtils.formatDate(file.modTime))
+                infoRow(L10n.t("properties.path"), file.path)
+                infoRow(L10n.t("properties.remote"), tab.remote)
             }
 
             // Hash section (file only)
@@ -45,7 +45,7 @@ struct PropertiesSheet: View {
                 Divider()
 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Hash")
+                    Text(L10n.t("properties.hash"))
                         .font(.subheadline.bold())
 
                     if hashLoading {
@@ -62,7 +62,7 @@ struct PropertiesSheet: View {
 
             HStack {
                 Spacer()
-                Button("Close") { dismiss() }
+                Button(L10n.t("close")) { dismiss() }
                     .keyboardShortcut(.cancelAction)
             }
         }

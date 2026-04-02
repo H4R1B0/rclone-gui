@@ -39,11 +39,11 @@ struct AccountSetupView: View {
     private var remoteListView: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("Accounts")
+                Text(L10n.t("account.title"))
                     .font(.title2.bold())
                 Spacer()
                 Button(action: { step = .pickProvider }) {
-                    Label("Add Account", systemImage: "plus")
+                    Label(L10n.t("account.add"), systemImage: "plus")
                 }
             }
             .padding()
@@ -55,9 +55,9 @@ struct AccountSetupView: View {
                     Image(systemName: "cloud")
                         .font(.system(size: 48))
                         .foregroundColor(.secondary)
-                    Text("No accounts configured")
+                    Text(L10n.t("account.noAccounts"))
                         .foregroundColor(.secondary)
-                    Button("Add Account") { step = .pickProvider }
+                    Button(L10n.t("account.add")) { step = .pickProvider }
                 }
                 .frame(maxHeight: .infinity)
             } else {
@@ -109,11 +109,11 @@ struct AccountSetupView: View {
             HStack {
                 Button(action: { step = .list }) {
                     Image(systemName: "chevron.left")
-                    Text("Back")
+                    Text(L10n.t("back"))
                 }
                 .buttonStyle(.plain)
                 Spacer()
-                Text("Choose Provider").font(.headline)
+                Text(L10n.t("account.chooseProvider")).font(.headline)
                 Spacer()
             }
             .padding()
@@ -190,9 +190,9 @@ struct AccountSetupView: View {
                 )
             } else {
                 VStack {
-                    Text("Provider not found for type: \(remote.type)")
+                    Text("\(L10n.t("account.providerNotFound")): \(remote.type)")
                         .foregroundColor(.red)
-                    Button("Back") { step = .list }
+                    Button(L10n.t("back")) { step = .list }
                 }
             }
         }
@@ -230,7 +230,7 @@ struct RemoteFormView: View {
             HStack {
                 Button(action: onBack) {
                     Image(systemName: "chevron.left")
-                    Text("Back")
+                    Text(L10n.t("back"))
                 }
                 .buttonStyle(.plain)
                 Spacer()
@@ -245,8 +245,8 @@ struct RemoteFormView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     // Name field
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Name").font(.caption.bold())
-                        TextField("Remote name", text: $remoteName)
+                        Text(L10n.t("properties.name")).font(.caption.bold())
+                        TextField(L10n.t("account.remoteName"), text: $remoteName)
                             .textFieldStyle(.roundedBorder)
                     }
 
@@ -281,7 +281,7 @@ struct RemoteFormView: View {
 
                     // Advanced toggle
                     if provider.options.contains(where: { $0.advanced && $0.isVisible }) {
-                        Toggle("Show Advanced Options", isOn: $showAdvanced)
+                        Toggle(L10n.t("account.showAdvanced"), isOn: $showAdvanced)
                             .font(.caption)
                     }
 
@@ -292,7 +292,7 @@ struct RemoteFormView: View {
                     // Save button
                     HStack {
                         Spacer()
-                        Button(saving ? "Saving..." : "Connect") {
+                        Button(saving ? L10n.t("saving") : L10n.t("connect")) {
                             save()
                         }
                         .disabled(remoteName.trimmingCharacters(in: .whitespaces).isEmpty || saving)

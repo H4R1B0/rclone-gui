@@ -18,7 +18,7 @@ struct StatusBarView: View {
                 HStack(spacing: 6) {
                     ProgressView()
                         .controlSize(.mini)
-                    Text("\(appState.transfers.transfers.count) active")
+                    Text(String(format: L10n.t("status.active"), appState.transfers.transfers.count))
                         .font(.system(size: 10))
                     Text(FormatUtils.formatSpeed(appState.transfers.totalSpeed))
                         .font(.system(size: 10))
@@ -44,7 +44,7 @@ struct StatusBarView: View {
                 .buttonStyle(.plain)
                 .popover(isPresented: $showErrorPopover) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Recent Errors")
+                        Text(L10n.t("status.recentErrors"))
                             .font(.caption.bold())
                             .padding(.bottom, 4)
 

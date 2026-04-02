@@ -36,6 +36,7 @@ final class AppState {
 
     @MainActor
     func startup() async {
+        L10n.locale = settings.locale
         client.initialize()
 
         await panels.loadRemotes()

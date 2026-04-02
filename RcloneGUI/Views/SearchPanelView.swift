@@ -19,7 +19,7 @@ struct SearchPanelView: View {
                     Image(systemName: "magnifyingglass")
                         .font(.system(size: 40))
                         .foregroundColor(.secondary)
-                    Text("검색어를 입력하고 Enter를 누르세요")
+                    Text(L10n.t("search.hint"))
                         .foregroundColor(.secondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -27,12 +27,12 @@ struct SearchPanelView: View {
 
             if search.hasSearched {
                 HStack {
-                    Text("\(search.results.count)개 결과")
+                    Text(String(format: L10n.t("search.results"), search.results.count))
                         .font(.caption)
                         .foregroundColor(.secondary)
                     if search.isSearching {
                         ProgressView().controlSize(.mini)
-                        Text("검색 중...")
+                        Text(L10n.t("search.searching"))
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -52,15 +52,15 @@ struct SearchPanelView: View {
             HStack {
                 Image(systemName: "magnifyingglass")
                     .foregroundColor(.secondary)
-                TextField("파일 검색...", text: Bindable(appState.search).query)
+                TextField(L10n.t("search.placeholder"), text: Bindable(appState.search).query)
                     .textFieldStyle(.roundedBorder)
                     .onSubmit { Task { await search.performSearch() } }
 
                 if search.isSearching {
-                    Button("취소") { search.abortSearch() }
+                    Button(L10n.t("search.cancel")) { search.abortSearch() }
                         .controlSize(.small)
                 } else {
-                    Button("검색") { Task { await search.performSearch() } }
+                    Button(L10n.t("search.button")) { Task { await search.performSearch() } }
                         .controlSize(.small)
                         .disabled(search.query.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
@@ -70,7 +70,7 @@ struct SearchPanelView: View {
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 4) {
-                    cloudToggle("/", label: "로컬")
+                    cloudToggle("/", label: L10n.t("panel.local"))
                     ForEach(appState.panels.remotes, id: \.self) { remote in
                         cloudToggle("\(remote):", label: remote)
                     }
@@ -102,11 +102,11 @@ struct SearchPanelView: View {
     private var resultsTable: some View {
         VStack(spacing: 0) {
             HStack(spacing: 0) {
-                Text("이름").frame(maxWidth: .infinity, alignment: .leading)
-                Text("클라우드").frame(width: 100, alignment: .leading)
-                Text("크기").frame(width: 80, alignment: .trailing)
-                Text("수정일").frame(width: 140, alignment: .trailing)
-                Text("경로").frame(width: 200, alignment: .leading)
+                Text(L10n.t("column.name")).frame(maxWidth: .infinity, alignment: .leading)
+                Text(L10n.t("search.cloud")).frame(width: 100, alignment: .leading)
+                Text(L10n.t("column.size")).frame(width: 80, alignment: .trailing)
+                Text(L10n.t("column.modified")).frame(width: 140, alignment: .trailing)
+                Text(L10n.t("properties.path")).frame(width: 200, alignment: .leading)
             }
             .font(.system(size: 11, weight: .medium))
             .foregroundColor(.secondary)
@@ -117,7 +117,7 @@ struct SearchPanelView: View {
             Divider()
 
             if search.results.isEmpty && !search.isSearching {
-                Text("검색 결과가 없습니다")
+                Text(L10n.t("search.noResults"))
                     .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
@@ -147,7 +147,7 @@ struct SearchPanelView: View {
             HStack(spacing: 4) {
                 Image(systemName: result.remoteFs == "/" ? "folder" : "cloud")
                     .font(.system(size: 10))
-                Text(result.remoteFs == "/" ? "로컬" : result.remoteFs.replacingOccurrences(of: ":", with: ""))
+                Text(result.remoteFs == "/" ? L10n.t("panel.local") : result.remoteFs.replacingOccurrences(of: ":", with: ""))
                     .font(.system(size: 11))
             }
             .frame(width: 100, alignment: .leading)

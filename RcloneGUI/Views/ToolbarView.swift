@@ -7,9 +7,9 @@ struct ToolbarView: View {
         HStack(spacing: 0) {
             // Left: Navigation tabs
             HStack(spacing: 2) {
-                tabButton("Explore", icon: "folder", view: .explore)
-                tabButton("Accounts", icon: "person.crop.circle", view: .account)
-                tabButton("Search", icon: "magnifyingglass", view: .search)
+                tabButton(L10n.t("toolbar.explore"), icon: "folder", view: .explore)
+                tabButton(L10n.t("toolbar.accounts"), icon: "person.crop.circle", view: .account)
+                tabButton(L10n.t("toolbar.search"), icon: "magnifyingglass", view: .search)
             }
             .padding(.horizontal, 8)
 
@@ -27,7 +27,7 @@ struct ToolbarView: View {
                     Image(systemName: appState.showTransfers ? "arrow.up.arrow.down.circle.fill" : "arrow.up.arrow.down.circle")
                 }
                 .buttonStyle(.borderless)
-                .help("Transfers")
+                .help(L10n.t("toolbar.transfers"))
 
                 Button(action: {
                     appState.showSettings.toggle()
@@ -35,7 +35,7 @@ struct ToolbarView: View {
                     Image(systemName: "gearshape")
                 }
                 .buttonStyle(.borderless)
-                .help("Settings")
+                .help(L10n.t("toolbar.settings"))
             }
             .padding(.horizontal, 8)
         }

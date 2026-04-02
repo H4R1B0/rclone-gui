@@ -9,7 +9,7 @@ struct ContentView: View {
             VStack(spacing: 12) {
                 ProgressView()
                     .controlSize(.large)
-                Text("Initializing rclone...")
+                Text(L10n.t("app.initializing"))
                     .foregroundColor(.secondary)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

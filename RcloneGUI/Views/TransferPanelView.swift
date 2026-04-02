@@ -1,10 +1,15 @@
 import SwiftUI
 import RcloneKit
 
-enum TransferTab: String, CaseIterable {
-    case active = "Active"
-    case completed = "Completed"
-    case errors = "Errors"
+enum TransferTab: CaseIterable {
+    case active, completed, errors
+    var label: String {
+        switch self {
+        case .active: return L10n.t("transfer.active")
+        case .completed: return L10n.t("transfer.completed")
+        case .errors: return L10n.t("transfer.errors")
+        }
+    }
 }
 
 struct TransferPanelView: View {
@@ -17,7 +22,7 @@ struct TransferPanelView: View {
             HStack(spacing: 8) {
                 Picker("", selection: $selectedTab) {
                     ForEach(TransferTab.allCases, id: \.self) { tab in
-                        Text(tab.rawValue).tag(tab)
+                        Text(tab.label).tag(tab)
                     }
                 }
                 .pickerStyle(.segmented)
@@ -30,10 +35,10 @@ struct TransferPanelView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "pause.circle.fill")
                             .foregroundColor(.orange)
-                        Text("Paused")
+                        Text(L10n.t("transfer.paused"))
                             .font(.caption)
                             .foregroundColor(.orange)
-                        Button("Resume") {
+                        Button(L10n.t("transfer.resume")) {
                             Task { await appState.transfers.resumeAll() }
                         }
                         .controlSize(.small)
@@ -47,22 +52,22 @@ struct TransferPanelView: View {
                             Image(systemName: "pause")
                         }
                         .buttonStyle(.borderless)
-                        .help("Pause All")
+                        .help(L10n.t("transfer.pauseAll"))
                         .disabled(appState.transfers.paused)
 
                         Button(action: { Task { await appState.transfers.stopAllJobs() } }) {
                             Image(systemName: "stop")
                         }
                         .buttonStyle(.borderless)
-                        .help("Stop All")
+                        .help(L10n.t("transfer.stopAll"))
                     }
 
                     if selectedTab == .completed {
-                        Button("Clear") { appState.transfers.clearCompleted() }
+                        Button(L10n.t("transfer.clear")) { appState.transfers.clearCompleted() }
                             .controlSize(.small)
                     }
                     if selectedTab == .errors {
-                        Button("Clear") { appState.transfers.clearErrors() }
+                        Button(L10n.t("transfer.clear")) { appState.transfers.clearErrors() }
                             .controlSize(.small)
                     }
                 }
@@ -80,7 +85,7 @@ struct TransferPanelView: View {
                     ForEach(appState.transfers.transfers) { transfer in
                         ActiveTransferRow(transfer: transfer)
                             .contextMenu {
-                                Button("Stop") {
+                                Button(L10n.t("transfer.stop")) {
                                     Task { await appState.transfers.stopAllJobs() }
                                 }
                             }
@@ -91,10 +96,10 @@ struct TransferPanelView: View {
                             Task { await appState.transfers.restartTransfer(stopped) }
                         }
                         .contextMenu {
-                            Button("Restart") {
+                            Button(L10n.t("transfer.restart")) {
                                 Task { await appState.transfers.restartTransfer(stopped) }
                             }
-                            Button("Remove") {
+                            Button(L10n.t("transfer.remove")) {
                                 appState.transfers.removeStopped(id: stopped.id)
                             }
                         }
@@ -114,7 +119,7 @@ struct TransferPanelView: View {
             .listStyle(.plain)
             .overlay {
                 if currentListEmpty {
-                    Text("No transfers")
+                    Text(L10n.t("transfer.noTransfers"))
                         .foregroundColor(.secondary)
                         .font(.caption)
                 }
@@ -182,12 +187,12 @@ struct StoppedTransferRow: View {
                 Text(stopped.name)
                     .font(.system(size: 12))
                     .lineLimit(1)
-                Text("Stopped")
+                Text(L10n.t("transfer.stopped"))
                     .font(.system(size: 10))
                     .foregroundColor(.secondary)
             }
             Spacer()
-            Button("Restart") { onRestart() }
+            Button(L10n.t("transfer.restart")) { onRestart() }
                 .controlSize(.small)
         }
     }

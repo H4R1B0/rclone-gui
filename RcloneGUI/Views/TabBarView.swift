@@ -23,8 +23,8 @@ struct TabBarView: View {
 
             // Add tab button
             Menu {
-                Button("Local") {
-                    sideState.addTab(mode: .local, remote: "/", path: NSHomeDirectory(), label: "Local")
+                Button(L10n.t("panel.local")) {
+                    sideState.addTab(mode: .local, remote: "/", path: NSHomeDirectory(), label: L10n.t("panel.local"))
                     Task { await appState.panels.loadFiles(side: side) }
                 }
 

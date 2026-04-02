@@ -42,7 +42,7 @@ struct RemoteSelectorView: View {
                         Image(systemName: "plus.circle")
                             .font(.system(size: 24))
                             .foregroundColor(.secondary)
-                        Text("Add Account")
+                        Text(L10n.t("panel.addAccount"))
                             .font(.system(size: 13))
                             .foregroundColor(.secondary)
                     }

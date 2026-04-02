@@ -28,7 +28,7 @@ struct FileTableView: View {
                     Image(systemName: "folder")
                         .font(.system(size: 32))
                         .foregroundColor(.secondary)
-                    Text("No files")
+                    Text(L10n.t("panel.noFiles"))
                         .foregroundColor(.secondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -60,13 +60,13 @@ struct FileTableView: View {
 
     private var columnHeaders: some View {
         HStack(spacing: 0) {
-            sortButton("Name", field: .name)
+            sortButton(L10n.t("column.name"), field: .name)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            sortButton("Size", field: .size)
+            sortButton(L10n.t("column.size"), field: .size)
                 .frame(width: 100, alignment: .trailing)
 
-            sortButton("Modified", field: .date)
+            sortButton(L10n.t("column.modified"), field: .date)
                 .frame(width: 150, alignment: .trailing)
         }
         .padding(.horizontal, 12)
@@ -153,23 +153,23 @@ struct FileTableView: View {
     @ViewBuilder
     private func fileContextMenu(_ file: FileItem) -> some View {
         if file.isDir {
-            Button("Open") {
+            Button(L10n.t("file.open")) {
                 Task { await appState.panels.navigate(side: side, dirName: file.name) }
             }
             Divider()
         }
 
-        Button("Cut") { performCut() }
-        Button("Copy") { performCopy() }
+        Button(L10n.t("file.cut")) { performCut() }
+        Button(L10n.t("file.copy")) { performCopy() }
 
         Divider()
 
-        Button("Rename...") {
+        Button(L10n.t("file.rename")) {
             renamingFile = file.name
             renameText = file.name
         }
 
-        Button("Delete", role: .destructive) {
+        Button(L10n.t("file.delete"), role: .destructive) {
             // Ensure this file is selected
             if !tab.selectedFiles.contains(file.name) {
                 appState.panels.toggleSelect(side: side, name: file.name)
@@ -179,7 +179,7 @@ struct FileTableView: View {
 
         Divider()
 
-        Button("Properties") {
+        Button(L10n.t("file.properties")) {
             showProperties = file
         }
     }
@@ -188,7 +188,7 @@ struct FileTableView: View {
 
     @ViewBuilder
     private var emptyAreaMenu: some View {
-        Button("Paste") {
+        Button(L10n.t("file.paste")) {
             Task {
                 try? await appState.panels.paste(side: side, clipboard: appState.clipboard)
             }
@@ -197,7 +197,7 @@ struct FileTableView: View {
 
         Divider()
 
-        Button("New Folder...") {
+        Button(L10n.t("file.newFolder")) {
             showNewFolder = true
         }
     }

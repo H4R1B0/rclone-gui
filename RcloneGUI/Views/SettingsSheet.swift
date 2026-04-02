@@ -4,12 +4,15 @@ struct SettingsSheet: View {
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
 
+    @State private var pendingLocale: String = "ko"
+    @State private var showRestartAlert = false
+
     private var settings: SettingsViewModel { appState.settings }
 
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("설정")
+                Text(L10n.t("settings.title"))
                     .font(.title2.bold())
                 Spacer()
                 Button(action: { dismiss() }) {
@@ -26,12 +29,12 @@ struct SettingsSheet: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     // 언어
-                    GroupBox("언어") {
+                    GroupBox(L10n.t("settings.language")) {
                         HStack {
-                            Text("앱 언어")
+                            Text(L10n.t("settings.appLanguage"))
                                 .font(.system(size: 12))
                             Spacer()
-                            Picker("", selection: Bindable(appState.settings).locale) {
+                            Picker("", selection: $pendingLocale) {
                                 Text("한국어").tag("ko")
                                 Text("English").tag("en")
                             }
@@ -42,41 +45,41 @@ struct SettingsSheet: View {
                     }
 
                     // 성능
-                    GroupBox("성능") {
+                    GroupBox(L10n.t("settings.performance")) {
                         VStack(spacing: 12) {
-                            numberField("동시 전송 수 (Transfers)", value: Bindable(appState.settings).transfers)
-                            numberField("동시 체크 수 (Checkers)", value: Bindable(appState.settings).checkers)
-                            numberField("멀티스레드 스트림 (Multi-thread Streams)", value: Bindable(appState.settings).multiThreadStreams)
-                            stringField("버퍼 크기 (Buffer Size)", value: Bindable(appState.settings).bufferSize, placeholder: "16M")
-                            stringField("대역폭 제한 (Bandwidth Limit)", value: Bindable(appState.settings).bwLimit, placeholder: "비활성화")
+                            numberField(L10n.t("settings.transfers"), value: Bindable(appState.settings).transfers)
+                            numberField(L10n.t("settings.checkers"), value: Bindable(appState.settings).checkers)
+                            numberField(L10n.t("settings.multiThread"), value: Bindable(appState.settings).multiThreadStreams)
+                            stringField(L10n.t("settings.bufferSize"), value: Bindable(appState.settings).bufferSize, placeholder: "16M")
+                            stringField(L10n.t("settings.bwLimit"), value: Bindable(appState.settings).bwLimit, placeholder: L10n.t("settings.disabled"))
                         }
                         .padding(.vertical, 4)
                     }
 
                     // 안정성
-                    GroupBox("안정성") {
+                    GroupBox(L10n.t("settings.reliability")) {
                         VStack(spacing: 12) {
-                            numberField("재시도 횟수 (Retries)", value: Bindable(appState.settings).retries)
-                            numberField("저수준 재시도 (Low-level Retries)", value: Bindable(appState.settings).lowLevelRetries)
-                            stringField("연결 타임아웃 (Connect Timeout)", value: Bindable(appState.settings).contimeout, placeholder: "60s")
-                            stringField("IO 타임아웃 (Timeout)", value: Bindable(appState.settings).timeout, placeholder: "300s")
+                            numberField(L10n.t("settings.retries"), value: Bindable(appState.settings).retries)
+                            numberField(L10n.t("settings.lowRetries"), value: Bindable(appState.settings).lowLevelRetries)
+                            stringField(L10n.t("settings.connTimeout"), value: Bindable(appState.settings).contimeout, placeholder: "60s")
+                            stringField(L10n.t("settings.ioTimeout"), value: Bindable(appState.settings).timeout, placeholder: "300s")
                         }
                         .padding(.vertical, 4)
                     }
 
                     // 동작
-                    GroupBox("동작") {
+                    GroupBox(L10n.t("settings.behavior")) {
                         VStack(alignment: .leading, spacing: 8) {
-                            stringField("User-Agent", value: Bindable(appState.settings).userAgent, placeholder: "기본값")
-                            Toggle("SSL 인증서 검증 건너뛰기", isOn: Bindable(appState.settings).noCheckCertificate)
+                            stringField(L10n.t("settings.userAgent"), value: Bindable(appState.settings).userAgent, placeholder: L10n.t("settings.default"))
+                            Toggle(L10n.t("settings.skipSSL"), isOn: Bindable(appState.settings).noCheckCertificate)
                                 .font(.system(size: 12))
-                            Toggle("기존 파일 무시 (Ignore Existing)", isOn: Bindable(appState.settings).ignoreExisting)
+                            Toggle(L10n.t("settings.ignoreExist"), isOn: Bindable(appState.settings).ignoreExisting)
                                 .font(.system(size: 12))
-                            Toggle("크기 무시 (Ignore Size)", isOn: Bindable(appState.settings).ignoreSize)
+                            Toggle(L10n.t("settings.ignoreSize"), isOn: Bindable(appState.settings).ignoreSize)
                                 .font(.system(size: 12))
-                            Toggle("디렉토리 순회 건너뛰기 (No Traverse)", isOn: Bindable(appState.settings).noTraverse)
+                            Toggle(L10n.t("settings.noTraverse"), isOn: Bindable(appState.settings).noTraverse)
                                 .font(.system(size: 12))
-                            Toggle("수정시간 업데이트 안함 (No Update ModTime)", isOn: Bindable(appState.settings).noUpdateModTime)
+                            Toggle(L10n.t("settings.noModTime"), isOn: Bindable(appState.settings).noUpdateModTime)
                                 .font(.system(size: 12))
                         }
                         .padding(.vertical, 4)
@@ -88,16 +91,16 @@ struct SettingsSheet: View {
             Divider()
 
             HStack {
-                Button("기본값 복원") {
+                Button(L10n.t("settings.resetDefaults")) {
                     settings.resetToDefaults()
                 }
 
                 Spacer()
 
-                Button("취소") { dismiss() }
+                Button(L10n.t("cancel")) { dismiss() }
                     .keyboardShortcut(.cancelAction)
 
-                Button("저장") {
+                Button(L10n.t("save")) {
                     settings.saveToDisk()
                     Task { await settings.applyToRclone() }
                     dismiss()
@@ -107,6 +110,31 @@ struct SettingsSheet: View {
             .padding()
         }
         .frame(width: 550, height: 650)
+        .onAppear {
+            pendingLocale = settings.locale
+        }
+        .onChange(of: pendingLocale) {
+            if pendingLocale != settings.locale {
+                showRestartAlert = true
+            }
+        }
+        .alert(L10n.t("app.restart.title"), isPresented: $showRestartAlert) {
+            Button(L10n.t("cancel")) { pendingLocale = settings.locale }
+            Button(L10n.t("app.restart")) {
+                settings.locale = pendingLocale
+                settings.saveToDisk()
+                // Relaunch
+                let url = URL(fileURLWithPath: Bundle.main.resourcePath!)
+                let path = url.deletingLastPathComponent().deletingLastPathComponent().absoluteString
+                let task = Process()
+                task.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+                task.arguments = [path]
+                try? task.run()
+                NSApplication.shared.terminate(nil)
+            }
+        } message: {
+            Text(L10n.t("app.restart.message"))
+        }
     }
 
     private func numberField(_ label: String, value: Binding<Int>) -> some View {

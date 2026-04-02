@@ -19,12 +19,12 @@ struct ConfirmDeleteSheet: View {
                 .foregroundColor(.red)
 
             if filesToDelete.count == 1, let file = filesToDelete.first {
-                Text("Delete \"\(file.name)\"?").font(.headline)
+                Text(String(format: L10n.t("delete.title.single"), file.name)).font(.headline)
             } else {
-                Text("Delete \(filesToDelete.count) items?").font(.headline)
+                Text(String(format: L10n.t("delete.title.multi"), filesToDelete.count)).font(.headline)
             }
 
-            Text("This action cannot be undone.")
+            Text(L10n.t("delete.warning"))
                 .foregroundColor(.secondary).font(.caption)
 
             if filesToDelete.count <= 10 {
@@ -48,10 +48,10 @@ struct ConfirmDeleteSheet: View {
             }
 
             HStack {
-                Button("Cancel") { dismiss() }
+                Button(L10n.t("cancel")) { dismiss() }
                     .keyboardShortcut(.cancelAction)
 
-                Button("Delete", role: .destructive) {
+                Button(L10n.t("delete"), role: .destructive) {
                     Task {
                         do {
                             try await appState.panels.deleteSelected(side: side)

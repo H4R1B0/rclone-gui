@@ -34,7 +34,7 @@ struct PanelView: View {
                         VStack(spacing: 8) {
                             ProgressView()
                                 .controlSize(.large)
-                            Text("Loading...")
+                            Text(L10n.t("loading"))
                                 .foregroundColor(.secondary)
                                 .font(.caption)
                         }
@@ -47,7 +47,7 @@ struct PanelView: View {
                                 .foregroundColor(.secondary)
                                 .font(.caption)
                                 .multilineTextAlignment(.center)
-                            Button("Retry") {
+                            Button(L10n.t("retry")) {
                                 Task { await appState.panels.refresh(side: side) }
                             }
                         }
