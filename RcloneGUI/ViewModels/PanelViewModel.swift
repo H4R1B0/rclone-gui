@@ -1,4 +1,5 @@
 import Foundation
+import UniformTypeIdentifiers
 import RcloneKit
 import FileBrowser
 
@@ -18,6 +19,14 @@ enum SortField: String, CaseIterable {
     case name
     case size
     case date
+}
+
+struct DraggedFile: Codable {
+    let sideName: String  // "left" or "right"
+    let fileName: String
+    let isDir: Bool
+    let sourceFs: String
+    let sourcePath: String
 }
 
 @Observable
@@ -298,5 +307,32 @@ final class PanelViewModel {
         }
         clipboard.clear()
         await refresh(side: panelSide)
+    }
+
+    // MARK: - Drag & Drop
+
+    @MainActor
+    func handleDrop(targetSide: PanelSide, files: [DraggedFile], isMove: Bool) async {
+        let targetTab = side(targetSide).activeTab
+        for file in files {
+            let srcRemote = file.sourcePath.isEmpty ? file.fileName : "\(file.sourcePath)/\(file.fileName)"
+            let dstRemote = targetTab.path.isEmpty ? file.fileName : "\(targetTab.path)/\(file.fileName)"
+            do {
+                if isMove {
+                    if file.isDir {
+                        _ = try await RcloneAPI.moveDir(using: client, srcFs: file.sourceFs, srcRemote: srcRemote, dstFs: targetTab.remote, dstRemote: dstRemote)
+                    } else {
+                        _ = try await RcloneAPI.moveFileAsync(using: client, srcFs: file.sourceFs, srcRemote: srcRemote, dstFs: targetTab.remote, dstRemote: dstRemote)
+                    }
+                } else {
+                    if file.isDir {
+                        _ = try await RcloneAPI.copyDir(using: client, srcFs: file.sourceFs, srcRemote: srcRemote, dstFs: targetTab.remote, dstRemote: dstRemote)
+                    } else {
+                        _ = try await RcloneAPI.copyFileAsync(using: client, srcFs: file.sourceFs, srcRemote: srcRemote, dstFs: targetTab.remote, dstRemote: dstRemote)
+                    }
+                }
+            } catch {}
+        }
+        await refresh(side: targetSide)
     }
 }

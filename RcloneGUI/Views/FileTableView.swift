@@ -134,6 +134,15 @@ struct FileTableView: View {
         .padding(.vertical, 4)
         .background(isSelected ? Color.accentColor.opacity(0.2) : Color.clear)
         .contentShape(Rectangle())
+        .draggable(dragData(for: file)) {
+            // Drag preview
+            HStack(spacing: 4) {
+                Image(systemName: FormatUtils.fileIcon(name: file.name, isDir: file.isDir))
+                Text(file.name)
+                    .font(.system(size: 12))
+            }
+            .padding(4)
+        }
         .onTapGesture {
             appState.panels.toggleSelect(side: side, name: file.name)
             appState.panels.activePanel = side
@@ -220,6 +229,19 @@ struct FileTableView: View {
             path: tab.path,
             selectedFiles: selected.map { ($0.name, $0.isDir) }
         )
+    }
+
+    private func dragData(for file: FileItem) -> String {
+        let data = DraggedFile(
+            sideName: side == .left ? "left" : "right",
+            fileName: file.name,
+            isDir: file.isDir,
+            sourceFs: tab.remote,
+            sourcePath: tab.path
+        )
+        guard let json = try? JSONEncoder().encode(data),
+              let str = String(data: json, encoding: .utf8) else { return "" }
+        return str
     }
 
     private func commitRename(_ file: FileItem) {

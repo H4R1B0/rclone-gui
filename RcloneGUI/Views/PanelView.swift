@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 struct PanelView: View {
     @Environment(AppState.self) private var appState
@@ -57,6 +58,26 @@ struct PanelView: View {
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .dropDestination(for: String.self) { items, location in
+                    guard let jsonStr = items.first,
+                          let data = jsonStr.data(using: .utf8),
+                          let draggedFile = try? JSONDecoder().decode(DraggedFile.self, from: data)
+                    else { return false }
+
+                    // Don't drop on same panel
+                    let sourceSide: PanelSide = draggedFile.sideName == "left" ? .left : .right
+                    guard sourceSide != side else { return false }
+
+                    let isMove = NSEvent.modifierFlags.contains(.option)
+                    Task {
+                        await appState.panels.handleDrop(
+                            targetSide: side,
+                            files: [draggedFile],
+                            isMove: isMove
+                        )
+                    }
+                    return true
+                }
             }
         }
         .onTapGesture {
