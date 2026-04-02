@@ -17,4 +17,7 @@ CGO_ENABLED=1 go build -buildmode=c-shared \
     -o "$OUTPUT_DIR/librclone.dylib" \
     github.com/rclone/rclone/librclone
 
+# Fix install name for @rpath loading
+install_name_tool -id "@rpath/librclone.dylib" "$OUTPUT_DIR/librclone.dylib"
+
 echo "Built librclone.dylib at $OUTPUT_DIR/librclone.dylib"
