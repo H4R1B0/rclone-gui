@@ -1,15 +1,19 @@
 import SwiftUI
 import RcloneKit
 
+// NOTE: Full rewrite coming in Task 9 (FileList + ContextMenu + Properties)
+// Kept as a stub with Notification-based API for now.
+
 enum ContextMenuBuilder {
     @ViewBuilder
-    static func fileMenu(selectedIDs: Set<String>, viewModel: PanelViewModel) -> some View {
-        let selectedFiles = viewModel.files.filter { selectedIDs.contains($0.id) }
+    static func fileMenu(side: PanelSide, appState: AppState) -> some View {
+        let tab = appState.panels.side(side).activeTab
+        let selectedFiles = tab.files.filter { tab.selectedFiles.contains($0.name) }
 
         if selectedFiles.count == 1, let file = selectedFiles.first {
             if file.isDir {
                 Button("Open") {
-                    Task { await viewModel.navigateInto(file) }
+                    Task { await appState.panels.navigate(side: side, dirName: file.name) }
                 }
             }
 
@@ -21,19 +25,19 @@ enum ContextMenuBuilder {
         }
 
         Button("Copy") {
-            NotificationCenter.default.post(name: .requestCopy, object: Array(selectedIDs))
+            NotificationCenter.default.post(name: .requestCopy, object: Array(tab.selectedFiles))
         }
         .keyboardShortcut("c", modifiers: .command)
 
         Button("Cut") {
-            NotificationCenter.default.post(name: .requestCut, object: Array(selectedIDs))
+            NotificationCenter.default.post(name: .requestCut, object: Array(tab.selectedFiles))
         }
         .keyboardShortcut("x", modifiers: .command)
 
         Divider()
 
         Button("Delete", role: .destructive) {
-            NotificationCenter.default.post(name: .requestDelete, object: Array(selectedIDs))
+            NotificationCenter.default.post(name: .requestDelete, object: Array(tab.selectedFiles))
         }
         .keyboardShortcut(.delete, modifiers: .command)
 

@@ -9,7 +9,7 @@ struct DualPanelView: View {
         GeometryReader { geo in
             HStack(spacing: 0) {
                 // Left panel
-                PanelView(viewModel: appState.panels, side: .left)
+                PanelView(side: .left)
                     .frame(width: geo.size.width * splitFraction)
 
                 // Draggable divider
@@ -36,7 +36,7 @@ struct DualPanelView: View {
                     )
 
                 // Right panel
-                PanelView(viewModel: appState.panels, side: .right)
+                PanelView(side: .right)
                     .frame(maxWidth: .infinity)
             }
         }

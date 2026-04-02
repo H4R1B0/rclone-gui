@@ -1,46 +1,88 @@
 import SwiftUI
 
 struct AddressBarView: View {
-    @Bindable var viewModel: PanelViewModel
-    @State private var editingPath: String = ""
-    @State private var isEditing: Bool = false
+    @Environment(AppState.self) private var appState
+    let side: PanelSide
+    @State private var isEditing = false
+    @State private var editPath = ""
+
+    private var tab: TabState {
+        appState.panels.side(side).activeTab
+    }
 
     var body: some View {
         HStack(spacing: 4) {
-            Button(action: { Task { await viewModel.navigateUp() } }) {
+            // Up button
+            Button(action: { Task { await appState.panels.goUp(side: side) } }) {
                 Image(systemName: "chevron.up")
+                    .font(.system(size: 11))
             }
             .buttonStyle(.borderless)
-            .disabled(viewModel.currentPath.isEmpty)
+            .disabled(tab.path.isEmpty)
 
-            Button(action: { Task { await viewModel.refresh() } }) {
+            // Refresh button
+            Button(action: { Task { await appState.panels.refresh(side: side) } }) {
                 Image(systemName: "arrow.clockwise")
+                    .font(.system(size: 11))
             }
             .buttonStyle(.borderless)
 
+            // Path display / edit
             if isEditing {
-                TextField("Path", text: $editingPath)
+                TextField("Path", text: $editPath)
                     .textFieldStyle(.roundedBorder)
+                    .font(.system(size: 12))
                     .onSubmit {
-                        Task { await viewModel.navigate(to: editingPath) }
+                        Task { await appState.panels.loadFiles(side: side, path: editPath) }
                         isEditing = false
                     }
+                    .onExitCommand { isEditing = false }
             } else {
-                Text(viewModel.displayPath)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(Color(nsColor: .controlBackgroundColor))
-                    .cornerRadius(4)
+                // Breadcrumb path
+                breadcrumbPath
                     .onTapGesture {
-                        editingPath = viewModel.currentPath
+                        editPath = tab.path
                         isEditing = true
                     }
             }
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
+    }
+
+    private var breadcrumbPath: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 2) {
+                // Root button
+                Button(action: {
+                    Task { await appState.panels.loadFiles(side: side, path: "") }
+                }) {
+                    Image(systemName: tab.mode == .local ? "house" : "cloud")
+                        .font(.system(size: 11))
+                        .foregroundColor(.accentColor)
+                }
+                .buttonStyle(.plain)
+
+                let segments = PathUtils.segments(tab.path)
+                ForEach(Array(segments.enumerated()), id: \.offset) { index, segment in
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 8))
+                        .foregroundColor(.secondary)
+
+                    Button(segment) {
+                        let targetPath = PathUtils.pathUpTo(segments: segments, index: index)
+                        Task { await appState.panels.loadFiles(side: side, path: targetPath) }
+                    }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 12))
+                    .foregroundColor(index == segments.count - 1 ? .primary : .accentColor)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 3)
+            .background(Color(nsColor: .controlBackgroundColor))
+            .cornerRadius(4)
+        }
     }
 }

@@ -1,17 +1,30 @@
 import SwiftUI
 import RcloneKit
 
+// NOTE: Full rewrite coming in Task 9 (FileList + ContextMenu + Properties)
+// This is a compile-compatible stub that renders the file list from the new PanelViewModel structure.
+
 struct FileTableView: View {
-    @Bindable var viewModel: PanelViewModel
+    @Environment(AppState.self) private var appState
+    let side: PanelSide
+
+    private var tab: TabState {
+        appState.panels.side(side).activeTab
+    }
 
     var body: some View {
-        Table(viewModel.files, selection: $viewModel.selectedFileIDs) {
+        Table(tab.sortedFiles) {
             TableColumn("Name") { file in
                 HStack(spacing: 6) {
                     Image(systemName: file.isDir ? "folder.fill" : fileIcon(for: file))
                         .foregroundColor(file.isDir ? .accentColor : .secondary)
                     Text(file.name)
                         .lineLimit(1)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture(count: 2) {
+                    guard file.isDir else { return }
+                    Task { await appState.panels.navigate(side: side, dirName: file.name) }
                 }
             }
             .width(min: 200)
@@ -28,24 +41,6 @@ struct FileTableView: View {
             .width(min: 100, ideal: 140)
         }
         .tableStyle(.inset(alternatesRowBackgrounds: true))
-        .contextMenu(forSelectionType: String.self) { ids in
-            // Context menu will be implemented in Task 10
-            Button("Open") {
-                guard let id = ids.first,
-                      let file = viewModel.files.first(where: { $0.id == id }),
-                      file.isDir else { return }
-                Task { await viewModel.navigateInto(file) }
-            }
-            Divider()
-            Button("Delete", role: .destructive) {
-                viewModel.selectedFileIDs = ids
-            }
-        } primaryAction: { ids in
-            guard let id = ids.first,
-                  let file = viewModel.files.first(where: { $0.id == id }),
-                  file.isDir else { return }
-            Task { await viewModel.navigateInto(file) }
-        }
     }
 
     private func fileIcon(for file: FileItem) -> String {
