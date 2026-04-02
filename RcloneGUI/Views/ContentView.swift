@@ -46,6 +46,9 @@ struct ContentView: View {
                 StatusBarView()
             }
             .frame(minWidth: 900, minHeight: 600)
+            .sheet(isPresented: Bindable(appState).showSettings) {
+                SettingsSheet()
+            }
         }
     }
 

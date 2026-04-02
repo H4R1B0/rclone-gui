@@ -9,8 +9,7 @@ struct ToolbarView: View {
             HStack(spacing: 2) {
                 tabButton("Explore", icon: "folder", view: .explore)
                 tabButton("Accounts", icon: "person.crop.circle", view: .account)
-                // Search placeholder — Phase 2
-                // tabButton("Search", icon: "magnifyingglass", view: .search)
+                tabButton("Search", icon: "magnifyingglass", view: .search)
             }
             .padding(.horizontal, 8)
 
@@ -20,18 +19,8 @@ struct ToolbarView: View {
 
             Spacer()
 
-            // Right: Actions
+            // Right: Actions (새로고침은 패널 내부 AddressBar에 있으므로 제거)
             HStack(spacing: 4) {
-                Button(action: {
-                    Task {
-                        await appState.panels.refresh(side: appState.panels.activePanel)
-                    }
-                }) {
-                    Image(systemName: "arrow.clockwise")
-                }
-                .buttonStyle(.borderless)
-                .help("Refresh")
-
                 Button(action: {
                     appState.showTransfers.toggle()
                 }) {

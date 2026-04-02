@@ -10,16 +10,16 @@ struct TabBarView: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            // Tab list
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 2) {
-                    ForEach(sideState.tabs) { tab in
-                        tabItem(tab)
-                    }
+            // Tab list — 탭 개수만큼 균등 분할
+            ForEach(sideState.tabs) { tab in
+                tabItem(tab)
+                    .frame(maxWidth: .infinity)
+
+                if tab.id != sideState.tabs.last?.id {
+                    Divider()
+                        .frame(height: 16)
                 }
             }
-
-            Spacer()
 
             // Add tab button
             Menu {
@@ -59,6 +59,8 @@ struct TabBarView: View {
                 .font(.system(size: 11))
                 .lineLimit(1)
 
+            Spacer()
+
             // Close button (hidden if last tab)
             if sideState.tabs.count > 1 {
                 Button(action: { sideState.closeTab(id: tab.id) }) {
@@ -73,6 +75,7 @@ struct TabBarView: View {
         .padding(.vertical, 4)
         .background(sideState.activeTabId == tab.id ? Color.accentColor.opacity(0.15) : Color.clear)
         .cornerRadius(4)
+        .contentShape(Rectangle())
         .onTapGesture {
             sideState.switchTab(id: tab.id)
         }
