@@ -1,0 +1,5 @@
+module CRclone {
+    header "include/librclone.h"
+    link "rclone"
+    export *
+}
