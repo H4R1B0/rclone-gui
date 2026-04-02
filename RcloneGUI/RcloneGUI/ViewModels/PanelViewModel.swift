@@ -8,7 +8,7 @@ public final class PanelViewModel {
     var currentPath: String = ""
     var files: [FileItem] = []
     var selectedFileIDs: Set<String> = []
-    var sortOrder: SortOrder = .name
+    var sortOrder: FileSortOrder = .name
     var sortAscending: Bool = true
     var isLoading: Bool = false
     var error: String?

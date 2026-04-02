@@ -27,7 +27,7 @@ public final class AppState {
             await leftPanel.navigate(to: "")
             await rightPanel.navigate(to: "")
         }
-        transfers.startPolling()
+        Task { @MainActor in transfers.startPolling() }
     }
 
     func shutdown() {

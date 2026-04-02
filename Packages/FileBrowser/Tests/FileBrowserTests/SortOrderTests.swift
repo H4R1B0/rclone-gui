@@ -3,8 +3,8 @@ import Foundation
 @testable import FileBrowser
 import RcloneKit
 
-@Suite("SortOrder Tests")
-struct SortOrderTests {
+@Suite("FileSortOrder Tests")
+struct FileSortOrderTests {
     let files: [FileItem] = {
         let decoder = JSONDecoder.rclone
         let items: [[String: Any]] = [
@@ -21,7 +21,7 @@ struct SortOrderTests {
 
     @Test("Sort by name — folders always first")
     func sortByName() {
-        let sorted = SortOrder.name.sorted(files, ascending: true)
+        let sorted = FileSortOrder.name.sorted(files, ascending: true)
         #expect(sorted[0].name == "Photos")
         #expect(sorted[1].name == "a.txt")
         #expect(sorted[2].name == "b.txt")
@@ -30,7 +30,7 @@ struct SortOrderTests {
 
     @Test("Sort by size")
     func sortBySize() {
-        let sorted = SortOrder.size.sorted(files, ascending: true)
+        let sorted = FileSortOrder.size.sorted(files, ascending: true)
         #expect(sorted[0].isDir == true)
         #expect(sorted[1].name == "c.txt")
         #expect(sorted[2].name == "a.txt")
@@ -39,7 +39,7 @@ struct SortOrderTests {
 
     @Test("Sort descending — folders still first")
     func sortDescending() {
-        let sorted = SortOrder.name.sorted(files, ascending: false)
+        let sorted = FileSortOrder.name.sorted(files, ascending: false)
         #expect(sorted[0].name == "Photos")
         #expect(sorted[1].name == "c.txt")
         #expect(sorted[2].name == "b.txt")

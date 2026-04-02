@@ -1,7 +1,7 @@
 import Foundation
 import RcloneKit
 
-public enum SortOrder: String, CaseIterable, Sendable {
+public enum FileSortOrder: String, CaseIterable, Sendable {
     case name
     case size
     case modTime

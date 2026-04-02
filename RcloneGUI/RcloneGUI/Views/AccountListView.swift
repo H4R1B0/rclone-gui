@@ -59,7 +59,7 @@ struct AccountListView: View {
                 .listStyle(.inset)
             }
         }
-        .frame(width: 350, minHeight: 400)
+        .frame(width: 350, height: 400)
         .sheet(isPresented: $showingAddAccount) {
             AccountSetupView()
         }
