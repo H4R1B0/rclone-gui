@@ -163,10 +163,28 @@ struct FileTableView: View {
         return HStack(spacing: 0) {
             // Icon + Name
             HStack(spacing: 6) {
-                Image(systemName: FormatUtils.fileIcon(name: file.name, isDir: file.isDir))
-                    .font(.system(size: 14))
-                    .foregroundColor(file.isDir ? .accentColor : .secondary)
-                    .frame(width: 18)
+                if tab.remote == "/" && isImageFile(file.name) && !file.isDir {
+                    AsyncImage(url: URL(fileURLWithPath: fullLocalPath(file))) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image.resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 18, height: 18)
+                                .clipShape(RoundedRectangle(cornerRadius: 2))
+                        default:
+                            Image(systemName: FormatUtils.fileIcon(name: file.name, isDir: file.isDir))
+                                .font(.system(size: 14))
+                                .foregroundColor(.secondary)
+                                .frame(width: 18)
+                        }
+                    }
+                    .frame(width: 18, height: 18)
+                } else {
+                    Image(systemName: FormatUtils.fileIcon(name: file.name, isDir: file.isDir))
+                        .font(.system(size: 14))
+                        .foregroundColor(file.isDir ? .accentColor : .secondary)
+                        .frame(width: 18)
+                }
 
                 if renamingFile == file.name {
                     TextField("Name", text: $renameText)
@@ -358,5 +376,16 @@ struct FileTableView: View {
             try? await appState.panels.rename(side: side, oldName: file.name, newName: newName)
             renamingFile = nil
         }
+    }
+
+    // MARK: - Thumbnail Helpers
+
+    private func isImageFile(_ name: String) -> Bool {
+        let ext = (name as NSString).pathExtension.lowercased()
+        return ["jpg", "jpeg", "png", "gif", "bmp", "tiff", "webp", "heic"].contains(ext)
+    }
+
+    private func fullLocalPath(_ file: FileItem) -> String {
+        tab.path.isEmpty ? "/\(file.name)" : "/\(tab.path)/\(file.name)"
     }
 }

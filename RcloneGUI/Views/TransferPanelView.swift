@@ -15,6 +15,7 @@ enum TransferTab: CaseIterable {
 struct TransferPanelView: View {
     @Environment(AppState.self) private var appState
     @State private var selectedTab: TransferTab = .active
+    @State private var showReport = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -61,6 +62,9 @@ struct TransferPanelView: View {
                         .buttonStyle(.borderless)
                         .help(L10n.t("transfer.stopAll"))
                     }
+
+                    Button(L10n.t("report.title")) { showReport = true }
+                        .controlSize(.small)
 
                     if selectedTab == .completed {
                         Button(L10n.t("transfer.clear")) { appState.transfers.clearCompleted() }
@@ -124,6 +128,9 @@ struct TransferPanelView: View {
                         .font(.caption)
                 }
             }
+        }
+        .sheet(isPresented: $showReport) {
+            TransferReportSheet()
         }
     }
 

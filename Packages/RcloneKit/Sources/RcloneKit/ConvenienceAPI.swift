@@ -144,13 +144,18 @@ public enum RcloneAPI {
     public static func copyDir(
         using client: RcloneClientProtocol,
         srcFs: String, srcRemote: String,
-        dstFs: String, dstRemote: String
+        dstFs: String, dstRemote: String,
+        filterRules: [String] = []
     ) async throws -> Int {
-        let result = try await client.call("sync/copy", params: [
+        var params: [String: Any] = [
             "srcFs": "\(srcFs)\(srcRemote)",
             "dstFs": "\(dstFs)\(dstRemote)",
             "_async": true
-        ])
+        ]
+        if !filterRules.isEmpty {
+            params["_filter"] = ["ExcludeRule": filterRules]
+        }
+        let result = try await client.call("sync/copy", params: params)
         return result["jobid"] as? Int ?? 0
     }
 
@@ -214,13 +219,18 @@ public enum RcloneAPI {
         using client: RcloneClientProtocol,
         srcFs: String, srcRemote: String,
         dstFs: String, dstRemote: String,
+        filterRules: [String] = [],
         async: Bool = true
     ) async throws -> Int {
-        let result = try await client.call("sync/sync", params: [
+        var params: [String: Any] = [
             "srcFs": "\(srcFs)\(srcRemote)",
             "dstFs": "\(dstFs)\(dstRemote)",
             "_async": async
-        ])
+        ]
+        if !filterRules.isEmpty {
+            params["_filter"] = ["ExcludeRule": filterRules]
+        }
+        let result = try await client.call("sync/sync", params: params)
         return result["jobid"] as? Int ?? 0
     }
 
@@ -228,13 +238,18 @@ public enum RcloneAPI {
     public static func bisync(
         using client: RcloneClientProtocol,
         path1: String, path2: String,
+        filterRules: [String] = [],
         async: Bool = true
     ) async throws -> Int {
-        let result = try await client.call("sync/bisync", params: [
+        var params: [String: Any] = [
             "path1": path1,
             "path2": path2,
             "_async": async
-        ])
+        ]
+        if !filterRules.isEmpty {
+            params["_filter"] = ["ExcludeRule": filterRules]
+        }
+        let result = try await client.call("sync/bisync", params: params)
         return result["jobid"] as? Int ?? 0
     }
 

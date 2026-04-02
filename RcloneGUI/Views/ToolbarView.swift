@@ -20,6 +20,13 @@ struct ToolbarView: View {
                 .frame(height: 20)
                 .padding(.horizontal, 8)
 
+            Button(action: { appState.panels.linkedBrowsing.toggle() }) {
+                Image(systemName: appState.panels.linkedBrowsing ? "link.circle.fill" : "link.circle")
+            }
+            .buttonStyle(.borderless)
+            .help(L10n.t("toolbar.linkedBrowsing"))
+            .foregroundColor(appState.panels.linkedBrowsing ? .accentColor : .secondary)
+
             Spacer()
 
             // Right: Actions (새로고침은 패널 내부 AddressBar에 있으므로 제거)

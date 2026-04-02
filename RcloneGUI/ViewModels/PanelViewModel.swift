@@ -112,12 +112,14 @@ final class PanelViewModel {
     let left: PanelSideState
     let right: PanelSideState
     var activePanel: PanelSide = .left
+    var linkedBrowsing: Bool = false
 
     var remotes: [String] = []
     var remotesLoading: Bool = false
 
     private let client: RcloneClientProtocol
     private weak var transferVM: TransferViewModel?
+    private var isSyncingLinked = false
 
     init(client: RcloneClientProtocol) {
         self.client = client
@@ -184,6 +186,18 @@ final class PanelViewModel {
         }
 
         tab.loading = false
+
+        // Linked browsing: sync other panel to same path
+        if linkedBrowsing && !isSyncingLinked {
+            isSyncingLinked = true
+            let otherSide: PanelSide = panelSide == .left ? .right : .left
+            let targetPath = path ?? tab.path
+            let otherTab = side(otherSide).activeTab
+            if otherTab.path != targetPath {
+                await loadFiles(side: otherSide, path: targetPath)
+            }
+            isSyncingLinked = false
+        }
     }
 
     @MainActor

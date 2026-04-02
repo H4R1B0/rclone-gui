@@ -279,5 +279,19 @@ enum L10n {
 
         // Provider Search
         "account.searchProvider": ["ko": "프로바이더 검색...", "en": "Search providers..."],
+
+        // Linked Browsing
+        "toolbar.linkedBrowsing": ["ko": "연결 탐색", "en": "Linked Browsing"],
+
+        // Transfer Report
+        "report.title":           ["ko": "전송 리포트", "en": "Transfer Report"],
+        "report.total":           ["ko": "전체", "en": "Total"],
+        "report.success":         ["ko": "성공", "en": "Success"],
+        "report.failed":          ["ko": "실패", "en": "Failed"],
+        "report.totalSize":       ["ko": "전체 크기", "en": "Total Size"],
+        "report.failedFiles":     ["ko": "실패한 파일", "en": "Failed Files"],
+        "report.successFiles":    ["ko": "완료된 파일", "en": "Completed Files"],
+        "report.andMore":         ["ko": "외", "en": "and more"],
+        "report.copyToClipboard": ["ko": "클립보드에 복사", "en": "Copy to Clipboard"],
     ]
 }

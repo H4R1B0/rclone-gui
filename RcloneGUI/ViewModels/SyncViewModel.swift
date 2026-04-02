@@ -85,19 +85,22 @@ final class SyncViewModel {
                 jobId = try await RcloneAPI.syncSync(
                     using: client,
                     srcFs: profile.sourceFs, srcRemote: profile.sourcePath,
-                    dstFs: profile.destFs, dstRemote: profile.destPath
+                    dstFs: profile.destFs, dstRemote: profile.destPath,
+                    filterRules: profile.filterRules
                 )
             case .mirrorUpdate:
                 jobId = try await RcloneAPI.copyDir(
                     using: client,
                     srcFs: profile.sourceFs, srcRemote: profile.sourcePath,
-                    dstFs: profile.destFs, dstRemote: profile.destPath
+                    dstFs: profile.destFs, dstRemote: profile.destPath,
+                    filterRules: profile.filterRules
                 )
             case .bisync:
                 jobId = try await RcloneAPI.bisync(
                     using: client,
                     path1: "\(profile.sourceFs)\(profile.sourcePath)",
-                    path2: "\(profile.destFs)\(profile.destPath)"
+                    path2: "\(profile.destFs)\(profile.destPath)",
+                    filterRules: profile.filterRules
                 )
             }
             currentJobId = jobId
