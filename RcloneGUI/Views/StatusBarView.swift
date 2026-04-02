@@ -2,44 +2,71 @@ import SwiftUI
 
 struct StatusBarView: View {
     @Environment(AppState.self) private var appState
+    @State private var showErrorPopover = false
 
     var body: some View {
-        HStack {
-            Text("\(appState.leftPanel.files.count) items")
-                .font(.caption)
+        HStack(spacing: 0) {
+            // Left: rclone info
+            Text("rclone (librclone)")
+                .font(.system(size: 10))
                 .foregroundColor(.secondary)
-
-            if !appState.leftPanel.selectedFileIDs.isEmpty {
-                Text("(\(appState.leftPanel.selectedFileIDs.count) selected)")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
 
             Spacer()
 
-            let activeCount = appState.transfers.activeTransfers.count
-            if activeCount > 0 {
-                HStack(spacing: 4) {
-                    ProgressView().controlSize(.small)
-                    Text("\(activeCount) transfer(s)")
-                        .font(.caption)
+            // Center: transfer stats
+            if appState.transfers.hasActiveTransfers {
+                HStack(spacing: 6) {
+                    ProgressView()
+                        .controlSize(.mini)
+                    Text("\(appState.transfers.transfers.count) active")
+                        .font(.system(size: 10))
+                    Text(FormatUtils.formatSpeed(appState.transfers.totalSpeed))
+                        .font(.system(size: 10))
+                        .monospacedDigit()
                 }
+                .foregroundColor(.secondary)
             }
 
             Spacer()
 
-            Text("\(appState.rightPanel.files.count) items")
-                .font(.caption)
-                .foregroundColor(.secondary)
+            // Right: error indicator
+            if appState.transfers.errors > 0 || !appState.transfers.lastErrors.isEmpty {
+                Button(action: { showErrorPopover.toggle() }) {
+                    HStack(spacing: 2) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.red)
+                            .font(.system(size: 10))
+                        Text("\(appState.transfers.errors)")
+                            .font(.system(size: 10))
+                            .foregroundColor(.red)
+                    }
+                }
+                .buttonStyle(.plain)
+                .popover(isPresented: $showErrorPopover) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Recent Errors")
+                            .font(.caption.bold())
+                            .padding(.bottom, 4)
 
-            if !appState.rightPanel.selectedFileIDs.isEmpty {
-                Text("(\(appState.rightPanel.selectedFileIDs.count) selected)")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: 2) {
+                                ForEach(Array(appState.transfers.lastErrors.prefix(20).enumerated()), id: \.offset) { _, error in
+                                    Text(error)
+                                        .font(.system(size: 10))
+                                        .foregroundColor(.red)
+                                        .textSelection(.enabled)
+                                }
+                            }
+                        }
+                        .frame(maxHeight: 200)
+                    }
+                    .padding(12)
+                    .frame(width: 350)
+                }
             }
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 4)
+        .padding(.vertical, 3)
         .background(Color(nsColor: .windowBackgroundColor))
     }
 }
