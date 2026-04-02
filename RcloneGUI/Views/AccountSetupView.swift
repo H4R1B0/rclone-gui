@@ -1,79 +1,338 @@
 import SwiftUI
+import RcloneKit
+
+enum AccountStep {
+    case list
+    case pickProvider
+    case create(RcloneProvider)
+    case edit(Remote)
+}
 
 struct AccountSetupView: View {
     @Environment(AppState.self) private var appState
-    @Environment(\.dismiss) private var dismiss
-
-    @State private var remoteName: String = ""
-    @State private var selectedType: String = "drive"
-    @State private var errorMessage: String?
-    @State private var isCreating: Bool = false
-
-    private let providerTypes: [(id: String, name: String)] = [
-        ("drive", "Google Drive"),
-        ("onedrive", "Microsoft OneDrive"),
-        ("dropbox", "Dropbox"),
-        ("s3", "Amazon S3"),
-        ("b2", "Backblaze B2"),
-        ("box", "Box"),
-        ("mega", "MEGA"),
-        ("pcloud", "pCloud"),
-        ("ftp", "FTP"),
-        ("sftp", "SFTP"),
-        ("webdav", "WebDAV"),
-        ("local", "Local Disk"),
-    ]
+    @State private var step: AccountStep = .list
+    @State private var error: String?
 
     var body: some View {
-        VStack(spacing: 16) {
-            Text("Add Account")
-                .font(.headline)
+        VStack(spacing: 0) {
+            switch step {
+            case .list:
+                remoteListView
+            case .pickProvider:
+                providerPickerView
+            case .create(let provider):
+                createRemoteView(provider: provider)
+            case .edit(let remote):
+                editRemoteView(remote: remote)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .task {
+            if appState.accounts.providers.isEmpty {
+                await appState.accounts.loadProviders()
+            }
+        }
+    }
 
-            Form {
-                TextField("Name", text: $remoteName)
+    // MARK: - Remote List
 
-                Picker("Type", selection: $selectedType) {
-                    ForEach(providerTypes, id: \.id) { provider in
-                        Text(provider.name).tag(provider.id)
+    private var remoteListView: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text("Accounts")
+                    .font(.title2.bold())
+                Spacer()
+                Button(action: { step = .pickProvider }) {
+                    Label("Add Account", systemImage: "plus")
+                }
+            }
+            .padding()
+
+            Divider()
+
+            if appState.accounts.remotes.isEmpty {
+                VStack(spacing: 12) {
+                    Image(systemName: "cloud")
+                        .font(.system(size: 48))
+                        .foregroundColor(.secondary)
+                    Text("No accounts configured")
+                        .foregroundColor(.secondary)
+                    Button("Add Account") { step = .pickProvider }
+                }
+                .frame(maxHeight: .infinity)
+            } else {
+                List {
+                    ForEach(appState.accounts.remotes) { remote in
+                        remoteCard(remote)
+                    }
+                }
+                .listStyle(.inset)
+            }
+        }
+    }
+
+    private func remoteCard(_ remote: Remote) -> some View {
+        HStack {
+            Image(systemName: "cloud.fill")
+                .foregroundColor(.accentColor)
+                .font(.system(size: 20))
+
+            VStack(alignment: .leading) {
+                Text(remote.displayName)
+                    .font(.body)
+                Text(remote.type)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            Spacer()
+
+            Button(action: { step = .edit(remote) }) {
+                Image(systemName: "pencil")
+            }
+            .buttonStyle(.borderless)
+
+            Button(role: .destructive, action: {
+                Task { try? await appState.accounts.deleteRemote(name: remote.name) }
+            }) {
+                Image(systemName: "trash")
+            }
+            .buttonStyle(.borderless)
+        }
+        .padding(.vertical, 4)
+    }
+
+    // MARK: - Provider Picker
+
+    private var providerPickerView: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Button(action: { step = .list }) {
+                    Image(systemName: "chevron.left")
+                    Text("Back")
+                }
+                .buttonStyle(.plain)
+                Spacer()
+                Text("Choose Provider").font(.headline)
+                Spacer()
+            }
+            .padding()
+
+            Divider()
+
+            ScrollView {
+                LazyVStack(spacing: 2) {
+                    ForEach(appState.accounts.providers) { provider in
+                        Button(action: { step = .create(provider) }) {
+                            HStack {
+                                Image(systemName: "cloud")
+                                    .frame(width: 24)
+                                VStack(alignment: .leading) {
+                                    Text(provider.name)
+                                        .font(.body)
+                                    Text(provider.description)
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                        .lineLimit(1)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
             }
-            .formStyle(.grouped)
-
-            if let error = errorMessage {
-                Text(error)
-                    .foregroundColor(.red)
-                    .font(.caption)
-            }
-
-            HStack {
-                Button("Cancel") { dismiss() }
-                    .keyboardShortcut(.cancelAction)
-
-                Button("Create") { createRemote() }
-                    .keyboardShortcut(.defaultAction)
-                    .disabled(remoteName.trimmingCharacters(in: .whitespaces).isEmpty || isCreating)
-            }
         }
-        .padding(20)
-        .frame(width: 400)
     }
 
-    private func createRemote() {
+    // MARK: - Create Remote
+
+    private func createRemoteView(provider: RcloneProvider) -> some View {
+        RemoteFormView(
+            title: "Add \(provider.name)",
+            provider: provider,
+            initialName: "",
+            initialParams: [:],
+            onBack: { step = .pickProvider },
+            onSave: { name, params in
+                try await appState.accounts.createRemote(name: name, type: provider.prefix, parameters: params)
+                step = .list
+            }
+        )
+    }
+
+    // MARK: - Edit Remote
+
+    private func editRemoteView(remote: Remote) -> some View {
+        let provider = appState.accounts.providers.first { $0.prefix == remote.type }
+
+        return Group {
+            if let provider = provider {
+                RemoteFormView(
+                    title: "Edit \(remote.displayName)",
+                    provider: provider,
+                    initialName: remote.name,
+                    initialParams: [:],
+                    loadExisting: remote.name,
+                    onBack: { step = .list },
+                    onSave: { name, params in
+                        try await appState.accounts.updateRemote(
+                            oldName: remote.name, newName: name,
+                            type: provider.prefix, parameters: params
+                        )
+                        step = .list
+                    }
+                )
+            } else {
+                VStack {
+                    Text("Provider not found for type: \(remote.type)")
+                        .foregroundColor(.red)
+                    Button("Back") { step = .list }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Remote Form (shared by create + edit)
+
+struct RemoteFormView: View {
+    @Environment(AppState.self) private var appState
+    let title: String
+    let provider: RcloneProvider
+    let initialName: String
+    let initialParams: [String: String]
+    var loadExisting: String? = nil
+    let onBack: () -> Void
+    let onSave: (String, [String: String]) async throws -> Void
+
+    @State private var remoteName: String = ""
+    @State private var params: [String: String] = [:]
+    @State private var showAdvanced = false
+    @State private var saving = false
+    @State private var error: String?
+
+    private var visibleOptions: [ProviderOption] {
+        provider.options.filter { opt in
+            guard opt.isVisible else { return false }
+            if opt.advanced && !showAdvanced { return false }
+            return true
+        }
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Button(action: onBack) {
+                    Image(systemName: "chevron.left")
+                    Text("Back")
+                }
+                .buttonStyle(.plain)
+                Spacer()
+                Text(title).font(.headline)
+                Spacer()
+            }
+            .padding()
+
+            Divider()
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    // Name field
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Name").font(.caption.bold())
+                        TextField("Remote name", text: $remoteName)
+                            .textFieldStyle(.roundedBorder)
+                    }
+
+                    Divider()
+
+                    // Provider fields
+                    ForEach(visibleOptions, id: \.name) { option in
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text(option.name)
+                                    .font(.caption.bold())
+                                if option.required {
+                                    Text("*").foregroundColor(.red)
+                                }
+                            }
+
+                            if option.help.count < 100 {
+                                Text(option.help)
+                                    .font(.system(size: 10))
+                                    .foregroundColor(.secondary)
+                            }
+
+                            if option.isPassword {
+                                SecureField(option.name, text: binding(for: option))
+                                    .textFieldStyle(.roundedBorder)
+                            } else {
+                                TextField(option.name, text: binding(for: option))
+                                    .textFieldStyle(.roundedBorder)
+                            }
+                        }
+                    }
+
+                    // Advanced toggle
+                    if provider.options.contains(where: { $0.advanced && $0.isVisible }) {
+                        Toggle("Show Advanced Options", isOn: $showAdvanced)
+                            .font(.caption)
+                    }
+
+                    if let error = error {
+                        Text(error).foregroundColor(.red).font(.caption)
+                    }
+
+                    // Save button
+                    HStack {
+                        Spacer()
+                        Button(saving ? "Saving..." : "Connect") {
+                            save()
+                        }
+                        .disabled(remoteName.trimmingCharacters(in: .whitespaces).isEmpty || saving)
+                        .keyboardShortcut(.defaultAction)
+                    }
+                }
+                .padding()
+            }
+        }
+        .onAppear {
+            remoteName = initialName
+            params = initialParams
+        }
+        .task {
+            if let existing = loadExisting {
+                do {
+                    params = try await appState.accounts.getRemoteConfig(name: existing)
+                } catch {}
+            }
+        }
+    }
+
+    private func binding(for option: ProviderOption) -> Binding<String> {
+        Binding(
+            get: { params[option.name] ?? option.defaultValue },
+            set: { params[option.name] = $0 }
+        )
+    }
+
+    private func save() {
+        saving = true
+        error = nil
         let name = remoteName.trimmingCharacters(in: .whitespaces)
-        guard !name.isEmpty else { return }
-
-        isCreating = true
-        errorMessage = nil
-
         Task {
             do {
-                try await appState.accounts.addRemote(name: name, type: selectedType, parameters: [:])
-                dismiss()
+                try await onSave(name, params)
             } catch {
-                errorMessage = error.localizedDescription
+                self.error = error.localizedDescription
             }
-            isCreating = false
+            saving = false
         }
     }
 }
