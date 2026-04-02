@@ -2,30 +2,71 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(AppState.self) private var appState
-    @State private var showingAccounts = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            DualPanelView()
-
-            Divider()
-
-            TransferPanelView()
-                .frame(minHeight: 100, maxHeight: 300)
-
-            StatusBarView()
-        }
-        .frame(minWidth: 900, minHeight: 600)
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button(action: { showingAccounts.toggle() }) {
-                    Image(systemName: "person.crop.circle")
-                }
-                .help("Manage Accounts")
+        if !appState.ready {
+            // Loading screen
+            VStack(spacing: 12) {
+                ProgressView()
+                    .controlSize(.large)
+                Text("Initializing rclone...")
+                    .foregroundColor(.secondary)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            VStack(spacing: 0) {
+                // Toolbar
+                ToolbarView()
+
+                Divider()
+
+                // Main content area
+                switch appState.activeView {
+                case .explore:
+                    DualPanelView()
+                case .account:
+                    AccountSetupView()
+                case .search:
+                    // Phase 2
+                    Text("Search — Coming Soon")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .foregroundColor(.secondary)
+                }
+
+                // Transfer area (resizable)
+                if appState.showTransfers {
+                    // Resizable divider
+                    transferDivider
+
+                    TransferPanelView()
+                        .frame(height: appState.transferHeight)
+                }
+
+                // Status bar
+                StatusBarView()
+            }
+            .frame(minWidth: 900, minHeight: 600)
         }
-        .sheet(isPresented: $showingAccounts) {
-            AccountListView()
-        }
+    }
+
+    private var transferDivider: some View {
+        Rectangle()
+            .fill(Color(nsColor: .separatorColor))
+            .frame(height: 1)
+            .overlay(
+                Rectangle()
+                    .fill(Color.clear)
+                    .frame(height: 8)
+                    .contentShape(Rectangle())
+                    .cursor(.resizeUpDown)
+                    .gesture(
+                        DragGesture()
+                            .onChanged { value in
+                                let delta = -value.translation.height
+                                let newHeight = appState.transferHeight + delta
+                                appState.transferHeight = min(max(newHeight, 80), 600)
+                            }
+                    )
+            )
     }
 }
