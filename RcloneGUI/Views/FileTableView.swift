@@ -12,6 +12,7 @@ struct FileTableView: View {
     @State private var renameText = ""
     @State private var quickLookURL: URL?
     @State private var showBulkRename = false
+    @State private var hashCompareFiles: (FileItem, FileItem)?
 
     private var tab: TabState {
         appState.panels.side(side).activeTab
@@ -59,6 +60,12 @@ struct FileTableView: View {
         }
         .sheet(isPresented: $showBulkRename) {
             BulkRenameSheet(side: side)
+        }
+        .sheet(item: Binding(
+            get: { hashCompareFiles.map { HashCompareData(file1: $0.0, file2: $0.1) } },
+            set: { _ in hashCompareFiles = nil }
+        )) { data in
+            HashCompareSheet(file1: data.file1, file1Fs: tab.remote, file2: data.file2, file2Fs: tab.remote)
         }
         .sheet(isPresented: Binding(
             get: { quickLookURL != nil },
@@ -251,11 +258,32 @@ struct FileTableView: View {
             Button(L10n.t("bulkRename.title")) {
                 showBulkRename = true
             }
+
+            let selectedItems = tab.files.filter { tab.selectedFiles.contains($0.name) && !$0.isDir }
+            if selectedItems.count == 2 {
+                Button(L10n.t("hash.compare")) {
+                    hashCompareFiles = (selectedItems[0], selectedItems[1])
+                }
+            }
+
             Divider()
         }
 
         Button(L10n.t("file.properties")) {
             showProperties = file
+        }
+
+        if tab.remote != "/" && !file.isDir {
+            Button(L10n.t("file.shareLink")) {
+                Task {
+                    if let url = try? await RcloneAPI.publicLink(using: appState.client, fs: tab.remote, remote: file.path) {
+                        if !url.isEmpty {
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(url, forType: .string)
+                        }
+                    }
+                }
+            }
         }
     }
 

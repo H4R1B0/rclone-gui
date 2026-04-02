@@ -262,6 +262,24 @@ public enum RcloneAPI {
         return result["mountPoints"] as? [[String: Any]] ?? []
     }
 
+    // MARK: - Public Link
+
+    public static func publicLink(using client: RcloneClientProtocol, fs: String, remote: String) async throws -> String {
+        let result = try await client.call("operations/publiclink", params: ["fs": fs, "remote": remote])
+        return result["url"] as? String ?? ""
+    }
+
+    // MARK: - Storage Quota
+
+    public static func about(using client: RcloneClientProtocol, fs: String) async throws -> (total: Int64?, used: Int64?, free: Int64?) {
+        let result = try await client.call("operations/about", params: ["fs": fs])
+        return (
+            total: result["total"] as? Int64,
+            used: result["used"] as? Int64,
+            free: result["free"] as? Int64
+        )
+    }
+
     // MARK: - Hash
 
     public static func hashFile(

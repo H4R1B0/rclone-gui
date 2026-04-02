@@ -13,6 +13,7 @@
 		157CC405111B97E225993A86 /* SearchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 646DE6E8813FF584E2B95D5B /* SearchViewModel.swift */; };
 		2AD7F3888315638DD5A44269 /* PanelViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0144915081E072ECFA22FEDF /* PanelViewModel.swift */; };
 		313D4CDBB62AB9DFEDE6CA8F /* BulkRenameSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FE41C3FA7CD3DDCB8E214B9 /* BulkRenameSheet.swift */; };
+		A1B2C3D4E5F60718A9B0C1D2 /* HashCompareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E4F5A6B7C80912E3F4A5B6 /* HashCompareSheet.swift */; };
 		3A422DE5C87248AC604C7DB2 /* LockScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE94DFF88C4A3C2100E5E0FA /* LockScreenView.swift */; };
 		3D051FFA0579BAEC8E12F102 /* CryptSetupSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7226D01943C969AC0F3F04C0 /* CryptSetupSheet.swift */; };
 		3F88688B3360221450CB57C1 /* FileBrowser in Frameworks */ = {isa = PBXBuildFile; productRef = EDCA180A72D526DF98ED4F25 /* FileBrowser */; };
@@ -71,6 +72,7 @@
 		307C24E38B7EB2DCF86D141A /* AppLockViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLockViewModel.swift; sourceTree = "<group>"; };
 		3367A1B528B7C25267CA61E4 /* MountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountView.swift; sourceTree = "<group>"; };
 		39DF55222BD1BD31D06AC192 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
+		D3E4F5A6B7C80912E3F4A5B6 /* HashCompareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HashCompareSheet.swift; sourceTree = "<group>"; };
 		409240D17EC1A7C4B0AEB92F /* SyncViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncViewModel.swift; sourceTree = "<group>"; };
 		4A15CD8D70189A5B13D8FCDB /* SchedulerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchedulerView.swift; sourceTree = "<group>"; };
 		5150A4D8F6C0212533E53DD8 /* TransferViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferViewModel.swift; sourceTree = "<group>"; };
@@ -160,6 +162,7 @@
 				7226D01943C969AC0F3F04C0 /* CryptSetupSheet.swift */,
 				9F5C3E653BE8EB1EF3B1633F /* DualPanelView.swift */,
 				87351B73D23FEAE3793DFD33 /* FileTableView.swift */,
+				D3E4F5A6B7C80912E3F4A5B6 /* HashCompareSheet.swift */,
 				FE94DFF88C4A3C2100E5E0FA /* LockScreenView.swift */,
 				3367A1B528B7C25267CA61E4 /* MountView.swift */,
 				B5FBB2AFC29F900A57EABD79 /* NewFolderSheet.swift */,
@@ -347,6 +350,7 @@
 				41269793AA9F40351BC221A0 /* DualPanelView.swift in Sources */,
 				FAE1AC8FEAA9889057D1DAD9 /* FileTableView.swift in Sources */,
 				83C3017DFCE8E01FC33C1B03 /* FormatUtils.swift in Sources */,
+				A1B2C3D4E5F60718A9B0C1D2 /* HashCompareSheet.swift in Sources */,
 				40D08091F09CE22B1ECC0FD3 /* L10n.swift in Sources */,
 				3A422DE5C87248AC604C7DB2 /* LockScreenView.swift in Sources */,
 				C459DD6871CEA692FAB4DBE4 /* MountView.swift in Sources */,

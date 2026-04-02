@@ -6,6 +6,31 @@ struct SearchPanelView: View {
 
     private var search: SearchViewModel { appState.search }
 
+    @State private var filterType: String = ""
+    @State private var filterMinSize: String = ""
+    @State private var filterMaxSize: String = ""
+
+    private var filteredResults: [SearchResult] {
+        search.results.filter { result in
+            if !filterType.isEmpty {
+                let icon = FormatUtils.fileIcon(name: result.name, isDir: result.isDir)
+                let typeMatch: Bool
+                switch filterType {
+                case "image": typeMatch = icon == "photo"
+                case "video": typeMatch = icon == "film"
+                case "audio": typeMatch = icon == "music.note"
+                case "doc": typeMatch = icon == "doc.text" || icon == "doc.richtext"
+                case "archive": typeMatch = icon == "doc.zipper"
+                default: typeMatch = true
+                }
+                if !typeMatch { return false }
+            }
+            if let min = Int64(filterMinSize), result.size < min * 1024 { return false }
+            if let max = Int64(filterMaxSize), result.size > max * 1024 { return false }
+            return true
+        }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             searchHeader
@@ -27,7 +52,7 @@ struct SearchPanelView: View {
 
             if search.hasSearched {
                 HStack {
-                    Text(String(format: L10n.t("search.results"), search.results.count))
+                    Text(String(format: L10n.t("search.results"), filteredResults.count))
                         .font(.caption)
                         .foregroundColor(.secondary)
                     if search.isSearching {
@@ -76,8 +101,30 @@ struct SearchPanelView: View {
                     }
                 }
                 .padding(.horizontal, 12)
-                .padding(.bottom, 8)
+                .padding(.bottom, 4)
             }
+
+            HStack(spacing: 8) {
+                Picker(L10n.t("search.filterType"), selection: $filterType) {
+                    Text(L10n.t("search.allTypes")).tag("")
+                    Text(L10n.t("search.images")).tag("image")
+                    Text(L10n.t("search.videos")).tag("video")
+                    Text(L10n.t("search.audio")).tag("audio")
+                    Text(L10n.t("search.documents")).tag("doc")
+                    Text(L10n.t("search.archives")).tag("archive")
+                }
+                .frame(width: 150)
+
+                TextField(L10n.t("search.minSize"), text: $filterMinSize)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 80)
+                Text("~")
+                TextField(L10n.t("search.maxSize"), text: $filterMaxSize)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 80)
+            }
+            .padding(.horizontal, 12)
+            .padding(.bottom, 4)
         }
     }
 
@@ -116,14 +163,14 @@ struct SearchPanelView: View {
 
             Divider()
 
-            if search.results.isEmpty && !search.isSearching {
+            if filteredResults.isEmpty && !search.isSearching {
                 Text(L10n.t("search.noResults"))
                     .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView {
                     LazyVStack(spacing: 0) {
-                        ForEach(search.results) { result in
+                        ForEach(filteredResults) { result in
                             resultRow(result)
                         }
                     }

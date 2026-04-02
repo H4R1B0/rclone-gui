@@ -1,8 +1,14 @@
 import SwiftUI
+import RcloneKit
 
 struct StatusBarView: View {
     @Environment(AppState.self) private var appState
     @State private var showErrorPopover = false
+    @State private var quota: (used: Int64, total: Int64)?
+
+    private var activeTab: TabState {
+        appState.panels.side(appState.panels.activePanel).activeTab
+    }
 
     var body: some View {
         HStack(spacing: 0) {
@@ -10,6 +16,17 @@ struct StatusBarView: View {
             Text("rclone (librclone)")
                 .font(.system(size: 10))
                 .foregroundColor(.secondary)
+
+            // Quota for active panel's remote
+            if activeTab.remote != "/" {
+                if let quota = quota {
+                    let usedStr = FormatUtils.formatBytes(quota.used)
+                    let totalStr = FormatUtils.formatBytes(quota.total)
+                    Text("  \(usedStr) / \(totalStr)")
+                        .font(.system(size: 10))
+                        .foregroundColor(.secondary)
+                }
+            }
 
             Spacer()
 
@@ -68,5 +85,20 @@ struct StatusBarView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 3)
         .background(Color(nsColor: .windowBackgroundColor))
+        .task(id: activeTab.remote) {
+            if activeTab.remote != "/" {
+                if let info = try? await RcloneAPI.about(using: appState.client, fs: activeTab.remote) {
+                    if let total = info.total, let used = info.used {
+                        quota = (used: used, total: total)
+                    } else {
+                        quota = nil
+                    }
+                } else {
+                    quota = nil
+                }
+            } else {
+                quota = nil
+            }
+        }
     }
 }

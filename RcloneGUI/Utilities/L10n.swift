@@ -249,5 +249,35 @@ enum L10n {
         "sync.mirror.desc":      ["ko": "소스를 타겟에 완전 복제합니다. 타겟의 불필요한 파일은 삭제됩니다.", "en": "Makes destination identical to source. Extra files in destination are deleted."],
         "sync.mirrorUpdate.desc": ["ko": "변경된 파일만 소스에서 타겟으로 복사합니다.", "en": "Copies only changed files from source to destination."],
         "sync.bisync.desc":      ["ko": "양쪽 모두 변경 사항을 동기화합니다.", "en": "Synchronizes changes in both directions."],
+
+        // Share Link
+        "file.shareLink":        ["ko": "공유 링크 복사", "en": "Copy Share Link"],
+
+        // Quota
+        "status.quota":          ["ko": "용량", "en": "Quota"],
+
+        // Search Filters
+        "search.filterType":     ["ko": "파일 타입", "en": "File Type"],
+        "search.allTypes":       ["ko": "전체", "en": "All"],
+        "search.images":         ["ko": "이미지", "en": "Images"],
+        "search.videos":         ["ko": "동영상", "en": "Videos"],
+        "search.audio":          ["ko": "오디오", "en": "Audio"],
+        "search.documents":      ["ko": "문서", "en": "Documents"],
+        "search.archives":       ["ko": "압축파일", "en": "Archives"],
+        "search.minSize":        ["ko": "최소(KB)", "en": "Min(KB)"],
+        "search.maxSize":        ["ko": "최대(KB)", "en": "Max(KB)"],
+
+        // Account Import/Export
+        "account.export":        ["ko": "계정 내보내기", "en": "Export Accounts"],
+        "account.import":        ["ko": "계정 가져오기", "en": "Import Accounts"],
+
+        // Hash Compare
+        "hash.compare":          ["ko": "해시 비교", "en": "Compare Hash"],
+        "hash.compareTitle":     ["ko": "파일 해시 비교", "en": "File Hash Comparison"],
+        "hash.match":            ["ko": "파일이 동일합니다", "en": "Files are identical"],
+        "hash.mismatch":         ["ko": "파일이 다릅니다", "en": "Files differ"],
+
+        // Provider Search
+        "account.searchProvider": ["ko": "프로바이더 검색...", "en": "Search providers..."],
     ]
 }

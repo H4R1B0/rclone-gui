@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 import RcloneKit
 
 enum AccountStep {
@@ -14,6 +15,7 @@ struct AccountSetupView: View {
     @State private var error: String?
     @State private var showCryptSetup = false
     @State private var showUnionSetup = false
+    @State private var providerSearch = ""
 
     var body: some View {
         VStack(spacing: 0) {
@@ -50,6 +52,18 @@ struct AccountSetupView: View {
                 Button(action: { showCryptSetup = true }) {
                     Label(L10n.t("crypt.title"), systemImage: "lock.shield")
                 }
+                Button(action: exportConfig) {
+                    Image(systemName: "square.and.arrow.up")
+                }
+                .buttonStyle(.borderless)
+                .help(L10n.t("account.export"))
+
+                Button(action: importConfig) {
+                    Image(systemName: "square.and.arrow.down")
+                }
+                .buttonStyle(.borderless)
+                .help(L10n.t("account.import"))
+
                 Button(action: { step = .pickProvider }) {
                     Label(L10n.t("account.add"), systemImage: "plus")
                 }
@@ -112,6 +126,45 @@ struct AccountSetupView: View {
         .padding(.vertical, 4)
     }
 
+    // MARK: - Import / Export
+
+    private func exportConfig() {
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = "rclone.conf"
+        panel.allowedContentTypes = [.plainText]
+        panel.begin { result in
+            guard result == .OK, let url = panel.url else { return }
+            Task {
+                do {
+                    let result = try await appState.client.call("config/dump", params: [:])
+                    let data = try JSONSerialization.data(withJSONObject: result, options: .prettyPrinted)
+                    try data.write(to: url)
+                } catch {}
+            }
+        }
+    }
+
+    private func importConfig() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.plainText, .json]
+        panel.begin { result in
+            guard result == .OK, let url = panel.url else { return }
+            Task {
+                if let data = try? Data(contentsOf: url),
+                   let dict = try? JSONSerialization.jsonObject(with: data) as? [String: [String: String]] {
+                    for (name, params) in dict {
+                        if let type = params["type"] {
+                            var cleanParams = params
+                            cleanParams.removeValue(forKey: "type")
+                            try? await appState.accounts.createRemote(name: name, type: type, parameters: cleanParams)
+                        }
+                    }
+                    await appState.accounts.loadRemotes()
+                }
+            }
+        }
+    }
+
     // MARK: - Provider Picker
 
     private var providerPickerView: some View {
@@ -130,9 +183,20 @@ struct AccountSetupView: View {
 
             Divider()
 
+            TextField(L10n.t("account.searchProvider"), text: $providerSearch)
+                .textFieldStyle(.roundedBorder)
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+
             ScrollView {
                 LazyVStack(spacing: 2) {
-                    ForEach(appState.accounts.providers) { provider in
+                    let filteredProviders = appState.accounts.providers.filter { provider in
+                        providerSearch.isEmpty ||
+                        provider.name.localizedCaseInsensitiveContains(providerSearch) ||
+                        provider.description.localizedCaseInsensitiveContains(providerSearch) ||
+                        provider.prefix.localizedCaseInsensitiveContains(providerSearch)
+                    }
+                    ForEach(filteredProviders) { provider in
                         Button(action: { step = .create(provider) }) {
                             HStack {
                                 Image(systemName: "cloud")
