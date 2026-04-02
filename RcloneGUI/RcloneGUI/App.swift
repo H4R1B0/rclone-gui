@@ -2,10 +2,16 @@ import SwiftUI
 
 @main
 struct RcloneGUIApp: App {
+    @State private var appState = AppState()
+
     var body: some Scene {
         WindowGroup {
-            Text("RcloneGUI 1.0.0")
-                .frame(width: 800, height: 600)
+            ContentView()
+                .environment(appState)
+                .onAppear { appState.startup() }
+                .onDisappear { appState.shutdown() }
         }
+        .windowStyle(.titleBar)
+        .defaultSize(width: 1200, height: 800)
     }
 }
