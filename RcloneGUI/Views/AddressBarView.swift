@@ -5,6 +5,7 @@ struct AddressBarView: View {
     let side: PanelSide
     @State private var isEditing = false
     @State private var editPath = ""
+    @State private var showBookmarks = false
 
     private var tab: TabState {
         appState.panels.side(side).activeTab
@@ -26,6 +27,16 @@ struct AddressBarView: View {
                     .font(.system(size: 11))
             }
             .buttonStyle(.borderless)
+
+            // Bookmark button
+            Button(action: { showBookmarks.toggle() }) {
+                Image(systemName: "bookmark")
+                    .font(.system(size: 11))
+            }
+            .buttonStyle(.borderless)
+            .popover(isPresented: $showBookmarks) {
+                BookmarkPopover(side: side, isPresented: $showBookmarks)
+            }
 
             // Path display / edit
             if isEditing {

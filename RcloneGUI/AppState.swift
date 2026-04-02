@@ -21,6 +21,7 @@ final class AppState {
     let appLock: AppLockViewModel
     let sync: SyncViewModel
     let scheduler: SchedulerViewModel
+    let bookmarks: BookmarkViewModel
 
     var activeView: ActiveView = .explore
     var showSettings: Bool = false
@@ -40,6 +41,7 @@ final class AppState {
         self.appLock = AppLockViewModel()
         self.sync = SyncViewModel(client: client)
         self.scheduler = SchedulerViewModel()
+        self.bookmarks = BookmarkViewModel()
     }
 
     @MainActor

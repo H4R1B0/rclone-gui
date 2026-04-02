@@ -163,6 +163,11 @@ enum L10n {
         "lock.passwordTooShort": ["ko": "비밀번호는 4자 이상이어야 합니다", "en": "Password must be at least 4 characters"],
         "lock.passwordSaveFailed": ["ko": "비밀번호 저장에 실패했습니다", "en": "Failed to save password"],
 
+        // Bookmarks
+        "bookmark.title":  ["ko": "북마크", "en": "Bookmarks"],
+        "bookmark.add":    ["ko": "현재 경로 북마크", "en": "Bookmark Current Path"],
+        "bookmark.empty":  ["ko": "북마크가 없습니다", "en": "No bookmarks"],
+
         // Scheduler
         "toolbar.scheduler":     ["ko": "스케줄러", "en": "Scheduler"],
         "scheduler.title":       ["ko": "작업 스케줄러", "en": "Task Scheduler"],
