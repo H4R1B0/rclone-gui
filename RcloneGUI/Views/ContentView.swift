@@ -32,6 +32,8 @@ struct ContentView: View {
                     SyncView()
                 case .scheduler:
                     SchedulerView()
+                case .mount:
+                    MountView()
                 }
 
                 // Transfer area (resizable)

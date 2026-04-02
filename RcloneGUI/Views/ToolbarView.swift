@@ -12,6 +12,7 @@ struct ToolbarView: View {
                 tabButton(L10n.t("toolbar.search"), icon: "magnifyingglass", view: .search)
                 tabButton(L10n.t("toolbar.sync"), icon: "arrow.triangle.2.circlepath", view: .sync)
                 tabButton(L10n.t("toolbar.scheduler"), icon: "clock", view: .scheduler)
+                tabButton(L10n.t("toolbar.mount"), icon: "externaldrive", view: .mount)
             }
             .padding(.horizontal, 8)
 

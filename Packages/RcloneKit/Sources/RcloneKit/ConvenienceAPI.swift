@@ -238,6 +238,30 @@ public enum RcloneAPI {
         return result["jobid"] as? Int ?? 0
     }
 
+    // MARK: - Mount
+
+    public static func mount(
+        using client: RcloneClientProtocol,
+        fs: String, mountPoint: String,
+        options: [String: Any] = [:]
+    ) async throws {
+        var params: [String: Any] = ["fs": fs, "mountPoint": mountPoint]
+        for (k, v) in options { params[k] = v }
+        _ = try await client.call("mount/mount", params: params)
+    }
+
+    public static func unmount(
+        using client: RcloneClientProtocol,
+        mountPoint: String
+    ) async throws {
+        _ = try await client.call("mount/unmount", params: ["mountPoint": mountPoint])
+    }
+
+    public static func listMounts(using client: RcloneClientProtocol) async throws -> [[String: Any]] {
+        let result = try await client.call("mount/listmounts", params: [:])
+        return result["mountPoints"] as? [[String: Any]] ?? []
+    }
+
     // MARK: - Hash
 
     public static func hashFile(

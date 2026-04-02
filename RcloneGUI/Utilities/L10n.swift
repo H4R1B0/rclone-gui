@@ -193,6 +193,16 @@ enum L10n {
         "crypt.off":           ["ko": "끄기", "en": "Off"],
         "crypt.dirNameEnc":    ["ko": "디렉토리명 암호화", "en": "Directory Name Encryption"],
 
+        // Mount
+        "toolbar.mount":        ["ko": "마운트", "en": "Mount"],
+        "mount.title":          ["ko": "클라우드 마운트", "en": "Cloud Mount"],
+        "mount.new":            ["ko": "새 마운트", "en": "New Mount"],
+        "mount.noMounts":       ["ko": "활성 마운트가 없습니다", "en": "No active mounts"],
+        "mount.mount":          ["ko": "마운트", "en": "Mount"],
+        "mount.unmount":        ["ko": "마운트 해제", "en": "Unmount"],
+        "mount.mountPoint":     ["ko": "마운트 경로", "en": "Mount Point"],
+        "mount.mountPointHint": ["ko": "예: /tmp/mycloud", "en": "e.g., /tmp/mycloud"],
+
         // Sync
         "toolbar.sync":          ["ko": "동기화", "en": "Sync"],
         "sync.profiles":         ["ko": "동기화 프로필", "en": "Sync Profiles"],

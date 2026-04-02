@@ -7,6 +7,7 @@ enum ActiveView {
     case search
     case sync
     case scheduler
+    case mount
 }
 
 @Observable
@@ -22,6 +23,7 @@ final class AppState {
     let sync: SyncViewModel
     let scheduler: SchedulerViewModel
     let bookmarks: BookmarkViewModel
+    let mount: MountViewModel
 
     var activeView: ActiveView = .explore
     var showSettings: Bool = false
@@ -42,6 +44,7 @@ final class AppState {
         self.sync = SyncViewModel(client: client)
         self.scheduler = SchedulerViewModel()
         self.bookmarks = BookmarkViewModel()
+        self.mount = MountViewModel(client: client)
     }
 
     @MainActor
