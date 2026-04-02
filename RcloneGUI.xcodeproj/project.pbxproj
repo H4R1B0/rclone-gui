@@ -17,7 +17,6 @@
 		6B955B64ED84261BDFC765D2 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 6B9DD946499F99FC5F3E724C /* Localizable.xcstrings */; };
 		6EF2554917D6D43F4FFB40C9 /* StatusBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C41759A1630C8D6BF41A9E5 /* StatusBarView.swift */; };
 		7AFDDB9AAA2B36856AF1065E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0738E70B6EF3196F869BAEA /* ContentView.swift */; };
-		7E9663B095DBB9D694155C76 /* RcloneGUI.xcodeproj in Resources */ = {isa = PBXBuildFile; fileRef = 594C52724033BC65F3DF33FE /* RcloneGUI.xcodeproj */; };
 		7EDEF2A47808040A7D3EBED3 /* AddressBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA6F988B99CFEE046DCA715 /* AddressBarView.swift */; };
 		9211ECB7A03A29472D7A6488 /* TransferPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F133825785E7B192F3C4495 /* TransferPanelView.swift */; };
 		A5D3D5FBE9516269E5FF0A6E /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3CD57E91417206AF17DDB71 /* App.swift */; };
@@ -44,7 +43,6 @@
 		5150A4D8F6C0212533E53DD8 /* TransferViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferViewModel.swift; sourceTree = "<group>"; };
 		57B2EB5935174016E994EACA /* RcloneGUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RcloneGUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		58A22AE36DDDC9069C606251 /* FileBrowser */ = {isa = PBXFileReference; lastKnownFileType = folder; name = FileBrowser; path = Packages/FileBrowser; sourceTree = SOURCE_ROOT; };
-		594C52724033BC65F3DF33FE /* RcloneGUI.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = RcloneGUI.xcodeproj; sourceTree = "<group>"; };
 		5E32FEF6A8F7293D51A39017 /* RemoteSelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteSelectorView.swift; sourceTree = "<group>"; };
 		6B9DD946499F99FC5F3E724C /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		752A245B0A825D49B34919F2 /* TransferItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferItemView.swift; sourceTree = "<group>"; };
@@ -136,7 +134,6 @@
 			children = (
 				A3CD57E91417206AF17DDB71 /* App.swift */,
 				00AE9EB594683D318ED922F6 /* AppState.swift */,
-				594C52724033BC65F3DF33FE /* RcloneGUI.xcodeproj */,
 				BFB47F516659086949ECA886 /* Resources */,
 				F264F73329BC49ACB742ED58 /* ViewModels */,
 				75FE0B993AF7FD3D2421DBDA /* Views */,
@@ -222,7 +219,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				6B955B64ED84261BDFC765D2 /* Localizable.xcstrings in Resources */,
-				7E9663B095DBB9D694155C76 /* RcloneGUI.xcodeproj in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
