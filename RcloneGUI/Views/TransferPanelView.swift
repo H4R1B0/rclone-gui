@@ -1,4 +1,5 @@
 import SwiftUI
+import RcloneKit
 
 enum TransferTab: String, CaseIterable {
     case active = "Active"
