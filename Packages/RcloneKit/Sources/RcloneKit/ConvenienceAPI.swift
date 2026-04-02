@@ -98,4 +98,135 @@ public enum RcloneAPI {
     ) async throws {
         _ = try await client.call("config/delete", params: ["name": name])
     }
+
+    // MARK: - Providers
+
+    public static func getProviders(using client: RcloneClientProtocol) async throws -> [RcloneProvider] {
+        let result = try await client.call("config/providers", params: [:])
+        guard let providers = result["providers"] as? [[String: Any]] else { return [] }
+        return providers.map { RcloneProvider(from: $0) }
+    }
+
+    public static func getRemoteConfig(using client: RcloneClientProtocol, name: String) async throws -> [String: Any] {
+        return try await client.call("config/get", params: ["name": name])
+    }
+
+    // MARK: - Async File Operations (return jobid)
+
+    public static func copyFileAsync(
+        using client: RcloneClientProtocol,
+        srcFs: String, srcRemote: String,
+        dstFs: String, dstRemote: String
+    ) async throws -> Int {
+        let result = try await client.call("operations/copyfile", params: [
+            "srcFs": srcFs, "srcRemote": srcRemote,
+            "dstFs": dstFs, "dstRemote": dstRemote,
+            "_async": true
+        ])
+        return result["jobid"] as? Int ?? 0
+    }
+
+    public static func moveFileAsync(
+        using client: RcloneClientProtocol,
+        srcFs: String, srcRemote: String,
+        dstFs: String, dstRemote: String
+    ) async throws -> Int {
+        let result = try await client.call("operations/movefile", params: [
+            "srcFs": srcFs, "srcRemote": srcRemote,
+            "dstFs": dstFs, "dstRemote": dstRemote,
+            "_async": true
+        ])
+        return result["jobid"] as? Int ?? 0
+    }
+
+    // MARK: - Directory Operations (async)
+
+    public static func copyDir(
+        using client: RcloneClientProtocol,
+        srcFs: String, srcRemote: String,
+        dstFs: String, dstRemote: String
+    ) async throws -> Int {
+        let result = try await client.call("sync/copy", params: [
+            "srcFs": "\(srcFs)\(srcRemote)",
+            "dstFs": "\(dstFs)\(dstRemote)",
+            "_async": true
+        ])
+        return result["jobid"] as? Int ?? 0
+    }
+
+    public static func moveDir(
+        using client: RcloneClientProtocol,
+        srcFs: String, srcRemote: String,
+        dstFs: String, dstRemote: String
+    ) async throws -> Int {
+        let result = try await client.call("sync/move", params: [
+            "srcFs": "\(srcFs)\(srcRemote)",
+            "dstFs": "\(dstFs)\(dstRemote)",
+            "_async": true
+        ])
+        return result["jobid"] as? Int ?? 0
+    }
+
+    // MARK: - Transfer Monitoring
+
+    public static func getStats(using client: RcloneClientProtocol) async throws -> RcloneStats {
+        let result = try await client.call("core/stats", params: [:])
+        return RcloneStats(from: result)
+    }
+
+    public static func getTransferred(using client: RcloneClientProtocol) async throws -> [RcloneCompletedTransfer] {
+        let result = try await client.call("core/transferred", params: [:])
+        guard let transferred = result["transferred"] as? [[String: Any]] else { return [] }
+        return transferred.map { RcloneCompletedTransfer(from: $0) }
+    }
+
+    public static func resetStats(using client: RcloneClientProtocol) async throws {
+        _ = try await client.call("core/stats-reset", params: [:])
+    }
+
+    // MARK: - Job Management
+
+    public static func getJobList(using client: RcloneClientProtocol) async throws -> [Int] {
+        let result = try await client.call("job/list", params: [:])
+        guard let jobids = result["jobids"] as? [Int] else { return [] }
+        return jobids
+    }
+
+    public static func stopJob(using client: RcloneClientProtocol, jobid: Int) async throws {
+        _ = try await client.call("job/stop", params: ["jobid": jobid])
+    }
+
+    public static func getJobStatus(using client: RcloneClientProtocol, jobid: Int) async throws -> RcloneJobStatus {
+        let result = try await client.call("job/status", params: ["jobid": jobid])
+        return RcloneJobStatus(from: result)
+    }
+
+    // MARK: - Settings
+
+    public static func setBwLimit(using client: RcloneClientProtocol, rate: String) async throws {
+        _ = try await client.call("core/bwlimit", params: ["rate": rate])
+    }
+
+    // MARK: - Hash
+
+    public static func hashFile(
+        using client: RcloneClientProtocol,
+        fs: String, remote: String,
+        hashTypes: [String] = ["md5", "sha1"]
+    ) async throws -> [String: String] {
+        var hashes: [String: String] = [:]
+        for hashType in hashTypes {
+            do {
+                let result = try await client.call("operations/hashfile", params: [
+                    "fs": fs, "remote": remote, "hashType": hashType
+                ])
+                if let hash = result["hash"] as? String {
+                    hashes[hashType] = hash
+                }
+            } catch {
+                // Hash may not be supported for this backend, skip
+            }
+        }
+        return hashes
+    }
 }
