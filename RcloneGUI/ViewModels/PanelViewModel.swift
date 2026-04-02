@@ -117,6 +117,7 @@ final class PanelViewModel {
     var remotesLoading: Bool = false
 
     private let client: RcloneClientProtocol
+    private weak var transferVM: TransferViewModel?
 
     init(client: RcloneClientProtocol) {
         self.client = client
@@ -125,6 +126,10 @@ final class PanelViewModel {
         let rightTab = TabState(label: "Local", mode: .local, remote: "/", path: "")
         self.left = PanelSideState(defaultTab: leftTab)
         self.right = PanelSideState(defaultTab: rightTab)
+    }
+
+    func setTransferVM(_ vm: TransferViewModel) {
+        self.transferVM = vm
     }
 
     func side(_ side: PanelSide) -> PanelSideState {
@@ -295,12 +300,20 @@ final class PanelViewModel {
                 } else {
                     _ = try await RcloneAPI.moveFileAsync(using: client, srcFs: clipboard.sourceFs, srcRemote: srcRemote, dstFs: tab.remote, dstRemote: dstRemote)
                 }
+                transferVM?.addCopyOrigin(group: file.name, origin: CopyOrigin(
+                    srcFs: clipboard.sourceFs, srcRemote: srcRemote,
+                    dstFs: tab.remote, dstRemote: dstRemote, isDir: file.isDir
+                ))
             case .copy:
                 if file.isDir {
                     _ = try await RcloneAPI.copyDir(using: client, srcFs: clipboard.sourceFs, srcRemote: srcRemote, dstFs: tab.remote, dstRemote: dstRemote)
                 } else {
                     _ = try await RcloneAPI.copyFileAsync(using: client, srcFs: clipboard.sourceFs, srcRemote: srcRemote, dstFs: tab.remote, dstRemote: dstRemote)
                 }
+                transferVM?.addCopyOrigin(group: file.name, origin: CopyOrigin(
+                    srcFs: clipboard.sourceFs, srcRemote: srcRemote,
+                    dstFs: tab.remote, dstRemote: dstRemote, isDir: file.isDir
+                ))
             case .none:
                 break
             }
@@ -331,6 +344,10 @@ final class PanelViewModel {
                         _ = try await RcloneAPI.copyFileAsync(using: client, srcFs: file.sourceFs, srcRemote: srcRemote, dstFs: targetTab.remote, dstRemote: dstRemote)
                     }
                 }
+                transferVM?.addCopyOrigin(group: file.fileName, origin: CopyOrigin(
+                    srcFs: file.sourceFs, srcRemote: srcRemote,
+                    dstFs: targetTab.remote, dstRemote: dstRemote, isDir: file.isDir
+                ))
             } catch {}
         }
         await refresh(side: targetSide)

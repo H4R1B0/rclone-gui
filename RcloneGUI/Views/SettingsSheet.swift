@@ -143,7 +143,6 @@ struct SettingsSheet: View {
                     .keyboardShortcut(.cancelAction)
 
                 Button(L10n.t("save")) {
-                    settings.saveToDisk()
                     Task { await settings.applyToRclone() }
                     dismiss()
                 }
@@ -152,6 +151,9 @@ struct SettingsSheet: View {
             .padding()
         }
         .frame(width: 550, height: 650)
+        .onDisappear {
+            settings.saveToDisk()
+        }
         .onAppear {
             pendingLocale = settings.locale
         }

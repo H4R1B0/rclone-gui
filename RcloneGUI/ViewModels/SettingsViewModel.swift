@@ -29,6 +29,7 @@ final class SettingsViewModel {
 
     private let client: RcloneClientProtocol
     private let settingsURL: URL
+    private var saveTask: Task<Void, Never>?
 
     init(client: RcloneClientProtocol) {
         self.client = client
@@ -62,6 +63,16 @@ final class SettingsViewModel {
 
         if !bwLimit.isEmpty {
             try? await RcloneAPI.setBwLimit(using: client, rate: bwLimit)
+        }
+    }
+
+    /// Schedule a debounced save (2 seconds of inactivity)
+    func scheduleSave() {
+        saveTask?.cancel()
+        saveTask = Task {
+            try? await Task.sleep(for: .seconds(2))
+            guard !Task.isCancelled else { return }
+            saveToDisk()
         }
     }
 

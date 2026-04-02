@@ -52,6 +52,7 @@ final class AppState {
         L10n.locale = settings.locale
         appLock.checkLockStatus()
         client.initialize()
+        panels.setTransferVM(transfers)
 
         await panels.loadRemotes()
         await accounts.loadRemotes()

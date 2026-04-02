@@ -1,5 +1,7 @@
 import SwiftUI
 import AppKit
+import UniformTypeIdentifiers
+import RcloneKit
 
 struct PanelView: View {
     @Environment(AppState.self) private var appState
@@ -75,6 +77,26 @@ struct PanelView: View {
                             files: [draggedFile],
                             isMove: isMove
                         )
+                    }
+                    return true
+                }
+                .onDrop(of: [.fileURL], isTargeted: nil) { providers in
+                    for provider in providers {
+                        _ = provider.loadObject(ofClass: URL.self) { url, error in
+                            guard let url = url else { return }
+                            let fileName = url.lastPathComponent
+                            let srcPath = url.path
+                            Task { @MainActor in
+                                let tab = appState.panels.side(side).activeTab
+                                let dstRemote = tab.path.isEmpty ? fileName : "\(tab.path)/\(fileName)"
+                                _ = try? await RcloneAPI.copyFileAsync(
+                                    using: appState.client,
+                                    srcFs: "/", srcRemote: srcPath,
+                                    dstFs: tab.remote, dstRemote: dstRemote
+                                )
+                                await appState.panels.refresh(side: side)
+                            }
+                        }
                     }
                     return true
                 }

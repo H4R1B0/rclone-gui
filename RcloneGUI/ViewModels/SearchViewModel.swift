@@ -23,6 +23,7 @@ final class SearchViewModel {
 
     private let client: RcloneClientProtocol
     private var searchTask: Task<Void, Never>?
+    private let maxConcurrency = 5
 
     init(client: RcloneClientProtocol) {
         self.client = client
@@ -53,41 +54,74 @@ final class SearchViewModel {
         error = nil
 
         searchTask = Task {
-            var allResults: [SearchResult] = []
-
             for cloud in selectedClouds {
                 if Task.isCancelled { break }
+                await searchRemoteBFS(cloud: cloud, query: trimmed)
+            }
+            await MainActor.run { self.isSearching = false }
+        }
+    }
 
-                do {
-                    let response = try await client.call("operations/list", params: [
-                        "fs": cloud,
-                        "remote": "",
-                        "opt": ["recurse": true, "filesOnly": false]
-                    ])
+    /// BFS search: traverse directories level by level with concurrency control
+    private func searchRemoteBFS(cloud: String, query: String) async {
+        var queue: [String] = [""]  // start from root
 
-                    if let list = response["list"] as? [[String: Any]] {
-                        let data = try JSONSerialization.data(withJSONObject: list)
-                        let items = try JSONDecoder.rclone.decode([FileItem].self, from: data)
+        while !queue.isEmpty && !Task.isCancelled {
+            // Take up to maxConcurrency directories from queue
+            let batch = Array(queue.prefix(maxConcurrency))
+            queue.removeFirst(min(maxConcurrency, queue.count))
 
-                        let matched = items.filter {
-                            $0.name.localizedCaseInsensitiveContains(trimmed)
-                        }.map {
-                            SearchResult(
-                                name: $0.name, path: $0.path, size: $0.size,
-                                modTime: $0.modTime, isDir: $0.isDir,
-                                mimeType: $0.mimeType, remoteFs: cloud
-                            )
+            // Process batch concurrently
+            await withTaskGroup(of: (matches: [SearchResult], subdirs: [String]).self) { group in
+                for dir in batch {
+                    group.addTask { [weak self] in
+                        guard let self = self else { return ([], []) }
+                        do {
+                            let response = try await self.client.call("operations/list", params: [
+                                "fs": cloud,
+                                "remote": dir,
+                                "opt": ["recurse": false]
+                            ])
+
+                            guard let list = response["list"] as? [[String: Any]] else {
+                                return ([], [])
+                            }
+
+                            let data = try JSONSerialization.data(withJSONObject: list)
+                            let items = try JSONDecoder.rclone.decode([FileItem].self, from: data)
+
+                            var matches: [SearchResult] = []
+                            var subdirs: [String] = []
+
+                            for item in items {
+                                if item.isDir {
+                                    subdirs.append(item.path)
+                                }
+                                if item.name.localizedCaseInsensitiveContains(query) {
+                                    matches.append(SearchResult(
+                                        name: item.name, path: item.path, size: item.size,
+                                        modTime: item.modTime, isDir: item.isDir,
+                                        mimeType: item.mimeType, remoteFs: cloud
+                                    ))
+                                }
+                            }
+
+                            return (matches, subdirs)
+                        } catch {
+                            return ([], [])
                         }
-
-                        allResults.append(contentsOf: matched)
-                        await MainActor.run { self.results = allResults }
                     }
-                } catch {
-                    // Skip failed remotes
+                }
+
+                for await result in group {
+                    if !result.matches.isEmpty {
+                        await MainActor.run {
+                            self.results.append(contentsOf: result.matches)
+                        }
+                    }
+                    queue.append(contentsOf: result.subdirs)
                 }
             }
-
-            await MainActor.run { self.isSearching = false }
         }
     }
 
