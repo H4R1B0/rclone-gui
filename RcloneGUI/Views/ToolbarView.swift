@@ -11,6 +11,7 @@ struct ToolbarView: View {
                 tabButton(L10n.t("toolbar.accounts"), icon: "person.crop.circle", view: .account)
                 tabButton(L10n.t("toolbar.search"), icon: "magnifyingglass", view: .search)
                 tabButton(L10n.t("toolbar.sync"), icon: "arrow.triangle.2.circlepath", view: .sync)
+                tabButton(L10n.t("toolbar.scheduler"), icon: "clock", view: .scheduler)
             }
             .padding(.horizontal, 8)
 

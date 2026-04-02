@@ -30,6 +30,8 @@ struct ContentView: View {
                     SearchPanelView()
                 case .sync:
                     SyncView()
+                case .scheduler:
+                    SchedulerView()
                 }
 
                 // Transfer area (resizable)

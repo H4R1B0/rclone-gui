@@ -6,6 +6,7 @@ enum ActiveView {
     case account
     case search
     case sync
+    case scheduler
 }
 
 @Observable
@@ -19,6 +20,7 @@ final class AppState {
     let settings: SettingsViewModel
     let appLock: AppLockViewModel
     let sync: SyncViewModel
+    let scheduler: SchedulerViewModel
 
     var activeView: ActiveView = .explore
     var showSettings: Bool = false
@@ -37,6 +39,7 @@ final class AppState {
         self.settings = SettingsViewModel(client: client)
         self.appLock = AppLockViewModel()
         self.sync = SyncViewModel(client: client)
+        self.scheduler = SchedulerViewModel()
     }
 
     @MainActor
@@ -60,11 +63,13 @@ final class AppState {
         await panels.loadFiles(side: .right, remote: "/", path: homePath)
 
         transfers.startPolling()
+        scheduler.startMonitoring()
         ready = true
     }
 
     func shutdown() {
         transfers.stopPolling()
+        scheduler.stopMonitoring()
         client.finalize()
     }
 }

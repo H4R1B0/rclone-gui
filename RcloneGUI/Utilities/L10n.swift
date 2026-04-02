@@ -163,6 +163,18 @@ enum L10n {
         "lock.passwordTooShort": ["ko": "비밀번호는 4자 이상이어야 합니다", "en": "Password must be at least 4 characters"],
         "lock.passwordSaveFailed": ["ko": "비밀번호 저장에 실패했습니다", "en": "Failed to save password"],
 
+        // Scheduler
+        "toolbar.scheduler":     ["ko": "스케줄러", "en": "Scheduler"],
+        "scheduler.title":       ["ko": "작업 스케줄러", "en": "Task Scheduler"],
+        "scheduler.noTasks":     ["ko": "예약된 작업이 없습니다", "en": "No scheduled tasks"],
+        "scheduler.addTask":     ["ko": "작업 추가", "en": "Add Task"],
+        "scheduler.interval":    ["ko": "실행 간격", "en": "Interval"],
+        "scheduler.minutes":     ["ko": "분", "en": "min"],
+        "scheduler.hours":       ["ko": "시간", "en": "hr"],
+        "scheduler.days":        ["ko": "일", "en": "day"],
+        "scheduler.lastRun":     ["ko": "마지막 실행", "en": "Last run"],
+        "scheduler.running":     ["ko": "실행 중", "en": "Running"],
+
         // Crypt
         "crypt.title":         ["ko": "암호화 리모트", "en": "Encrypted Remote"],
         "crypt.name":          ["ko": "암호화 리모트 이름", "en": "Encrypted Remote Name"],
