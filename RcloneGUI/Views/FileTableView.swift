@@ -11,6 +11,7 @@ struct FileTableView: View {
     @State private var renamingFile: String? // file name being renamed
     @State private var renameText = ""
     @State private var quickLookURL: URL?
+    @State private var showBulkRename = false
 
     private var tab: TabState {
         appState.panels.side(side).activeTab
@@ -55,6 +56,9 @@ struct FileTableView: View {
         }
         .sheet(item: $showProperties) { file in
             PropertiesSheet(file: file, side: side)
+        }
+        .sheet(isPresented: $showBulkRename) {
+            BulkRenameSheet(side: side)
         }
         .sheet(isPresented: Binding(
             get: { quickLookURL != nil },
@@ -242,6 +246,13 @@ struct FileTableView: View {
         }
 
         Divider()
+
+        if tab.selectedFiles.count >= 2 {
+            Button(L10n.t("bulkRename.title")) {
+                showBulkRename = true
+            }
+            Divider()
+        }
 
         Button(L10n.t("file.properties")) {
             showProperties = file

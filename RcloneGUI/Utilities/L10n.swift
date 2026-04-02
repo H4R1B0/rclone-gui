@@ -193,6 +193,28 @@ enum L10n {
         "crypt.off":           ["ko": "끄기", "en": "Off"],
         "crypt.dirNameEnc":    ["ko": "디렉토리명 암호화", "en": "Directory Name Encryption"],
 
+        // Union
+        "union.title":           ["ko": "스토리지 풀링", "en": "Storage Pooling"],
+        "union.name":            ["ko": "유니온 리모트 이름", "en": "Union Remote Name"],
+        "union.selectRemotes":   ["ko": "풀링할 리모트 선택 (2개 이상)", "en": "Select remotes to pool (2+)"],
+
+        // Bulk Rename
+        "bulkRename.title":      ["ko": "대량 이름변경", "en": "Bulk Rename"],
+        "bulkRename.pattern":    ["ko": "패턴", "en": "Pattern"],
+        "bulkRename.prefix":     ["ko": "접두사", "en": "Prefix"],
+        "bulkRename.suffix":     ["ko": "접미사", "en": "Suffix"],
+        "bulkRename.number":     ["ko": "번호", "en": "Number"],
+        "bulkRename.findReplace": ["ko": "찾기/바꾸기", "en": "Find/Replace"],
+        "bulkRename.prefixText": ["ko": "접두사 입력", "en": "Enter prefix"],
+        "bulkRename.suffixText": ["ko": "접미사 입력", "en": "Enter suffix"],
+        "bulkRename.startNum":   ["ko": "시작 번호", "en": "Start number"],
+        "bulkRename.find":       ["ko": "찾기", "en": "Find"],
+        "bulkRename.replace":    ["ko": "바꾸기", "en": "Replace"],
+        "bulkRename.preview":    ["ko": "미리보기", "en": "Preview"],
+        "bulkRename.apply":      ["ko": "이름변경 실행", "en": "Apply Rename"],
+        "bulkRename.renaming":   ["ko": "변경 중...", "en": "Renaming..."],
+        "bulkRename.filesSelected": ["ko": "개 파일 선택됨", "en": " files selected"],
+
         // Mount
         "toolbar.mount":        ["ko": "마운트", "en": "Mount"],
         "mount.title":          ["ko": "클라우드 마운트", "en": "Cloud Mount"],

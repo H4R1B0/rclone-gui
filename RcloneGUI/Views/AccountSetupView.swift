@@ -13,6 +13,7 @@ struct AccountSetupView: View {
     @State private var step: AccountStep = .list
     @State private var error: String?
     @State private var showCryptSetup = false
+    @State private var showUnionSetup = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -43,6 +44,9 @@ struct AccountSetupView: View {
                 Text(L10n.t("account.title"))
                     .font(.title2.bold())
                 Spacer()
+                Button(action: { showUnionSetup = true }) {
+                    Label(L10n.t("union.title"), systemImage: "externaldrive.badge.plus")
+                }
                 Button(action: { showCryptSetup = true }) {
                     Label(L10n.t("crypt.title"), systemImage: "lock.shield")
                 }
@@ -52,6 +56,7 @@ struct AccountSetupView: View {
             }
             .padding()
             .sheet(isPresented: $showCryptSetup) { CryptSetupSheet() }
+            .sheet(isPresented: $showUnionSetup) { UnionSetupSheet() }
 
             Divider()
 
