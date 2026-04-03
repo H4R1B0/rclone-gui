@@ -73,8 +73,8 @@ A native macOS desktop application that lets you manage multiple cloud storage s
 - [x] Drag and drop from Finder (file URL drop support)
 - [x] Quick Look preview (spacebar)
 - [x] Bookmarks — favorite frequently used paths (Cmd+D)
-- [ ] File/folder thumbnail previews (inline)
-- [ ] Linked Browsing — synchronized folder navigation across both panels
+- [x] File/folder thumbnail previews (inline, local images)
+- [x] Linked Browsing — synchronized folder navigation across both panels
 
 ### 2. Supported Cloud Services
 
@@ -104,7 +104,7 @@ A native macOS desktop application that lets you manage multiple cloud storage s
 - [x] Resizable transfer panel
 - [ ] Multi-threaded transfer speed optimization
 - [ ] Time-based bandwidth limit scheduling
-- [ ] Detailed transfer reports
+- [x] Detailed transfer reports (summary + clipboard copy)
 
 ### 5. Sync & Backup
 
@@ -114,7 +114,7 @@ A native macOS desktop application that lets you manage multiple cloud storage s
 - [x] Sync profile management (save/load/delete)
 - [x] Sync execution logs
 - [ ] Custom sync rules
-- [ ] Filter rules (extension, file size, date, regex) — stored but not applied yet
+- [x] Filter rules (ExcludeRule applied to sync operations)
 
 ### 6. Scheduling & Automation
 
