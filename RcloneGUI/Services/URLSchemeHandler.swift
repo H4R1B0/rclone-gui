@@ -15,10 +15,10 @@ enum URLSchemeHandler {
         Task { @MainActor in
             switch command {
             case "open":
-                if let remote = params["remote"], let path = params["path"] {
-                    let fs = remote.hasSuffix(":") ? remote : "\(remote):"
-                    await appState.panels.navigateTo(side: .left, remote: fs, path: path)
-                }
+                guard let remote = params["remote"], !remote.isEmpty else { return }
+                let path = params["path"] ?? ""
+                let fs = remote.hasSuffix(":") ? remote : "\(remote):"
+                await appState.panels.navigateTo(side: .left, remote: fs, path: path)
 
             case "mount":
                 if let remote = params["remote"] {
@@ -33,17 +33,17 @@ enum URLSchemeHandler {
                 }
 
             case "upload":
-                if let remote = params["remote"], let file = params["file"] {
-                    let fs = remote.hasSuffix(":") ? remote : "\(remote):"
-                    let dstPath = params["path"] ?? ""
-                    let fileName = (file as NSString).lastPathComponent
-                    let dstRemote = dstPath.isEmpty ? fileName : "\(dstPath)/\(fileName)"
-                    _ = try? await RcloneAPI.copyFileAsync(
-                        using: appState.client,
-                        srcFs: "/", srcRemote: file,
-                        dstFs: fs, dstRemote: dstRemote
-                    )
-                }
+                guard let remote = params["remote"], !remote.isEmpty,
+                      let file = params["file"], !file.isEmpty else { return }
+                let uploadFs = remote.hasSuffix(":") ? remote : "\(remote):"
+                let dstPath = params["path"] ?? ""
+                let fileName = (file as NSString).lastPathComponent
+                let dstRemote = dstPath.isEmpty ? fileName : "\(dstPath)/\(fileName)"
+                _ = try? await RcloneAPI.copyFileAsync(
+                    using: appState.client,
+                    srcFs: "/", srcRemote: file,
+                    dstFs: uploadFs, dstRemote: dstRemote
+                )
 
             default:
                 print("[RcloneGUI] Unknown URL scheme command: \(command)")
@@ -51,7 +51,7 @@ enum URLSchemeHandler {
         }
     }
 
-    private static func parseQuery(_ query: String?) -> [String: String] {
+    static func parseQuery(_ query: String?) -> [String: String] {
         guard let query = query else { return [:] }
         var params: [String: String] = [:]
         for pair in query.split(separator: "&") {
