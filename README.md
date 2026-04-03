@@ -179,6 +179,31 @@ A native macOS desktop application that lets you manage multiple cloud storage s
 - [x] Online media playback (AVKit, cloud files temp-downloaded)
 - [x] Cloud storage quota check (per-remote detailed view with progress bars)
 
+## Roadmap
+
+### v1.2.0 — Tier 1: Pro Features
+- [x] Finder Services integration (right-click → "Upload to RcloneGUI")
+- [x] Resume interrupted transfers (checkpoint + auto-retry, max 3)
+- [x] Onboarding flow (first-time user guide, 3-step wizard)
+- [x] Smart error recovery (auth/quota/network/404/rate-limit classification)
+
+### v1.3.0 — Tier 2: Integration
+- [ ] URL scheme (rclonegui://open?remote=gdrive&path=/Documents)
+- [ ] Shortcuts & Automator support
+- [ ] Share Extension (Upload to Cloud from any app)
+- [ ] Keyboard navigation enhancement (vim keys, VoiceOver)
+
+### v1.4.0 — Tier 3: Polish
+- [ ] Spotlight integration (search cloud files from Spotlight)
+- [ ] Smart duplicate detection (cross-cloud)
+- [ ] File versioning & history (S3, B2)
+- [ ] Large directory performance (100k+ files)
+
+### v2.0.0 — Tier 4: Vision
+- [ ] AI-powered file organization & search
+- [ ] Local folder ↔ Cloud real-time sync (Dropbox-style)
+- [ ] Collaboration (team folders, permissions)
+
 ## Tech Stack
 
 - **Language**: Swift
@@ -187,7 +212,7 @@ A native macOS desktop application that lets you manage multiple cloud storage s
 - **rclone Integration**: librclone (C shared library via FFI)
 - **Project Structure**: Swift Package Manager (RcloneKit, FileBrowser, TransferEngine)
 - **Minimum OS**: macOS 14 (Sonoma)
-- **Version**: 1.1.2
+- **Version**: 1.2.0
 
 ## Getting Started
 
@@ -201,7 +226,7 @@ open RcloneGUI.xcodeproj
 # Build and run
 # Cmd+R in Xcode
 
-# Run automated tests (54 tests)
+# Run automated tests (188 tests)
 ./scripts/run-tests.sh
 ```
 

@@ -16,11 +16,13 @@
 		157CC405111B97E225993A86 /* SearchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 646DE6E8813FF584E2B95D5B /* SearchViewModel.swift */; };
 		1AC1A2FC404036D746E2AE2C /* TrashViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE67102A0159FB8CD76EC539 /* TrashViewModelTests.swift */; };
 		2035AB8F25AD0E36FB555B2D /* TransferViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5DD1E4E18F2F1415841AC39 /* TransferViewModelTests.swift */; };
+		243D51F07A18FCCB941C71EC /* ErrorBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61C0A4DE01201EA56ED6DE78 /* ErrorBannerView.swift */; };
 		25959630071EDB113C17A17B /* QuotaSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35520AB65C05142A7B448AC9 /* QuotaSheet.swift */; };
 		25B731ED42E255F1E03CE89F /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EA740BCD6F8AD3810DEEA88 /* MenuBarView.swift */; };
 		2AD7F3888315638DD5A44269 /* PanelViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0144915081E072ECFA22FEDF /* PanelViewModel.swift */; };
 		2D7B7F57438245E2C331836C /* SearchViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89BD872C179F52F865037212 /* SearchViewModelTests.swift */; };
 		313D4CDBB62AB9DFEDE6CA8F /* BulkRenameSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FE41C3FA7CD3DDCB8E214B9 /* BulkRenameSheet.swift */; };
+		38E5C1A13B164AFCA8F53D6D /* TransferCheckpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52AE5423077A08D13E23E14F /* TransferCheckpoint.swift */; };
 		3A422DE5C87248AC604C7DB2 /* LockScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE94DFF88C4A3C2100E5E0FA /* LockScreenView.swift */; };
 		3D051FFA0579BAEC8E12F102 /* CryptSetupSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7226D01943C969AC0F3F04C0 /* CryptSetupSheet.swift */; };
 		3F88688B3360221450CB57C1 /* FileBrowser in Frameworks */ = {isa = PBXBuildFile; productRef = EDCA180A72D526DF98ED4F25 /* FileBrowser */; };
@@ -32,9 +34,12 @@
 		4B6F60591FE725DC2136B7C5 /* MountViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9666750B3BBF443A4303DE9 /* MountViewModelTests.swift */; };
 		4CBB1F49A365B4478029E175 /* MockRcloneClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30CFB660F919E85CA1982EDC /* MockRcloneClient.swift */; };
 		4E0063D38E0A20A7742ADB9F /* TrashViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52461AC666D6A7DBE670DCE2 /* TrashViewModel.swift */; };
+		4E285EB57273DA3AF1D85B9A /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEB82F506CED5E93848B9E8A /* OnboardingView.swift */; };
+		4FA65452464A451F590BC7F2 /* ErrorClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BF77A4E04629202EE62380B /* ErrorClassifier.swift */; };
 		5029A7FAA982A9A59C91A16E /* AppLockViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 670AF53D6ACFFDDDEDFA3846 /* AppLockViewModelTests.swift */; };
 		5A902CEEECB6CDA9633EEE9E /* TrashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26BAABCB2AEDE0EFAA539908 /* TrashView.swift */; };
 		5F19F557B79DD21E7404E931 /* SchedulerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D049D4A21803DCC4AB6CF6D3 /* SchedulerViewModel.swift */; };
+		6AE5B27977F360E37A399953 /* FinderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE9D7A80905496C12B372D73 /* FinderService.swift */; };
 		6B955B64ED84261BDFC765D2 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 6B9DD946499F99FC5F3E724C /* Localizable.xcstrings */; };
 		717FEE990CF602296BD40C7B /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79ECDA66CF28B4184F7CF343 /* SidebarView.swift */; };
 		723A6BCAB2E8AA9FD84D303C /* SettingsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 090079FC162562F112C2A3B5 /* SettingsSheet.swift */; };
@@ -47,6 +52,7 @@
 		83436735E2F2C4A2419B726D /* SetPasswordSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 602A18F4A658CA2015CE8470 /* SetPasswordSheet.swift */; };
 		83C3017DFCE8E01FC33C1B03 /* FormatUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9A677D7F57716D008D17B43 /* FormatUtils.swift */; };
 		8585D96A6063CC692E40BB2F /* QuickLookBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F55FCB05C4CE60DF12120CE /* QuickLookBridge.swift */; };
+		88E772ABF499FA4AC20391DC /* FinderUploadSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A388AAB43F3E2C01CDEAF23 /* FinderUploadSheet.swift */; };
 		909B9642CD5641144D3C4CBD /* SearchPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2FFDECC974E2109E8B74D79 /* SearchPanelView.swift */; };
 		950E6123BCD52DE51F0F5D72 /* RcloneKit in Frameworks */ = {isa = PBXBuildFile; productRef = DAFEF365010052F3E6A7ECED /* RcloneKit */; };
 		A5D3D5FBE9516269E5FF0A6E /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3CD57E91417206AF17DDB71 /* App.swift */; };
@@ -81,9 +87,6 @@
 		EE5262051872458647D6BEF8 /* RemoteSelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E32FEF6A8F7293D51A39017 /* RemoteSelectorView.swift */; };
 		F95D1084ED438C375089F0CE /* TransferViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5150A4D8F6C0212533E53DD8 /* TransferViewModel.swift */; };
 		F9EEB6464F2F2D9D2596CC2A /* FilePaneTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5231D3878DEE9FAA784621A3 /* FilePaneTabBar.swift */; };
-		AA1B2C3D4E5F6A7B8C9D0E1F /* FinderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2C3D4E5F6A7B8C9D0E1F2A /* FinderService.swift */; };
-		CC3D4E5F6A7B8C9D0E1F2A3B /* FinderUploadSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD4E5F6A7B8C9D0E1F2A3B4C /* FinderUploadSheet.swift */; };
-		EE5F6A7B8C9D0E1F2A3B4C5D /* TransferCheckpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF6A7B8C9D0E1F2A3B4C5D6E /* TransferCheckpoint.swift */; };
 		FAE1AC8FEAA9889057D1DAD9 /* FileTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87351B73D23FEAE3793DFD33 /* FileTableView.swift */; };
 		FD5B29F642486E001174AE69 /* ClipboardStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19791174FAAA33B08D7296AE /* ClipboardStateTests.swift */; };
 /* End PBXBuildFile section */
@@ -101,9 +104,6 @@
 /* Begin PBXFileReference section */
 		00AE9EB594683D318ED922F6 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		0144915081E072ECFA22FEDF /* PanelViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelViewModel.swift; sourceTree = "<group>"; };
-		BB2C3D4E5F6A7B8C9D0E1F2A /* FinderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderService.swift; sourceTree = "<group>"; };
-		DD4E5F6A7B8C9D0E1F2A3B4C /* FinderUploadSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderUploadSheet.swift; sourceTree = "<group>"; };
-		FF6A7B8C9D0E1F2A3B4C5D6E /* TransferCheckpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferCheckpoint.swift; sourceTree = "<group>"; };
 		021C8E67C73648A086FC35F8 /* SyncViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncViewModelTests.swift; sourceTree = "<group>"; };
 		051EC24A61AA65FEFC569813 /* AccountViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountViewModel.swift; sourceTree = "<group>"; };
 		05D52EE497A536CF66B6BA14 /* PathUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathUtils.swift; sourceTree = "<group>"; };
@@ -126,16 +126,20 @@
 		44E56BF54E5FF690118EC8DC /* TransferReportSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferReportSheet.swift; sourceTree = "<group>"; };
 		49E767503D6DA16E81118049 /* CompressUploadSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompressUploadSheet.swift; sourceTree = "<group>"; };
 		4A15CD8D70189A5B13D8FCDB /* SchedulerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchedulerView.swift; sourceTree = "<group>"; };
+		4BF77A4E04629202EE62380B /* ErrorClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorClassifier.swift; sourceTree = "<group>"; };
 		5150A4D8F6C0212533E53DD8 /* TransferViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferViewModel.swift; sourceTree = "<group>"; };
 		5231D3878DEE9FAA784621A3 /* FilePaneTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilePaneTabBar.swift; sourceTree = "<group>"; };
 		52461AC666D6A7DBE670DCE2 /* TrashViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrashViewModel.swift; sourceTree = "<group>"; };
+		52AE5423077A08D13E23E14F /* TransferCheckpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferCheckpoint.swift; sourceTree = "<group>"; };
 		52B1759FCB8FF98B4CC339C8 /* BookmarkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkView.swift; sourceTree = "<group>"; };
 		57B2EB5935174016E994EACA /* RcloneGUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RcloneGUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		58A22AE36DDDC9069C606251 /* FileBrowser */ = {isa = PBXFileReference; lastKnownFileType = folder; name = FileBrowser; path = Packages/FileBrowser; sourceTree = SOURCE_ROOT; };
 		5E32FEF6A8F7293D51A39017 /* RemoteSelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteSelectorView.swift; sourceTree = "<group>"; };
 		602A18F4A658CA2015CE8470 /* SetPasswordSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetPasswordSheet.swift; sourceTree = "<group>"; };
+		61C0A4DE01201EA56ED6DE78 /* ErrorBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorBannerView.swift; sourceTree = "<group>"; };
 		646DE6E8813FF584E2B95D5B /* SearchViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViewModel.swift; sourceTree = "<group>"; };
 		670AF53D6ACFFDDDEDFA3846 /* AppLockViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLockViewModelTests.swift; sourceTree = "<group>"; };
+		6A388AAB43F3E2C01CDEAF23 /* FinderUploadSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderUploadSheet.swift; sourceTree = "<group>"; };
 		6B9DD946499F99FC5F3E724C /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		6D77238B2C3C271A813BE9AB /* FilePanePathBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilePanePathBar.swift; sourceTree = "<group>"; };
 		7226D01943C969AC0F3F04C0 /* CryptSetupSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptSetupSheet.swift; sourceTree = "<group>"; };
@@ -167,6 +171,8 @@
 		D882FD253104D9E1A8B2876C /* AccountSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountSetupView.swift; sourceTree = "<group>"; };
 		D8D14C998D5512918431EA71 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
 		DAB4F31A70F874D5F6F981CA /* ProviderIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderIcon.swift; sourceTree = "<group>"; };
+		DE9D7A80905496C12B372D73 /* FinderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderService.swift; sourceTree = "<group>"; };
+		DEB82F506CED5E93848B9E8A /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		DEE731FEF9343F36A7C52E62 /* ClipboardState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardState.swift; sourceTree = "<group>"; };
 		E16BDCB5E0350028A0219D11 /* BookmarkViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkViewModelTests.swift; sourceTree = "<group>"; };
 		E650D32A90352D9A20677AE8 /* SyncProfileSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncProfileSheet.swift; sourceTree = "<group>"; };
@@ -224,6 +230,7 @@
 		55A7FB889A439EC6DD0CC80F /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				4BF77A4E04629202EE62380B /* ErrorClassifier.swift */,
 				A9A677D7F57716D008D17B43 /* FormatUtils.swift */,
 				39DF55222BD1BD31D06AC192 /* L10n.swift */,
 				05D52EE497A536CF66B6BA14 /* PathUtils.swift */,
@@ -250,18 +257,20 @@
 				28CD19DBE9956E559A09821D /* ConfirmDeleteSheet.swift */,
 				B0738E70B6EF3196F869BAEA /* ContentView.swift */,
 				7226D01943C969AC0F3F04C0 /* CryptSetupSheet.swift */,
+				61C0A4DE01201EA56ED6DE78 /* ErrorBannerView.swift */,
 				1388A665368F1961BD685D05 /* ExplorerView.swift */,
 				86E8D1954B475B47F2B2051F /* FilePane.swift */,
 				6D77238B2C3C271A813BE9AB /* FilePanePathBar.swift */,
 				5231D3878DEE9FAA784621A3 /* FilePaneTabBar.swift */,
 				87351B73D23FEAE3793DFD33 /* FileTableView.swift */,
-				DD4E5F6A7B8C9D0E1F2A3B4C /* FinderUploadSheet.swift */,
+				6A388AAB43F3E2C01CDEAF23 /* FinderUploadSheet.swift */,
 				7C17292A13239D0E9FC11E27 /* HashCompareSheet.swift */,
 				FE94DFF88C4A3C2100E5E0FA /* LockScreenView.swift */,
 				C0DF32F9F85FC56862BA973A /* MediaPlayerSheet.swift */,
 				3EA740BCD6F8AD3810DEEA88 /* MenuBarView.swift */,
 				3367A1B528B7C25267CA61E4 /* MountView.swift */,
 				B5FBB2AFC29F900A57EABD79 /* NewFolderSheet.swift */,
+				DEB82F506CED5E93848B9E8A /* OnboardingView.swift */,
 				F65BAEDE8D4FA63EFECA57F3 /* PropertiesSheet.swift */,
 				DAB4F31A70F874D5F6F981CA /* ProviderIcon.swift */,
 				9F55FCB05C4CE60DF12120CE /* QuickLookBridge.swift */,
@@ -314,6 +323,14 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		BFBD0B203B2EDCBC9B799216 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				DE9D7A80905496C12B372D73 /* FinderService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
 		D19C3E809F250D9885F78889 /* Packages */ = {
 			isa = PBXGroup;
 			children = (
@@ -324,14 +341,6 @@
 			path = Packages;
 			sourceTree = "<group>";
 		};
-		AB1C2D3E4F5A6B7C8D9E0F1A /* Services */ = {
-			isa = PBXGroup;
-			children = (
-				BB2C3D4E5F6A7B8C9D0E1F2A /* FinderService.swift */,
-			);
-			path = Services;
-			sourceTree = "<group>";
-		};
 		EA78287C2567114A91DE54B4 /* RcloneGUI */ = {
 			isa = PBXGroup;
 			children = (
@@ -339,7 +348,7 @@
 				00AE9EB594683D318ED922F6 /* AppState.swift */,
 				3431E2050F0179AB700B0401 /* CLI */,
 				BFB47F516659086949ECA886 /* Resources */,
-				AB1C2D3E4F5A6B7C8D9E0F1A /* Services */,
+				BFBD0B203B2EDCBC9B799216 /* Services */,
 				55A7FB889A439EC6DD0CC80F /* Utilities */,
 				F264F73329BC49ACB742ED58 /* ViewModels */,
 				75FE0B993AF7FD3D2421DBDA /* Views */,
@@ -360,7 +369,7 @@
 				646DE6E8813FF584E2B95D5B /* SearchViewModel.swift */,
 				D8D14C998D5512918431EA71 /* SettingsViewModel.swift */,
 				409240D17EC1A7C4B0AEB92F /* SyncViewModel.swift */,
-				FF6A7B8C9D0E1F2A3B4C5D6E /* TransferCheckpoint.swift */,
+				52AE5423077A08D13E23E14F /* TransferCheckpoint.swift */,
 				5150A4D8F6C0212533E53DD8 /* TransferViewModel.swift */,
 				52461AC666D6A7DBE670DCE2 /* TrashViewModel.swift */,
 			);
@@ -528,13 +537,15 @@
 				403A7333848641306F3A1A5E /* ConfirmDeleteSheet.swift in Sources */,
 				7AFDDB9AAA2B36856AF1065E /* ContentView.swift in Sources */,
 				3D051FFA0579BAEC8E12F102 /* CryptSetupSheet.swift in Sources */,
+				243D51F07A18FCCB941C71EC /* ErrorBannerView.swift in Sources */,
+				4FA65452464A451F590BC7F2 /* ErrorClassifier.swift in Sources */,
 				7D75A7D6936A3833BD58ED09 /* ExplorerView.swift in Sources */,
 				7EE0AC25E5A2309B494A8CE3 /* FilePane.swift in Sources */,
 				E4E96BEC6FE83A2149D06E22 /* FilePanePathBar.swift in Sources */,
 				F9EEB6464F2F2D9D2596CC2A /* FilePaneTabBar.swift in Sources */,
 				FAE1AC8FEAA9889057D1DAD9 /* FileTableView.swift in Sources */,
-				AA1B2C3D4E5F6A7B8C9D0E1F /* FinderService.swift in Sources */,
-				CC3D4E5F6A7B8C9D0E1F2A3B /* FinderUploadSheet.swift in Sources */,
+				6AE5B27977F360E37A399953 /* FinderService.swift in Sources */,
+				88E772ABF499FA4AC20391DC /* FinderUploadSheet.swift in Sources */,
 				83C3017DFCE8E01FC33C1B03 /* FormatUtils.swift in Sources */,
 				C706CB7F75EC151B17E37F45 /* HashCompareSheet.swift in Sources */,
 				40D08091F09CE22B1ECC0FD3 /* L10n.swift in Sources */,
@@ -544,6 +555,7 @@
 				C459DD6871CEA692FAB4DBE4 /* MountView.swift in Sources */,
 				AC944D099EDFC62D21457718 /* MountViewModel.swift in Sources */,
 				44ED77D032B7DADB098CD7F6 /* NewFolderSheet.swift in Sources */,
+				4E285EB57273DA3AF1D85B9A /* OnboardingView.swift in Sources */,
 				2AD7F3888315638DD5A44269 /* PanelViewModel.swift in Sources */,
 				B8376551C59A3B4F5420CE4A /* PathUtils.swift in Sources */,
 				073DBA89543E46C63CD05503 /* PropertiesSheet.swift in Sources */,
@@ -563,7 +575,7 @@
 				CFCBBBE6FA89E0AB9105A495 /* SyncView.swift in Sources */,
 				DE92648DB6DB91BD20C8E7A9 /* SyncViewModel.swift in Sources */,
 				AEB6A193DBE982BD53687ADD /* TransferBarView.swift in Sources */,
-				EE5F6A7B8C9D0E1F2A3B4C5D /* TransferCheckpoint.swift in Sources */,
+				38E5C1A13B164AFCA8F53D6D /* TransferCheckpoint.swift in Sources */,
 				D6B9E5A5F380557102335AD1 /* TransferReportSheet.swift in Sources */,
 				F95D1084ED438C375089F0CE /* TransferViewModel.swift in Sources */,
 				5A902CEEECB6CDA9633EEE9E /* TrashView.swift in Sources */,
@@ -758,7 +770,7 @@
 					"$(PROJECT_DIR)/Resources/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.1.2;
 				OTHER_LDFLAGS = (
 					"-lrclone",
 				);
@@ -783,7 +795,7 @@
 					"$(PROJECT_DIR)/Resources/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.1.2;
 				OTHER_LDFLAGS = (
 					"-lrclone",
 				);

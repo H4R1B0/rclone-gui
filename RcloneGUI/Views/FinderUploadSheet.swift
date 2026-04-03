@@ -1,4 +1,5 @@
 import SwiftUI
+import RcloneKit
 
 struct FinderUploadSheet: View {
     @Environment(AppState.self) private var appState
