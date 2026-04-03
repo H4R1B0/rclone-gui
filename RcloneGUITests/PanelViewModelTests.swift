@@ -4,7 +4,7 @@ import RcloneKit
 
 @Suite("PanelViewModel Tab Tests")
 struct PanelViewModelTabTests {
-    @Test("init creates default tabs")
+    @Test("init creates default tabs") @MainActor
     func initDefaults() {
         let vm = PanelViewModel(client: MockRcloneClient())
         #expect(vm.left.tabs.count == 1)
@@ -12,20 +12,20 @@ struct PanelViewModelTabTests {
         #expect(vm.left.activeTab.mode == .local)
     }
 
-    @Test("side returns correct panel")
+    @Test("side returns correct panel") @MainActor
     func sideAccessor() {
         let vm = PanelViewModel(client: MockRcloneClient())
         #expect(vm.side(.left).activeTab.id == vm.left.activeTab.id)
         #expect(vm.side(.right).activeTab.id == vm.right.activeTab.id)
     }
 
-    @Test("otherSide returns opposite")
+    @Test("otherSide returns opposite") @MainActor
     func otherSide() {
         let vm = PanelViewModel(client: MockRcloneClient())
         #expect(vm.otherSide(.left).activeTab.id == vm.right.activeTab.id)
     }
 
-    @Test("addTab creates and activates")
+    @Test("addTab creates and activates") @MainActor
     func addTab() {
         let vm = PanelViewModel(client: MockRcloneClient())
         vm.left.addTab(mode: .cloud, remote: "gdrive:", label: "Drive")
@@ -34,7 +34,7 @@ struct PanelViewModelTabTests {
         #expect(vm.left.activeTab.remote == "gdrive:")
     }
 
-    @Test("closeTab removes and switches")
+    @Test("closeTab removes and switches") @MainActor
     func closeTab() {
         let vm = PanelViewModel(client: MockRcloneClient())
         vm.left.addTab(mode: .cloud, remote: "s3:", label: "S3")
@@ -45,7 +45,7 @@ struct PanelViewModelTabTests {
         #expect(vm.left.activeTabId == firstId)
     }
 
-    @Test("closeTab prevents closing last")
+    @Test("closeTab prevents closing last") @MainActor
     func closeLastTab() {
         let vm = PanelViewModel(client: MockRcloneClient())
         let onlyId = vm.left.tabs[0].id
@@ -56,7 +56,7 @@ struct PanelViewModelTabTests {
 
 @Suite("PanelViewModel Selection Tests")
 struct PanelViewModelSelectionTests {
-    @Test("toggleSelect adds and removes")
+    @Test("toggleSelect adds and removes") @MainActor
     func toggleSelect() {
         let vm = PanelViewModel(client: MockRcloneClient())
         vm.toggleSelect(side: .left, name: "file.txt")
@@ -65,17 +65,15 @@ struct PanelViewModelSelectionTests {
         #expect(!vm.left.activeTab.selectedFiles.contains("file.txt"))
     }
 
-    @Test("selectAll selects all file names")
+    @Test("selectAll selects all file names") @MainActor
     func selectAll() {
-        let mock = MockRcloneClient()
-        let vm = PanelViewModel(client: mock)
-        // No files → selectAll should result in empty selection
+        let vm = PanelViewModel(client: MockRcloneClient())
         vm.left.activeTab.files = []
         vm.selectAll(side: .left)
         #expect(vm.left.activeTab.selectedFiles.isEmpty)
     }
 
-    @Test("clearSelection empties set")
+    @Test("clearSelection empties set") @MainActor
     func clearSelection() {
         let vm = PanelViewModel(client: MockRcloneClient())
         vm.left.activeTab.selectedFiles = ["a", "b", "c"]
@@ -86,7 +84,7 @@ struct PanelViewModelSelectionTests {
 
 @Suite("PanelViewModel Sort Tests")
 struct PanelViewModelSortTests {
-    @Test("setSort changes field")
+    @Test("setSort changes field") @MainActor
     func setSortField() {
         let vm = PanelViewModel(client: MockRcloneClient())
         vm.setSort(side: .left, field: .size)
@@ -94,10 +92,10 @@ struct PanelViewModelSortTests {
         #expect(vm.left.activeTab.sortAsc == true)
     }
 
-    @Test("setSort same field toggles direction")
+    @Test("setSort same field toggles direction") @MainActor
     func setSortToggle() {
         let vm = PanelViewModel(client: MockRcloneClient())
-        vm.setSort(side: .left, field: .name)  // already name, toggle
+        vm.setSort(side: .left, field: .name)
         #expect(vm.left.activeTab.sortAsc == false)
         vm.setSort(side: .left, field: .name)
         #expect(vm.left.activeTab.sortAsc == true)
@@ -123,8 +121,7 @@ struct PanelViewModelFileOpsTests {
         let mock = MockRcloneClient()
         mock.responses["operations/list"] = ["list": []]
         let vm = PanelViewModel(client: mock)
-        vm.left.activeTab.path = "a/b/c"  // set directly for testing
-        // Note: goUp calls loadFiles which needs mock
+        vm.left.activeTab.path = "a/b/c"
         await vm.goUp(side: .left)
         #expect(vm.left.activeTab.path == "a/b")
     }
