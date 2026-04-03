@@ -8,6 +8,8 @@ struct RemoteDetailsView: View {
     @State private var config: [String: String] = [:]
     @State private var quota: (used: Int64, total: Int64)?
     @State private var isLoading = true
+    @State private var showDeleteConfirm = false
+    @State private var editingRemote: Remote?
 
     private var remote: Remote? {
         appState.accounts.remotes.first(where: { $0.name == remoteName })
@@ -81,29 +83,82 @@ struct RemoteDetailsView: View {
                 // Actions
                 HStack(spacing: 12) {
                     Button(L10n.t("edit")) {
-                        appState.showAccountSetup = true
+                        if let r = remote { editingRemote = r }
                     }
 
                     Button(L10n.t("delete"), role: .destructive) {
-                        Task { try? await appState.accounts.deleteRemote(name: remoteName) }
+                        showDeleteConfirm = true
                     }
                 }
             }
             .padding(20)
         }
-        .task {
-            isLoading = true
-            // Load config
-            if let cfg = try? await appState.accounts.getRemoteConfig(name: remoteName) {
-                config = cfg
+        .task(id: remoteName) {
+            await loadData()
+        }
+        .alert(L10n.t("confirm.delete.title"), isPresented: $showDeleteConfirm) {
+            Button(L10n.t("cancel"), role: .cancel) {}
+            Button(L10n.t("delete"), role: .destructive) {
+                Task { try? await appState.accounts.deleteRemote(name: remoteName) }
             }
-            // Load quota
-            if let info = try? await RcloneAPI.about(using: appState.client, fs: "\(remoteName):") {
-                if let total = info.total, let used = info.used {
-                    quota = (used: used, total: total)
+        } message: {
+            Text(L10n.t("confirm.delete.message", remoteName))
+        }
+        .sheet(item: $editingRemote) { remote in
+            RemoteEditSheet(remote: remote)
+                .frame(minWidth: 550, minHeight: 450)
+        }
+    }
+
+    private func loadData() async {
+        isLoading = true
+        config = [:]
+        quota = nil
+        if let cfg = try? await appState.accounts.getRemoteConfig(name: remoteName) {
+            config = cfg
+        }
+        if let info = try? await RcloneAPI.about(using: appState.client, fs: "\(remoteName):") {
+            if let total = info.total, let used = info.used {
+                quota = (used: used, total: total)
+            }
+        }
+        isLoading = false
+    }
+}
+
+// MARK: - Edit Sheet (wraps RemoteFormView for a specific remote)
+
+struct RemoteEditSheet: View {
+    @Environment(AppState.self) private var appState
+    @Environment(\.dismiss) private var dismiss
+    let remote: Remote
+
+    var body: some View {
+        Group {
+            if let provider = appState.accounts.providers.first(where: { $0.prefix == remote.type }) {
+                RemoteFormView(
+                    title: "\(L10n.t("edit")) \(remote.displayName)",
+                    provider: provider,
+                    initialName: remote.name,
+                    initialParams: [:],
+                    loadExisting: remote.name,
+                    onBack: { dismiss() },
+                    onSave: { name, params in
+                        try await appState.accounts.updateRemote(
+                            oldName: remote.name, newName: name,
+                            type: provider.prefix, parameters: params
+                        )
+                        dismiss()
+                    }
+                )
+            } else {
+                VStack(spacing: 12) {
+                    Text("\(L10n.t("account.providerNotFound")): \(remote.type)")
+                        .foregroundColor(.red)
+                    Button(L10n.t("close")) { dismiss() }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            isLoading = false
         }
     }
 }

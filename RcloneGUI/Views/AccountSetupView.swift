@@ -16,6 +16,7 @@ struct AccountSetupView: View {
     @State private var showCryptSetup = false
     @State private var showUnionSetup = false
     @State private var providerSearch = ""
+    @State private var remoteToDelete: Remote?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -97,9 +98,7 @@ struct AccountSetupView: View {
 
     private func remoteCard(_ remote: Remote) -> some View {
         HStack {
-            Image(systemName: "cloud.fill")
-                .foregroundColor(.accentColor)
-                .font(.system(size: 20))
+            ProviderIcon.icon(for: remote.type, size: 20)
 
             VStack(alignment: .leading) {
                 Text(remote.displayName)
@@ -117,11 +116,23 @@ struct AccountSetupView: View {
             .buttonStyle(.borderless)
 
             Button(role: .destructive, action: {
-                Task { try? await appState.accounts.deleteRemote(name: remote.name) }
+                remoteToDelete = remote
             }) {
                 Image(systemName: "trash")
             }
             .buttonStyle(.borderless)
+            .alert(L10n.t("confirm.delete.title"), isPresented: Binding(
+                get: { remoteToDelete?.id == remote.id },
+                set: { if !$0 { remoteToDelete = nil } }
+            )) {
+                Button(L10n.t("cancel"), role: .cancel) { remoteToDelete = nil }
+                Button(L10n.t("delete"), role: .destructive) {
+                    Task { try? await appState.accounts.deleteRemote(name: remote.name) }
+                    remoteToDelete = nil
+                }
+            } message: {
+                Text(L10n.t("confirm.delete.message", remote.displayName))
+            }
         }
         .padding(.vertical, 4)
     }
@@ -199,7 +210,7 @@ struct AccountSetupView: View {
                     ForEach(filteredProviders) { provider in
                         Button(action: { step = .create(provider) }) {
                             HStack {
-                                Image(systemName: "cloud")
+                                ProviderIcon.icon(for: provider.prefix, size: 20)
                                     .frame(width: 24)
                                 VStack(alignment: .leading) {
                                     Text(provider.name)

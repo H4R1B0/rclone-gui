@@ -1,8 +1,10 @@
 import SwiftUI
+import RcloneKit
 
 struct SidebarView: View {
     @Environment(AppState.self) private var appState
     @Binding var selection: SidebarItem?
+    @State private var remoteToDelete: Remote?
 
     var body: some View {
         List(selection: $selection) {
@@ -26,7 +28,7 @@ struct SidebarView: View {
                     .tag(SidebarItem.remote(remote.name))
                     .contextMenu {
                         Button(L10n.t("delete"), role: .destructive) {
-                            Task { try? await appState.accounts.deleteRemote(name: remote.name) }
+                            remoteToDelete = remote
                         }
                     }
                 }
@@ -68,6 +70,20 @@ struct SidebarView: View {
         }
         .listStyle(.sidebar)
         .navigationSplitViewColumnWidth(min: 180, ideal: 220, max: 300)
+        .alert(L10n.t("confirm.delete.title"), isPresented: Binding(
+            get: { remoteToDelete != nil },
+            set: { if !$0 { remoteToDelete = nil } }
+        )) {
+            Button(L10n.t("cancel"), role: .cancel) { remoteToDelete = nil }
+            Button(L10n.t("delete"), role: .destructive) {
+                if let r = remoteToDelete {
+                    Task { try? await appState.accounts.deleteRemote(name: r.name) }
+                    remoteToDelete = nil
+                }
+            }
+        } message: {
+            Text(L10n.t("confirm.delete.message", remoteToDelete?.displayName ?? ""))
+        }
         .safeAreaInset(edge: .bottom) {
             VStack(spacing: 0) {
                 Divider()
@@ -95,11 +111,11 @@ struct SidebarView: View {
                 HStack {
                     Image(systemName: "cloud.fill")
                         .foregroundColor(.accentColor)
-                    Text("RcloneGUI")
+                    Text(AppConstants.appName)
                         .font(.caption)
                         .foregroundColor(.secondary)
                     Spacer()
-                    Text("v1.1.1")
+                    Text("v\(AppConstants.appVersion)")
                         .font(.caption2)
                         .foregroundColor(.secondary.opacity(0.5))
                 }
