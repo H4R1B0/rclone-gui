@@ -39,42 +39,42 @@ struct ContentView: View {
             NavigationSplitView {
                 SidebarView(selection: $selectedSidebar)
             } detail: {
-                Group {
-                    switch selectedSidebar {
-                    case .explorer, .none:
-                        ExplorerView()
-                    case .search:
-                        SearchPanelView()
-                    case .sync:
-                        SyncView()
-                    case .scheduler:
-                        SchedulerView()
-                    case .mount:
-                        MountView()
-                    case .trash:
-                        TrashView()
-                    case .duplicates:
-                        DuplicateFinderView()
-                    case .remote(let name):
-                        RemoteDetailsView(remoteName: name)
-                    case .bookmark(let bookmark):
-                        ExplorerView()
-                            .onAppear {
-                                Task {
-                                    await appState.panels.navigateTo(side: .left, remote: bookmark.fs, path: bookmark.path)
+                VStack(spacing: 0) {
+                    Group {
+                        switch selectedSidebar {
+                        case .explorer, .none:
+                            ExplorerView()
+                        case .search:
+                            SearchPanelView()
+                        case .sync:
+                            SyncView()
+                        case .scheduler:
+                            SchedulerView()
+                        case .mount:
+                            MountView()
+                        case .trash:
+                            TrashView()
+                        case .duplicates:
+                            DuplicateFinderView()
+                        case .remote(let name):
+                            RemoteDetailsView(remoteName: name)
+                        case .bookmark(let bookmark):
+                            ExplorerView()
+                                .onAppear {
+                                    Task {
+                                        await appState.panels.navigateTo(side: .left, remote: bookmark.fs, path: bookmark.path)
+                                    }
                                 }
-                            }
-                            .id("bookmark-\(bookmark.id)")
+                                .id("bookmark-\(bookmark.id)")
+                        }
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                    TransferBarView()
                 }
             }
             .navigationSplitViewStyle(.balanced)
             .frame(minWidth: 1000, minHeight: 600)
-            .overlay(alignment: .bottom) {
-                if appState.showTransfers || appState.transfers.hasActiveTransfers {
-                    TransferBarView()
-                }
-            }
             .overlay {
                 if appState.appLock.isLocked == true {
                     LockScreenView()

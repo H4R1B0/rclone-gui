@@ -29,7 +29,7 @@ final class AppState {
 
     var activeView: ActiveView = .explore
     var showSettings: Bool = false
-    var showTransfers: Bool = true
+    var showTransfers: Bool = false
     var showAccountSetup: Bool = false
     var transferHeight: Double = 200
     var ready: Bool = false
@@ -71,7 +71,6 @@ final class AppState {
 
         let homePath = NSHomeDirectory()
         await panels.loadFiles(side: .left, remote: "/", path: homePath)
-        await panels.loadFiles(side: .right, remote: "/", path: homePath)
 
         FinderService.shared.registerServices()
 
