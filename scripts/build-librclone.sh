@@ -13,7 +13,10 @@ fi
 
 cd "$BUILD_DIR"
 
-CGO_ENABLED=1 go build -buildmode=c-shared \
+CGO_ENABLED=1 \
+    CGO_CFLAGS="-mmacosx-version-min=14.0" \
+    CGO_LDFLAGS="-mmacosx-version-min=14.0" \
+    go build -buildmode=c-shared \
     -o "$OUTPUT_DIR/librclone.dylib" \
     github.com/rclone/rclone/librclone
 

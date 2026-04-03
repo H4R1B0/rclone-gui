@@ -25,6 +25,9 @@ targets:
           - "**/.build"
           - "**/.swiftpm"
           - Info.plist
+      - path: RcloneGUI/Resources/ProviderIcons
+        type: folder
+        buildPhase: resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.rclone-gui.RcloneGUI
@@ -53,6 +56,8 @@ targets:
             mkdir -p "$DYLIB_DST"
             cp "$DYLIB_SRC" "$DYLIB_DST/"
             install_name_tool -id "@rpath/librclone.dylib" "$DYLIB_DST/librclone.dylib"
+            # Patch minos to match deployment target (suppress version mismatch warning)
+            vtool -set-build-version macos 14.0 14.0 -replace -output "$DYLIB_DST/librclone.dylib" "$DYLIB_DST/librclone.dylib" 2>/dev/null || true
           fi
         name: Copy librclone.dylib
         basedOnDependencyAnalysis: false

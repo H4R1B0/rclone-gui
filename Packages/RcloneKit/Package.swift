@@ -1,5 +1,10 @@
 // swift-tools-version: 5.10
 import PackageDescription
+import Foundation
+
+// Compute absolute path to Resources/lib from Package.swift location
+let packageDir = URL(fileURLWithPath: #file).deletingLastPathComponent().path
+let libPath = "\(packageDir)/../../Resources/lib"
 
 let package = Package(
     name: "RcloneKit",
@@ -17,7 +22,7 @@ let package = Package(
             dependencies: ["CRclone"],
             path: "Sources/RcloneKit",
             linkerSettings: [
-                .unsafeFlags(["-L../../Resources/lib"]),
+                .unsafeFlags(["-L\(libPath)"]),
             ]
         ),
         .testTarget(
