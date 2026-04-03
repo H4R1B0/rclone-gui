@@ -1,5 +1,7 @@
 import Testing
+import Foundation
 @testable import RcloneGUI
+import RcloneKit
 
 @Suite("SettingsViewModel Tests")
 struct SettingsViewModelTests {

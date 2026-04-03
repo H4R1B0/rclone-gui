@@ -69,15 +69,10 @@ struct PanelViewModelSelectionTests {
     func selectAll() {
         let mock = MockRcloneClient()
         let vm = PanelViewModel(client: mock)
-        // Manually set files
-        vm.left.activeTab.files = [
-            FileItem(from: ["Name": "a.txt", "Path": "a.txt", "Size": 10, "ModTime": "2024-01-01T00:00:00.000000000Z", "IsDir": false])
-        ].compactMap { $0 }
-        // Actually FileItem needs proper init... let's test with the selectedFiles directly
-        vm.left.activeTab.selectedFiles = []
+        // No files → selectAll should result in empty selection
         vm.left.activeTab.files = []
         vm.selectAll(side: .left)
-        #expect(vm.left.activeTab.selectedFiles.isEmpty)  // no files = empty selection
+        #expect(vm.left.activeTab.selectedFiles.isEmpty)
     }
 
     @Test("clearSelection empties set")

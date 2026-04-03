@@ -1,6 +1,7 @@
 import Testing
 import Foundation
 @testable import RcloneGUI
+import RcloneKit
 
 @Suite("SyncMode Tests")
 struct SyncModeTests {
