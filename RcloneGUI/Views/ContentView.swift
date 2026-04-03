@@ -34,6 +34,8 @@ struct ContentView: View {
                     SchedulerView()
                 case .mount:
                     MountView()
+                case .trash:
+                    TrashView()
                 }
 
                 // Transfer area (resizable)

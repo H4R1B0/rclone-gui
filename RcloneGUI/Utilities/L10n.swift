@@ -316,6 +316,13 @@ enum L10n {
         "compress.compressUpload": ["ko": "압축", "en": "Compress"],
         "compress.localOnly":      ["ko": "로컬 파일만 압축 가능합니다", "en": "Only local files can be compressed"],
 
+        // Trash
+        "toolbar.trash":          ["ko": "휴지통", "en": "Trash"],
+        "trash.title":            ["ko": "휴지통", "en": "Trash"],
+        "trash.items":            ["ko": "개 항목", "en": "items"],
+        "trash.empty":            ["ko": "휴지통이 비어있습니다", "en": "Trash is empty"],
+        "trash.emptyAll":         ["ko": "비우기", "en": "Empty Trash"],
+
         // Transfer Report
         "report.title":           ["ko": "전송 리포트", "en": "Transfer Report"],
         "report.total":           ["ko": "전체", "en": "Total"],
