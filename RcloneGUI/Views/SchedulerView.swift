@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 struct SchedulerView: View {
     @Environment(AppState.self) private var appState
@@ -63,6 +64,52 @@ struct SchedulerView: View {
                     }
                 }
                 .listStyle(.inset)
+            }
+
+            Divider()
+
+            VStack(spacing: 0) {
+                HStack {
+                    Text(L10n.t("scheduler.logs")).font(.subheadline).foregroundColor(.secondary)
+                    Spacer()
+                    Button(L10n.t("scheduler.exportLogs")) {
+                        let panel = NSSavePanel()
+                        panel.nameFieldStringValue = "scheduler-logs.txt"
+                        panel.begin { result in
+                            guard result == .OK, let url = panel.url else { return }
+                            let text = scheduler.logs.joined(separator: "\n")
+                            try? text.write(to: url, atomically: true, encoding: .utf8)
+                        }
+                    }
+                    .controlSize(.small)
+                    Button(L10n.t("scheduler.clearLogs")) {
+                        scheduler.logs.removeAll()
+                        scheduler.saveLogs()
+                    }
+                    .controlSize(.small)
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 6)
+
+                if scheduler.logs.isEmpty {
+                    Text(L10n.t("scheduler.noLogs"))
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, minHeight: 60)
+                } else {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 2) {
+                            ForEach(scheduler.logs, id: \.self) { log in
+                                Text(log)
+                                    .font(.system(size: 11, design: .monospaced))
+                                    .foregroundColor(.primary)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.vertical, 4)
+                    }
+                    .frame(minHeight: 80, maxHeight: 160)
+                }
             }
         }
         .sheet(isPresented: $showAddTask) {

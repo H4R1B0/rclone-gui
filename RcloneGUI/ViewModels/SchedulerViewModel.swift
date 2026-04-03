@@ -33,13 +33,16 @@ final class SchedulerViewModel {
 
     private var timer: Timer?
     private let configURL: URL
+    private let logsURL: URL
 
     init() {
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
         let appDir = appSupport.appendingPathComponent("RcloneGUI")
         try? FileManager.default.createDirectory(at: appDir, withIntermediateDirectories: true)
         configURL = appDir.appendingPathComponent("scheduler.json")
+        logsURL = appDir.appendingPathComponent("scheduler-logs.json")
         loadTasks()
+        loadLogs()
     }
 
     func startMonitoring() {
@@ -84,6 +87,22 @@ final class SchedulerViewModel {
             // For now just log it
         }
         saveTasks()
+        saveLogs()
+    }
+
+    func saveLogs() {
+        let maxLogs = 500
+        let toSave = Array(logs.prefix(maxLogs))
+        if let data = try? JSONSerialization.data(withJSONObject: toSave) {
+            try? data.write(to: logsURL)
+        }
+    }
+
+    func loadLogs() {
+        guard let data = try? Data(contentsOf: logsURL),
+              let loaded = try? JSONSerialization.jsonObject(with: data) as? [String]
+        else { return }
+        logs = loaded
     }
 
     func saveTasks() {
