@@ -13,6 +13,7 @@ struct FileTableView: View {
     @State private var quickLookURL: URL?
     @State private var showBulkRename = false
     @State private var hashCompareFiles: (FileItem, FileItem)?
+    @State private var showCompress = false
 
     private var tab: TabState {
         appState.panels.side(side).activeTab
@@ -60,6 +61,9 @@ struct FileTableView: View {
         }
         .sheet(isPresented: $showBulkRename) {
             BulkRenameSheet(side: side)
+        }
+        .sheet(isPresented: $showCompress) {
+            CompressUploadSheet(side: side)
         }
         .sheet(item: Binding(
             get: { hashCompareFiles.map { HashCompareData(file1: $0.0, file2: $0.1) } },
@@ -289,6 +293,11 @@ struct FileTableView: View {
 
         Button(L10n.t("file.properties")) {
             showProperties = file
+        }
+
+        if tab.remote == "/" && !tab.selectedFiles.isEmpty {
+            Divider()
+            Button(L10n.t("compress.title")) { showCompress = true }
         }
 
         if tab.remote != "/" && !file.isDir {

@@ -308,6 +308,14 @@ enum L10n {
         // Linked Browsing
         "toolbar.linkedBrowsing": ["ko": "연결 탐색", "en": "Linked Browsing"],
 
+        // Compress
+        "compress.title":          ["ko": "압축", "en": "Compress"],
+        "compress.archiveName":    ["ko": "압축 파일 이름", "en": "Archive Name"],
+        "compress.fileCount":      ["ko": "%d개 파일 선택됨", "en": "%d files selected"],
+        "compress.compressing":    ["ko": "압축 중...", "en": "Compressing..."],
+        "compress.compressUpload": ["ko": "압축", "en": "Compress"],
+        "compress.localOnly":      ["ko": "로컬 파일만 압축 가능합니다", "en": "Only local files can be compressed"],
+
         // Transfer Report
         "report.title":           ["ko": "전송 리포트", "en": "Transfer Report"],
         "report.total":           ["ko": "전체", "en": "Total"],
