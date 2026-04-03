@@ -11,15 +11,12 @@ final class AppLockViewModel {
     var canUseTouchID: Bool = false
     var errorMessage: String?
 
-    private let keychainService = "com.rclone-gui.applock"
-    private let keychainAccount = "password"
+    private let keychainService = AppConstants.keychainService
+    private let keychainAccount = AppConstants.keychainAccount
     private let configURL: URL
 
     init() {
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let appDir = appSupport.appendingPathComponent("RcloneGUI")
-        try? FileManager.default.createDirectory(at: appDir, withIntermediateDirectories: true)
-        configURL = appDir.appendingPathComponent("app-lock-config.json")
+        configURL = AppConstants.appSupportDir.appendingPathComponent(AppConstants.appLockConfigFile)
         loadConfig()
         checkTouchIDAvailability()
     }

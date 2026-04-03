@@ -26,10 +26,7 @@ final class TrashViewModel {
     private let configURL: URL
 
     init() {
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let appDir = appSupport.appendingPathComponent("RcloneGUI")
-        try? FileManager.default.createDirectory(at: appDir, withIntermediateDirectories: true)
-        configURL = appDir.appendingPathComponent("trash.json")
+        configURL = AppConstants.appSupportDir.appendingPathComponent(AppConstants.trashFile)
         load()
     }
 
@@ -37,7 +34,7 @@ final class TrashViewModel {
     func recordDeletion(name: String, fs: String, path: String, size: Int64) {
         let item = TrashedFile(name: name, originalFs: fs, originalPath: path, size: size)
         items.insert(item, at: 0)
-        if items.count > 500 { items = Array(items.prefix(500)) }
+        if items.count > AppConstants.maxTrashItems { items = Array(items.prefix(AppConstants.maxTrashItems)) }
         save()
     }
 

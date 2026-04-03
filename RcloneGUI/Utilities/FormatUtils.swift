@@ -33,7 +33,7 @@ enum FormatUtils {
     private static let dateFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd HH:mm"
-        f.locale = Locale(identifier: "ko-KR")
+        f.locale = Locale(identifier: "\(AppConstants.defaultLocale)-KR")
         return f
     }()
 

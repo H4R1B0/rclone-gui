@@ -43,7 +43,7 @@ final class SettingsViewModel {
     var noUpdateModTime: Bool = false
 
     // Language — 한국어 기본
-    var locale: String = "ko"
+    var locale: String = AppConstants.defaultLocale
 
     private let client: RcloneClientProtocol
     private let settingsURL: URL
@@ -52,10 +52,7 @@ final class SettingsViewModel {
 
     init(client: RcloneClientProtocol) {
         self.client = client
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let appDir = appSupport.appendingPathComponent("RcloneGUI")
-        try? FileManager.default.createDirectory(at: appDir, withIntermediateDirectories: true)
-        self.settingsURL = appDir.appendingPathComponent("settings.json")
+        self.settingsURL = AppConstants.appSupportDir.appendingPathComponent(AppConstants.settingsFile)
         loadFromDisk()
     }
 
@@ -89,7 +86,7 @@ final class SettingsViewModel {
     func scheduleSave() {
         saveTask?.cancel()
         saveTask = Task {
-            try? await Task.sleep(for: .seconds(2))
+            try? await Task.sleep(for: .seconds(AppConstants.settingsSaveDebounce))
             guard !Task.isCancelled else { return }
             saveToDisk()
         }
@@ -110,7 +107,7 @@ final class SettingsViewModel {
         bwScheduleTask = Task { [weak self] in
             while !Task.isCancelled {
                 await self?.applyCurrentBwLimit()
-                try? await Task.sleep(for: .seconds(60))
+                try? await Task.sleep(for: .seconds(AppConstants.bwSchedulerInterval))
             }
         }
     }

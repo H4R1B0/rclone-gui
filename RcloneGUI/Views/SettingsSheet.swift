@@ -4,7 +4,7 @@ struct SettingsSheet: View {
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
 
-    @State private var pendingLocale: String = "ko"
+    @State private var pendingLocale: String = AppConstants.defaultLocale
     @State private var showRestartAlert = false
     @State private var showSetPassword = false
 
@@ -212,14 +212,14 @@ struct SettingsSheet: View {
             Button(L10n.t("app.restart")) {
                 settings.locale = pendingLocale
                 settings.saveToDisk()
-                // Relaunch
-                let url = URL(fileURLWithPath: Bundle.main.resourcePath!)
-                let path = url.deletingLastPathComponent().deletingLastPathComponent().absoluteString
+                // Relaunch: get the executable path and relaunch via shell
+                let executableURL = Bundle.main.executableURL!
+                let script = "sleep 0.5 && \"\(executableURL.path)\""
                 let task = Process()
-                task.executableURL = URL(fileURLWithPath: "/usr/bin/open")
-                task.arguments = [path]
+                task.executableURL = URL(fileURLWithPath: "/bin/sh")
+                task.arguments = ["-c", script]
                 try? task.run()
-                NSApplication.shared.terminate(nil)
+                exit(0)
             }
         } message: {
             Text(L10n.t("app.restart.message"))

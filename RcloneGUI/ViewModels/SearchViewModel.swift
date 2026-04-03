@@ -23,7 +23,7 @@ final class SearchViewModel {
 
     private let client: RcloneClientProtocol
     private var searchTask: Task<Void, Never>?
-    private let maxConcurrency = 5
+    private let maxConcurrency = AppConstants.maxSearchConcurrency
 
     init(client: RcloneClientProtocol) {
         self.client = client

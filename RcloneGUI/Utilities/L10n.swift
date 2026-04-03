@@ -3,10 +3,18 @@ import Foundation
 /// 경량 i18n 시스템 — 기존 TypeScript i18n.ts 포팅
 /// SettingsViewModel.locale ("ko" | "en") 기반으로 문자열 반환
 enum L10n {
-    static var locale: String = "ko"
+    static var locale: String = AppConstants.defaultLocale
 
     static func t(_ key: String) -> String {
         translations[key]?[locale] ?? translations[key]?["en"] ?? key
+    }
+
+    static func t(_ key: String, _ args: String...) -> String {
+        var result = t(key)
+        for (i, arg) in args.enumerated() {
+            result = result.replacingOccurrences(of: "{\(i)}", with: arg)
+        }
+        return result
     }
 
     // MARK: - 번역 테이블 (TypeScript i18n.ts에서 포팅)
@@ -23,6 +31,8 @@ enum L10n {
         "back":                 ["ko": "뒤로", "en": "Back"],
         "retry":                ["ko": "재시도", "en": "Retry"],
         "confirm":              ["ko": "확인", "en": "Confirm"],
+        "confirm.delete.title": ["ko": "삭제 확인", "en": "Confirm Delete"],
+        "confirm.delete.message": ["ko": "'{0}'을(를) 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.", "en": "Are you sure you want to delete '{0}'? This action cannot be undone."],
         "yes":                  ["ko": "예", "en": "Yes"],
         "no":                   ["ko": "아니오", "en": "No"],
         "ok":                   ["ko": "확인", "en": "OK"],
@@ -54,6 +64,9 @@ enum L10n {
         "panel.local":          ["ko": "로컬", "en": "Local"],
         "panel.noFiles":        ["ko": "파일 없음", "en": "No files"],
         "panel.addAccount":     ["ko": "계정 추가", "en": "Add Account"],
+        "panel.goUp":           ["ko": "상위 폴더", "en": "Go Up"],
+        "panel.newTab":         ["ko": "새 탭", "en": "New Tab"],
+        "panel.closeTab":       ["ko": "탭 닫기", "en": "Close Tab"],
 
         // Address bar
         "addressbar.path":      ["ko": "경로", "en": "Path"],
@@ -97,6 +110,7 @@ enum L10n {
         "transfer.completed":   ["ko": "완료", "en": "Completed"],
         "transfer.errors":      ["ko": "오류", "en": "Errors"],
         "transfer.noTransfers": ["ko": "전송 없음", "en": "No transfers"],
+        "transfer.pause":       ["ko": "일시정지", "en": "Pause"],
         "transfer.paused":      ["ko": "일시정지됨", "en": "Paused"],
         "transfer.resume":      ["ko": "재개", "en": "Resume"],
         "transfer.pauseAll":    ["ko": "모두 일시정지", "en": "Pause All"],
@@ -383,6 +397,8 @@ enum L10n {
         "onboarding.feature4":   ["ko": "동기화 및 스케줄링", "en": "Sync & scheduling"],
         "onboarding.getStarted": ["ko": "시작하기", "en": "Get Started"],
         "onboarding.skip":       ["ko": "건너뛰기", "en": "Skip"],
+        "onboarding.accountDesc": ["ko": "클라우드 계정을 연결하면 파일을 바로 탐색할 수 있습니다.", "en": "Connect a cloud account to start browsing your files."],
+        "onboarding.next":       ["ko": "다음", "en": "Next"],
         "onboarding.ready":      ["ko": "준비 완료!", "en": "All Set!"],
         "onboarding.readyDesc":  ["ko": "사이드바에서 클라우드를 선택하여 파일을 탐색하세요.", "en": "Select a cloud from the sidebar to start browsing."],
         "onboarding.start":      ["ko": "앱 시작", "en": "Start App"],

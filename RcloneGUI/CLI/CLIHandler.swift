@@ -89,7 +89,7 @@ enum CLIHandler {
             }
 
         case "version":
-            print("RcloneGUI v1.1.0 (librclone)")
+            print("\(AppConstants.appName) v\(AppConstants.appVersion) (librclone)")
 
         case "help", "--help", "-h":
             printUsage()

@@ -27,10 +27,7 @@ final class BookmarkViewModel {
     private let configURL: URL
 
     init() {
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let appDir = appSupport.appendingPathComponent("RcloneGUI")
-        try? FileManager.default.createDirectory(at: appDir, withIntermediateDirectories: true)
-        configURL = appDir.appendingPathComponent("bookmarks.json")
+        configURL = AppConstants.appSupportDir.appendingPathComponent(AppConstants.bookmarksFile)
         load()
     }
 

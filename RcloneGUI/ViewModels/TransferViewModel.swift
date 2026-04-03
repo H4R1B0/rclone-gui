@@ -49,7 +49,7 @@ final class TransferViewModel {
     // Checkpoints (resumable failed transfers)
     var checkpoints: [TransferCheckpoint] = []
     private let checkpointURL: URL
-    private let maxRetries = 3
+    private let maxRetries = AppConstants.maxTransferRetries
 
     private let client: RcloneClientProtocol
     private var pollingTask: Task<Void, Never>?
@@ -70,10 +70,7 @@ final class TransferViewModel {
 
     init(client: RcloneClientProtocol) {
         self.client = client
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let appDir = appSupport.appendingPathComponent("RcloneGUI")
-        try? FileManager.default.createDirectory(at: appDir, withIntermediateDirectories: true)
-        self.checkpointURL = appDir.appendingPathComponent("transfer-checkpoints.json")
+        self.checkpointURL = AppConstants.appSupportDir.appendingPathComponent(AppConstants.transferCheckpointsFile)
         loadCheckpoints()
     }
 
@@ -85,7 +82,7 @@ final class TransferViewModel {
         pollingTask = Task { [weak self] in
             while !Task.isCancelled {
                 await self?.poll()
-                try? await Task.sleep(for: .seconds(1))
+                try? await Task.sleep(for: .seconds(AppConstants.transferPollingInterval))
             }
         }
     }
@@ -117,8 +114,8 @@ final class TransferViewModel {
                !lastError.isEmpty,
                !lastError.contains("context canceled") {
                 lastErrors.insert(lastError, at: 0)
-                if lastErrors.count > 100 {
-                    lastErrors = Array(lastErrors.prefix(100))
+                if lastErrors.count > AppConstants.maxErrorHistory {
+                    lastErrors = Array(lastErrors.prefix(AppConstants.maxErrorHistory))
                 }
             }
         } catch {
@@ -153,9 +150,8 @@ final class TransferViewModel {
                     }
                 }
             }
-            // Cap at 200
-            if completed.count > 200 {
-                completed = Array(completed.prefix(200))
+            if completed.count > AppConstants.maxCompletedTransfers {
+                completed = Array(completed.prefix(AppConstants.maxCompletedTransfers))
             }
         } catch {
             #if DEBUG
@@ -177,21 +173,27 @@ final class TransferViewModel {
 
     @MainActor
     func pauseAll() async {
+        paused = true
         do {
             try await RcloneAPI.setBwLimit(using: client, rate: "1")
-            paused = true
         } catch {
+            paused = false
+            #if DEBUG
             print("[RcloneGUI] pauseAll failed: \(error.localizedDescription)")
+            #endif
         }
     }
 
     @MainActor
     func resumeAll() async {
+        paused = false
         do {
             try await RcloneAPI.setBwLimit(using: client, rate: "off")
-            paused = false
         } catch {
+            paused = true
+            #if DEBUG
             print("[RcloneGUI] resumeAll failed: \(error.localizedDescription)")
+            #endif
         }
     }
 
@@ -247,6 +249,7 @@ final class TransferViewModel {
 
     @MainActor
     func retryCheckpoint(_ cp: TransferCheckpoint) async {
+        guard cp.attempts < maxRetries else { return }
         var updated = cp
         updated.attempts += 1
         updated.lastAttempt = Date()

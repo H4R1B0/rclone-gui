@@ -4,13 +4,13 @@ import RcloneKit
 
 class SpotlightIndexer {
     static let shared = SpotlightIndexer()
-    private let domainID = "com.rclone-gui.files"
+    private let domainID = AppConstants.spotlightDomainID
 
     /// Index files from a remote listing into Spotlight
     func indexFiles(remote: String, path: String, files: [FileItem]) {
         var items: [CSSearchableItem] = []
 
-        for file in files.prefix(1000) {  // Limit to prevent overload
+        for file in files.prefix(AppConstants.maxSpotlightItems) {
             let uniqueID = "\(remote)/\(file.path)"
             let contentType: UTType = file.isDir ? .folder : .item
             let attributes = CSSearchableItemAttributeSet(contentType: contentType)

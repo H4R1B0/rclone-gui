@@ -62,10 +62,7 @@ final class SyncViewModel {
 
     init(client: RcloneClientProtocol) {
         self.client = client
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let appDir = appSupport.appendingPathComponent("RcloneGUI")
-        try? FileManager.default.createDirectory(at: appDir, withIntermediateDirectories: true)
-        profilesURL = appDir.appendingPathComponent("sync-profiles.json")
+        profilesURL = AppConstants.appSupportDir.appendingPathComponent(AppConstants.syncProfilesFile)
         loadProfiles()
     }
 

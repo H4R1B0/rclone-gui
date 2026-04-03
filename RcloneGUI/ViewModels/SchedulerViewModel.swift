@@ -36,21 +36,19 @@ final class SchedulerViewModel {
     private let logsURL: URL
 
     init() {
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let appDir = appSupport.appendingPathComponent("RcloneGUI")
-        try? FileManager.default.createDirectory(at: appDir, withIntermediateDirectories: true)
-        configURL = appDir.appendingPathComponent("scheduler.json")
-        logsURL = appDir.appendingPathComponent("scheduler-logs.json")
+        configURL = AppConstants.appSupportDir.appendingPathComponent(AppConstants.schedulerFile)
+        logsURL = AppConstants.appSupportDir.appendingPathComponent(AppConstants.schedulerLogsFile)
         loadTasks()
         loadLogs()
     }
 
     func startMonitoring() {
         stopMonitoring()
-        monitorTask = Task { [weak self] in
+        let scheduler = self
+        monitorTask = Task {
             while !Task.isCancelled {
-                await MainActor.run { self?.checkAndRun() }
-                try? await Task.sleep(for: .seconds(60))
+                _ = await MainActor.run { scheduler.checkAndRun() }
+                try? await Task.sleep(for: .seconds(AppConstants.schedulerMonitoringInterval))
             }
         }
     }
@@ -99,8 +97,7 @@ final class SchedulerViewModel {
     }
 
     func saveLogs() {
-        let maxLogs = 500
-        let toSave = Array(logs.prefix(maxLogs))
+        let toSave = Array(logs.prefix(AppConstants.maxSchedulerLogs))
         if let data = try? JSONSerialization.data(withJSONObject: toSave) {
             try? data.write(to: logsURL)
         }
