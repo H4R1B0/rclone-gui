@@ -52,8 +52,28 @@ targets:
           if [ -f "$DYLIB_SRC" ]; then
             mkdir -p "$DYLIB_DST"
             cp "$DYLIB_SRC" "$DYLIB_DST/"
-            # Fix install name
             install_name_tool -id "@rpath/librclone.dylib" "$DYLIB_DST/librclone.dylib"
           fi
         name: Copy librclone.dylib
         basedOnDependencyAnalysis: false
+
+  RcloneGUITests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: RcloneGUITests
+    settings:
+      base:
+        SWIFT_VERSION: "5.10"
+        MACOSX_DEPLOYMENT_TARGET: "14.0"
+        GENERATE_INFOPLIST_FILE: "YES"
+        LIBRARY_SEARCH_PATHS:
+          - "$(PROJECT_DIR)/Resources/lib"
+        LD_RUNPATH_SEARCH_PATHS:
+          - "@executable_path/../Frameworks"
+          - "@loader_path/../Frameworks"
+    dependencies:
+      - target: RcloneGUI
+      - package: RcloneKit
+      - package: FileBrowser
+      - package: TransferEngine

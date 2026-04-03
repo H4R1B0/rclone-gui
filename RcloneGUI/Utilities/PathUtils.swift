@@ -3,8 +3,11 @@ import Foundation
 enum PathUtils {
     /// Join path parts, filtering empty, collapsing double slashes
     static func join(_ parts: String...) -> String {
-        let joined = parts.filter { !$0.isEmpty }.joined(separator: "/")
-        return joined.replacingOccurrences(of: "//", with: "/")
+        var joined = parts.filter { !$0.isEmpty }.joined(separator: "/")
+        while joined.contains("//") {
+            joined = joined.replacingOccurrences(of: "//", with: "/")
+        }
+        return joined
     }
 
     /// Get parent path (remove last segment)
