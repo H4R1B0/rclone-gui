@@ -92,6 +92,10 @@ struct SettingsSheet: View {
                             numberField(L10n.t("settings.transfers"), value: Bindable(appState.settings).transfers)
                             numberField(L10n.t("settings.checkers"), value: Bindable(appState.settings).checkers)
                             numberField(L10n.t("settings.multiThread"), value: Bindable(appState.settings).multiThreadStreams)
+                            Text(L10n.t("settings.multiThreadHelp"))
+                                .font(.system(size: 10))
+                                .foregroundColor(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                             stringField(L10n.t("settings.bufferSize"), value: Bindable(appState.settings).bufferSize, placeholder: "16M")
                             stringField(L10n.t("settings.bwLimit"), value: Bindable(appState.settings).bwLimit, placeholder: L10n.t("settings.disabled"))
                         }
