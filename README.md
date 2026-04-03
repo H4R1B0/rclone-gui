@@ -91,7 +91,7 @@ A native macOS desktop application that lets you manage multiple cloud storage s
 - [x] Share link generation (copy to clipboard)
 - [x] File hash comparison (MD5, SHA1 — select 2 files)
 - [ ] Compress and upload files
-- [ ] Preserve original dates on transfer
+- [x] Preserve original dates on transfer (rclone default + settings toggle)
 - [ ] Trash management
 
 ### 4. Transfer
@@ -122,7 +122,7 @@ A native macOS desktop application that lets you manage multiple cloud storage s
 - [x] Enable/disable individual tasks
 - [ ] Background execution (menu bar resident)
 - [ ] CLI mode support
-- [ ] Schedule logging
+- [x] Schedule logging (disk persistence + export)
 
 ### 7. Encryption
 
@@ -135,7 +135,7 @@ A native macOS desktop application that lets you manage multiple cloud storage s
 - [x] Multi-cloud simultaneous search
 - [x] Cloud filter toggles (select which remotes to search)
 - [x] Filtering: file type, file size range
-- [ ] Filtering: date range, path
+- [x] Filtering: date range, path
 
 ### 9. Account Management
 
@@ -177,7 +177,7 @@ A native macOS desktop application that lets you manage multiple cloud storage s
 ### 14. Additional Features
 
 - [ ] Online media playback (streaming)
-- [ ] Cloud storage quota check (per-remote detailed view)
+- [x] Cloud storage quota check (per-remote detailed view with progress bars)
 
 ## Tech Stack
 
@@ -187,7 +187,7 @@ A native macOS desktop application that lets you manage multiple cloud storage s
 - **rclone Integration**: librclone (C shared library via FFI)
 - **Project Structure**: Swift Package Manager (RcloneKit, FileBrowser, TransferEngine)
 - **Minimum OS**: macOS 14 (Sonoma)
-- **Version**: 1.0.0
+- **Version**: 1.0.1
 
 ## Getting Started
 
