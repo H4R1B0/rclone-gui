@@ -14,6 +14,7 @@ struct FileTableView: View {
     @State private var showBulkRename = false
     @State private var hashCompareFiles: (FileItem, FileItem)?
     @State private var showCompress = false
+    @State private var mediaFile: FileItem?
 
     private var tab: TabState {
         appState.panels.side(side).activeTab
@@ -79,6 +80,9 @@ struct FileTableView: View {
                 QuickLookPreview(url: url)
                     .frame(width: 600, height: 500)
             }
+        }
+        .sheet(item: $mediaFile) { file in
+            MediaPlayerSheet(file: file, fs: tab.remote)
         }
         .onReceive(NotificationCenter.default.publisher(for: .requestQuickLook)) { _ in
             guard appState.panels.activePanel == side else { return }
@@ -291,6 +295,12 @@ struct FileTableView: View {
             Divider()
         }
 
+        if isMediaFile(file.name) && !file.isDir {
+            Button(L10n.t("media.play")) {
+                mediaFile = file
+            }
+        }
+
         Button(L10n.t("file.properties")) {
             showProperties = file
         }
@@ -388,6 +398,12 @@ struct FileTableView: View {
     }
 
     // MARK: - Thumbnail Helpers
+
+    private func isMediaFile(_ name: String) -> Bool {
+        let ext = (name as NSString).pathExtension.lowercased()
+        return ["mp4", "mkv", "avi", "mov", "webm", "flv", "wmv",
+                "mp3", "wav", "flac", "aac", "ogg", "wma", "m4a", "m4v"].contains(ext)
+    }
 
     private func isImageFile(_ name: String) -> Bool {
         let ext = (name as NSString).pathExtension.lowercased()
