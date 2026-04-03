@@ -356,6 +356,18 @@ enum L10n {
         "finder.uploading":    ["ko": "업로드 중...", "en": "Uploading..."],
         "finder.upload":       ["ko": "업로드", "en": "Upload"],
 
+        // Duplicate Finder
+        "duplicate.title":         ["ko": "중복 파일 찾기", "en": "Find Duplicates"],
+        "duplicate.desc":          ["ko": "여러 클라우드에서 중복 파일을 찾아 공간을 절약하세요.", "en": "Find duplicate files across clouds to save space."],
+        "duplicate.selectRemotes": ["ko": "검색할 리모트 선택", "en": "Select remotes to scan"],
+        "duplicate.scan":          ["ko": "중복 검색 시작", "en": "Start Scan"],
+        "duplicate.scanning":      ["ko": "검색 중", "en": "Scanning"],
+        "duplicate.comparing":     ["ko": "해시 비교 중...", "en": "Comparing hashes..."],
+        "duplicate.groups":        ["ko": "개 중복 그룹", "en": "duplicate groups"],
+        "duplicate.wasted":        ["ko": "낭비", "en": "wasted"],
+        "duplicate.copies":        ["ko": "개 사본", "en": "copies"],
+        "duplicate.keep":          ["ko": "유지", "en": "Keep"],
+
         // Transfer Resume
         "transfer.resumable":  ["ko": "재시도 가능", "en": "Resumable"],
         "transfer.retryAll":   ["ko": "모두 재시도", "en": "Retry All"],

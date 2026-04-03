@@ -7,6 +7,7 @@ enum SidebarItem: Hashable {
     case scheduler
     case mount
     case trash
+    case duplicates
     case remote(String)
     case bookmark(Bookmark)
 }
@@ -52,6 +53,8 @@ struct ContentView: View {
                         MountView()
                     case .trash:
                         TrashView()
+                    case .duplicates:
+                        DuplicateFinderView()
                     case .remote(let name):
                         ExplorerView()
                             .onAppear {

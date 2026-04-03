@@ -61,6 +61,9 @@ struct SidebarView: View {
 
                 Label(L10n.t("toolbar.trash"), systemImage: "trash")
                     .tag(SidebarItem.trash)
+
+                Label(L10n.t("duplicate.title"), systemImage: "doc.on.doc")
+                    .tag(SidebarItem.duplicates)
             }
         }
         .listStyle(.sidebar)

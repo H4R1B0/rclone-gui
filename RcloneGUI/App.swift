@@ -1,4 +1,5 @@
 import SwiftUI
+import CoreSpotlight
 
 // MARK: - Notification Names (keyboard shortcuts from menu commands)
 
@@ -40,6 +41,13 @@ struct RcloneGUIApp: App {
                 .environment(appState)
                 .onOpenURL { url in
                     URLSchemeHandler.handle(url, appState: appState)
+                }
+                .onContinueUserActivity(CSSearchableItemActionType) { activity in
+                    if let result = SpotlightIndexer.shared.handleSpotlightActivity(activity) {
+                        Task { @MainActor in
+                            await appState.panels.navigateTo(side: .left, remote: result.remote, path: PathUtils.parent(result.path))
+                        }
+                    }
                 }
         }
         .defaultSize(width: 1400, height: 900)

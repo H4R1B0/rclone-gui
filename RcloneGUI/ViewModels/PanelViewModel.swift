@@ -197,6 +197,8 @@ final class PanelViewModel {
             tab.files = items
             if let r = remote { tab.remote = r }
             if let p = path { tab.path = p }
+            // Index for Spotlight
+            SpotlightIndexer.shared.indexFiles(remote: fs, path: dir, files: items)
         } catch {
             tab.error = error.localizedDescription
         }
