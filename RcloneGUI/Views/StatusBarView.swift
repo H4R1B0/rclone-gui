@@ -4,6 +4,7 @@ import RcloneKit
 struct StatusBarView: View {
     @Environment(AppState.self) private var appState
     @State private var showErrorPopover = false
+    @State private var showQuotaSheet = false
     @State private var quota: (used: Int64, total: Int64)?
 
     private var activeTab: TabState {
@@ -22,9 +23,27 @@ struct StatusBarView: View {
                 if let quota = quota {
                     let usedStr = FormatUtils.formatBytes(quota.used)
                     let totalStr = FormatUtils.formatBytes(quota.total)
-                    Text("  \(usedStr) / \(totalStr)")
-                        .font(.system(size: 10))
-                        .foregroundColor(.secondary)
+                    Button(action: { showQuotaSheet = true }) {
+                        Text("  \(usedStr) / \(totalStr)")
+                            .font(.system(size: 10))
+                            .foregroundColor(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .sheet(isPresented: $showQuotaSheet) {
+                        QuotaSheet()
+                            .environment(appState)
+                    }
+                } else {
+                    Button(action: { showQuotaSheet = true }) {
+                        Image(systemName: "chart.pie")
+                            .font(.system(size: 10))
+                    }
+                    .buttonStyle(.plain)
+                    .help(L10n.t("quota.title"))
+                    .sheet(isPresented: $showQuotaSheet) {
+                        QuotaSheet()
+                            .environment(appState)
+                    }
                 }
             }
 

@@ -259,6 +259,12 @@ enum L10n {
 
         // Quota
         "status.quota":          ["ko": "용량", "en": "Quota"],
+        "quota.title":           ["ko": "스토리지 용량", "en": "Storage Quota"],
+        "quota.used":            ["ko": "사용", "en": "Used"],
+        "quota.free":            ["ko": "여유", "en": "Free"],
+        "quota.total":           ["ko": "전체", "en": "Total"],
+        "quota.noData":          ["ko": "용량 정보가 없습니다", "en": "No quota data"],
+        "quota.notAvailable":    ["ko": "용량 정보를 사용할 수 없음", "en": "Quota not available"],
 
         // Search Filters
         "search.filterType":     ["ko": "파일 타입", "en": "File Type"],
