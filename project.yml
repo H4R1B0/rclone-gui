@@ -29,7 +29,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.rclone-gui.RcloneGUI
         PRODUCT_NAME: RcloneGUI
-        MARKETING_VERSION: "1.3.0"
+        MARKETING_VERSION: "1.4.0"
         CURRENT_PROJECT_VERSION: "1"
         INFOPLIST_FILE: RcloneGUI/Info.plist
         SWIFT_VERSION: "5.10"

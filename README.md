@@ -194,10 +194,10 @@ A native macOS desktop application that lets you manage multiple cloud storage s
 - [x] Keyboard navigation (Enter/Delete/↑↓←→/Space/Tab)
 
 ### v1.4.0 — Tier 3: Polish
-- [ ] Spotlight integration (search cloud files from Spotlight)
-- [ ] Smart duplicate detection (cross-cloud)
-- [ ] File versioning & history (S3, B2)
-- [ ] Large directory performance (100k+ files)
+- [x] Spotlight integration (CoreSpotlight indexing + result click)
+- [x] Smart duplicate detection (size + MD5 cross-cloud scan)
+- [x] File versioning & history (operations/stat)
+- [x] Large directory performance (file count bar + drawingGroup)
 
 ### v2.0.0 — Tier 4: Vision
 - [ ] AI-powered file organization & search
@@ -212,7 +212,7 @@ A native macOS desktop application that lets you manage multiple cloud storage s
 - **rclone Integration**: librclone (C shared library via FFI)
 - **Project Structure**: Swift Package Manager (RcloneKit, FileBrowser, TransferEngine)
 - **Minimum OS**: macOS 14 (Sonoma)
-- **Version**: 1.3.0
+- **Version**: 1.4.0
 
 ## Getting Started
 
