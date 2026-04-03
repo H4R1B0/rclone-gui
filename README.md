@@ -121,7 +121,7 @@ A native macOS desktop application that lets you manage multiple cloud storage s
 - [x] Task scheduler (custom interval in minutes)
 - [x] Enable/disable individual tasks
 - [x] Background execution (menu bar resident)
-- [ ] CLI mode support
+- [x] CLI mode support (list, remotes, copy, move, mkdir)
 - [x] Schedule logging (disk persistence + export)
 
 ### 7. Encryption
@@ -176,7 +176,7 @@ A native macOS desktop application that lets you manage multiple cloud storage s
 
 ### 14. Additional Features
 
-- [ ] Online media playback (streaming)
+- [x] Online media playback (AVKit, cloud files temp-downloaded)
 - [x] Cloud storage quota check (per-remote detailed view with progress bars)
 
 ## Tech Stack
@@ -187,7 +187,7 @@ A native macOS desktop application that lets you manage multiple cloud storage s
 - **rclone Integration**: librclone (C shared library via FFI)
 - **Project Structure**: Swift Package Manager (RcloneKit, FileBrowser, TransferEngine)
 - **Minimum OS**: macOS 14 (Sonoma)
-- **Version**: 1.0.3
+- **Version**: 1.1.0
 
 ## Getting Started
 
