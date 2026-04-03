@@ -18,9 +18,7 @@ struct RemoteSelectorView: View {
                         Task { await appState.panels.loadFiles(side: side) }
                     }) {
                         VStack(spacing: 6) {
-                            Image(systemName: "cloud.fill")
-                                .font(.system(size: 24))
-                                .foregroundColor(.accentColor)
+                            ProviderIcon.icon(for: remote.type, size: 24)
                             Text(remote.displayName)
                                 .font(.system(size: 13, weight: .medium))
                                 .lineLimit(1)
@@ -37,7 +35,7 @@ struct RemoteSelectorView: View {
                 }
 
                 // Add account button
-                Button(action: { appState.activeView = .account }) {
+                Button(action: { appState.showAccountSetup = true }) {
                     VStack(spacing: 6) {
                         Image(systemName: "plus.circle")
                             .font(.system(size: 24))
