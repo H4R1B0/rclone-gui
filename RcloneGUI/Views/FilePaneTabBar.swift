@@ -83,7 +83,7 @@ struct FilePaneTabBar: View {
                 }
             }) {
                 Image(systemName: "xmark")
-                    .font(.system(size: 7, weight: .bold))
+                    .font(.system(size: 9, weight: .bold))
                     .foregroundColor(.secondary.opacity(0.6))
             }
             .buttonStyle(.plain)

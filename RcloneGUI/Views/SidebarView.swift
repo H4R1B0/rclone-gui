@@ -19,7 +19,7 @@ struct SidebarView: View {
 
             // Cloud Remotes
             Section(L10n.t("sidebar.remotes")) {
-                ForEach(appState.accounts.remotes) { remote in
+                ForEach(appState.accounts.orderedRemotes) { remote in
                     Label {
                         Text(remote.displayName)
                     } icon: {
@@ -124,4 +124,30 @@ struct SidebarView: View {
             }
         }
     }
+}
+
+// MARK: - Remote Drag & Drop Delegate
+
+struct RemoteDropDelegate: DropDelegate {
+    let remoteName: String
+    let accounts: AccountViewModel
+    @Binding var draggingRemoteName: String?
+
+    func performDrop(info: DropInfo) -> Bool {
+        draggingRemoteName = nil
+        return true
+    }
+
+    func dropEntered(info: DropInfo) {
+        guard let from = draggingRemoteName, from != remoteName else { return }
+        withAnimation(.easeInOut(duration: 0.2)) {
+            accounts.moveRemote(fromName: from, toName: remoteName)
+        }
+    }
+
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        DropProposal(operation: .move)
+    }
+
+    func dropExited(info: DropInfo) {}
 }

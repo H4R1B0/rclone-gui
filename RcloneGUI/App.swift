@@ -14,6 +14,7 @@ extension Notification.Name {
     static let requestSearch = Notification.Name("requestSearch")
     static let requestQuickLook = Notification.Name("requestQuickLook")
     static let requestBookmark = Notification.Name("requestBookmark")
+    static let requestExplorer = Notification.Name("requestExplorer")
 }
 
 @main

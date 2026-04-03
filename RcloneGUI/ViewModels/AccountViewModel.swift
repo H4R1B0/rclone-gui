@@ -7,11 +7,60 @@ final class AccountViewModel {
     var providers: [RcloneProvider] = []
     var isLoading: Bool = false
     var error: String?
+    private(set) var remoteOrder: [String] = []
 
     private let client: RcloneClientProtocol
 
+    /// remotes sorted by user-defined order
+    var orderedRemotes: [Remote] {
+        let orderMap = Dictionary(uniqueKeysWithValues: remoteOrder.enumerated().map { ($1, $0) })
+        return remotes.sorted { a, b in
+            let ia = orderMap[a.name] ?? Int.max
+            let ib = orderMap[b.name] ?? Int.max
+            if ia == ib { return a.name < b.name }
+            return ia < ib
+        }
+    }
+
     init(client: RcloneClientProtocol) {
         self.client = client
+        loadRemoteOrder()
+    }
+
+    // MARK: - Remote Order Persistence
+
+    private var remoteOrderURL: URL {
+        AppConstants.appSupportDir.appendingPathComponent(AppConstants.remoteOrderFile)
+    }
+
+    private func loadRemoteOrder() {
+        guard let data = try? Data(contentsOf: remoteOrderURL),
+              let order = try? JSONDecoder().decode([String].self, from: data) else { return }
+        remoteOrder = order
+    }
+
+    private func saveRemoteOrder() {
+        guard let data = try? JSONEncoder().encode(remoteOrder) else { return }
+        try? data.write(to: remoteOrderURL)
+    }
+
+    /// Sync order list with current remotes (remove stale, append new)
+    private func syncRemoteOrder() {
+        let names = Set(remotes.map(\.name))
+        remoteOrder = remoteOrder.filter { names.contains($0) }
+        for remote in remotes where !remoteOrder.contains(remote.name) {
+            remoteOrder.append(remote.name)
+        }
+        saveRemoteOrder()
+    }
+
+    func moveRemote(fromName: String, toName: String) {
+        guard let fromIdx = remoteOrder.firstIndex(of: fromName),
+              let toIdx = remoteOrder.firstIndex(of: toName),
+              fromIdx != toIdx else { return }
+        remoteOrder.move(fromOffsets: IndexSet(integer: fromIdx),
+                         toOffset: toIdx > fromIdx ? toIdx + 1 : toIdx)
+        saveRemoteOrder()
     }
 
     // MARK: - Remote Management
@@ -28,6 +77,7 @@ final class AccountViewModel {
                 loaded.append(Remote(name: name, type: type))
             }
             remotes = loaded
+            syncRemoteOrder()
         } catch {
             self.error = error.localizedDescription
         }

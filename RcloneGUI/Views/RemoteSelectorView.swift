@@ -4,6 +4,8 @@ struct RemoteSelectorView: View {
     @Environment(AppState.self) private var appState
     let side: PanelSide
 
+    @State private var draggingRemoteName: String?
+
     private let columns = [
         GridItem(.flexible()),
         GridItem(.flexible())
@@ -12,7 +14,7 @@ struct RemoteSelectorView: View {
     var body: some View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: 12) {
-                ForEach(appState.accounts.remotes) { remote in
+                ForEach(appState.accounts.orderedRemotes) { remote in
                     Button(action: {
                         appState.panels.setRemote(side: side, remote: "\(remote.name):")
                         Task { await appState.panels.loadFiles(side: side) }
@@ -32,6 +34,16 @@ struct RemoteSelectorView: View {
                         .cornerRadius(8)
                     }
                     .buttonStyle(.plain)
+                    .opacity(draggingRemoteName == remote.name ? 0.4 : 1)
+                    .onDrag {
+                        draggingRemoteName = remote.name
+                        return NSItemProvider(object: remote.name as NSString)
+                    }
+                    .onDrop(of: [.text], delegate: RemoteDropDelegate(
+                        remoteName: remote.name,
+                        accounts: appState.accounts,
+                        draggingRemoteName: $draggingRemoteName
+                    ))
                 }
 
                 // Add account button

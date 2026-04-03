@@ -17,6 +17,7 @@ struct AccountSetupView: View {
     @State private var showUnionSetup = false
     @State private var providerSearch = ""
     @State private var remoteToDelete: Remote?
+    @State private var draggingRemoteName: String?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -47,6 +48,12 @@ struct AccountSetupView: View {
                 Text(L10n.t("account.title"))
                     .font(.title2.bold())
                 Spacer()
+                Button(action: { appState.showAccountSetup = false }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.secondary)
+                }
+                .buttonStyle(.plain)
+                .help(L10n.t("close"))
                 Button(action: { showUnionSetup = true }) {
                     Label(L10n.t("union.title"), systemImage: "externaldrive.badge.plus")
                 }
@@ -75,7 +82,7 @@ struct AccountSetupView: View {
 
             Divider()
 
-            if appState.accounts.remotes.isEmpty {
+            if appState.accounts.orderedRemotes.isEmpty {
                 VStack(spacing: 12) {
                     Image(systemName: "cloud")
                         .font(.system(size: 48))
@@ -87,8 +94,18 @@ struct AccountSetupView: View {
                 .frame(maxHeight: .infinity)
             } else {
                 List {
-                    ForEach(appState.accounts.remotes) { remote in
+                    ForEach(appState.accounts.orderedRemotes) { remote in
                         remoteCard(remote)
+                            .opacity(draggingRemoteName == remote.name ? 0.4 : 1)
+                            .onDrag {
+                                draggingRemoteName = remote.name
+                                return NSItemProvider(object: remote.name as NSString)
+                            }
+                            .onDrop(of: [.text], delegate: RemoteDropDelegate(
+                                remoteName: remote.name,
+                                accounts: appState.accounts,
+                                draggingRemoteName: $draggingRemoteName
+                            ))
                     }
                 }
                 .listStyle(.inset)

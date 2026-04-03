@@ -51,7 +51,7 @@ struct FilePanePathBar: View {
                         let segments = PathUtils.segments(tab.path)
                         ForEach(Array(segments.enumerated()), id: \.offset) { index, segment in
                             Image(systemName: "chevron.right")
-                                .font(.system(size: 7, weight: .bold))
+                                .font(.system(size: 9, weight: .bold))
                                 .foregroundColor(.secondary.opacity(0.4))
 
                             Button(segment) {
