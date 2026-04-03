@@ -1,7 +1,22 @@
+# Legacy (Electron/Node)
 node_modules/
 dist/
 dist-electron/
 dist-release/
-resources/bin/
+
+# Swift / Xcode
+.build/
+DerivedData/
+*.xcuserdata/
+xcuserdata/
+*.xcworkspace/xcuserdata/
+
+# librclone build artifacts
+Resources/lib/
+.build/rclone/
+
+# General
 *.log
 .DS_Store
+.worktrees/
+.idea/
