@@ -10,6 +10,25 @@ struct PanelViewModelTabTests {
         #expect(vm.left.tabs.count == 1)
         #expect(vm.right.tabs.count == 1)
         #expect(vm.left.activeTab.mode == .local)
+        #expect(vm.right.activeTab.mode == .cloud)
+        #expect(vm.right.activeTab.remote == "")
+        #expect(vm.right.activeTab.label == "")
+    }
+
+    @Test("resetTab clears to empty cloud state") @MainActor
+    func resetTab() {
+        let vm = PanelViewModel(client: MockRcloneClient())
+        let tab = vm.left.activeTab
+        tab.mode = .local
+        tab.remote = "/"
+        tab.label = "Local"
+        tab.selectedFiles = ["test"]
+        vm.left.resetTab(tab)
+        #expect(tab.mode == .cloud)
+        #expect(tab.remote == "")
+        #expect(tab.label == "")
+        #expect(tab.files.isEmpty)
+        #expect(tab.selectedFiles.isEmpty)
     }
 
     @Test("side returns correct panel") @MainActor
@@ -32,6 +51,17 @@ struct PanelViewModelTabTests {
         #expect(vm.left.tabs.count == 2)
         #expect(vm.left.activeTab.mode == .cloud)
         #expect(vm.left.activeTab.remote == "gdrive:")
+    }
+
+    @Test("moveTab reorders tabs") @MainActor
+    func moveTab() {
+        let vm = PanelViewModel(client: MockRcloneClient())
+        vm.left.addTab(mode: .cloud, remote: "gdrive:", label: "Drive")
+        vm.left.addTab(mode: .cloud, remote: "s3:", label: "S3")
+        let ids = vm.left.tabs.map(\.id)
+        // Move last tab to first position
+        vm.left.moveTab(fromId: ids[2], toId: ids[0])
+        #expect(vm.left.tabs[0].label == "S3")
     }
 
     @Test("closeTab removes and switches") @MainActor
@@ -79,6 +109,14 @@ struct PanelViewModelSelectionTests {
         vm.left.activeTab.selectedFiles = ["a", "b", "c"]
         vm.clearSelection(side: .left)
         #expect(vm.left.activeTab.selectedFiles.isEmpty)
+    }
+
+    @Test("singleSelect clears others and selects one") @MainActor
+    func singleSelect() {
+        let vm = PanelViewModel(client: MockRcloneClient())
+        vm.left.activeTab.selectedFiles = ["a", "b", "c"]
+        vm.singleSelect(side: .left, name: "b")
+        #expect(vm.left.activeTab.selectedFiles == ["b"])
     }
 }
 

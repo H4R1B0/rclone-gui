@@ -1,10 +1,12 @@
 import Testing
 @testable import RcloneGUI
 
-@Suite("L10n Tests")
+@Suite("L10n Tests", .serialized)
 struct L10nTests {
     @Test("Korean translation exists")
     func koreanTranslation() {
+        let saved = L10n.locale
+        defer { L10n.locale = saved }
         L10n.locale = "ko"
         #expect(L10n.t("close") == "닫기")
         #expect(L10n.t("cancel") == "취소")
@@ -13,6 +15,8 @@ struct L10nTests {
 
     @Test("English translation exists")
     func englishTranslation() {
+        let saved = L10n.locale
+        defer { L10n.locale = saved }
         L10n.locale = "en"
         #expect(L10n.t("close") == "Close")
         #expect(L10n.t("cancel") == "Cancel")
@@ -26,6 +30,8 @@ struct L10nTests {
 
     @Test("All toolbar keys exist")
     func toolbarKeys() {
+        let saved = L10n.locale
+        defer { L10n.locale = saved }
         L10n.locale = "ko"
         #expect(!L10n.t("toolbar.explore").isEmpty)
         #expect(!L10n.t("toolbar.accounts").isEmpty)
@@ -35,11 +41,12 @@ struct L10nTests {
 
     @Test("Locale switching")
     func localeSwitching() {
+        let saved = L10n.locale
+        defer { L10n.locale = saved }
         L10n.locale = "ko"
         let ko = L10n.t("close")
         L10n.locale = "en"
         let en = L10n.t("close")
         #expect(ko != en)
-        L10n.locale = "ko"  // reset
     }
 }
