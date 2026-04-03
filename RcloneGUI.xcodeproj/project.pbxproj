@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		02181AEB7C191AF0105DC778 /* AccountViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3234A62047F52BDA50E2F716 /* AccountViewModelTests.swift */; };
+		06D843FC3C1FCBD2CAD2CF03 /* ShortcutsIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FDF3F697D764C5128E99BD1 /* ShortcutsIntents.swift */; };
 		073DBA89543E46C63CD05503 /* PropertiesSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F65BAEDE8D4FA63EFECA57F3 /* PropertiesSheet.swift */; };
 		079E791883E64C1DBDCA57B1 /* MediaPlayerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DF32F9F85FC56862BA973A /* MediaPlayerSheet.swift */; };
 		07A226EE2F77ABA507DC3BCB /* ClipboardState.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEE731FEF9343F36A7C52E62 /* ClipboardState.swift */; };
@@ -67,6 +68,7 @@
 		BA935CD5B8638757177817B5 /* AccountSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D882FD253104D9E1A8B2876C /* AccountSetupView.swift */; };
 		C15F14F4A9A7C849F47A3F91 /* CompressUploadSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49E767503D6DA16E81118049 /* CompressUploadSheet.swift */; };
 		C459DD6871CEA692FAB4DBE4 /* MountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3367A1B528B7C25267CA61E4 /* MountView.swift */; };
+		C4665B3B160E583A22C0674E /* URLSchemeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86CE7B8D47C64A9AAB391552 /* URLSchemeHandler.swift */; };
 		C706CB7F75EC151B17E37F45 /* HashCompareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C17292A13239D0E9FC11E27 /* HashCompareSheet.swift */; };
 		CD056BA3486CB41301318CE2 /* PanelViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BC05322F92FE4D7B12810C /* PanelViewModelTests.swift */; };
 		CFCBBBE6FA89E0AB9105A495 /* SyncView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26AAF5799C5E606D409FF9D /* SyncView.swift */; };
@@ -146,6 +148,8 @@
 		78D37DC600F3C0AB0B7FB065 /* RcloneKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = RcloneKit; path = Packages/RcloneKit; sourceTree = SOURCE_ROOT; };
 		79ECDA66CF28B4184F7CF343 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
 		7C17292A13239D0E9FC11E27 /* HashCompareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HashCompareSheet.swift; sourceTree = "<group>"; };
+		7FDF3F697D764C5128E99BD1 /* ShortcutsIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsIntents.swift; sourceTree = "<group>"; };
+		86CE7B8D47C64A9AAB391552 /* URLSchemeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLSchemeHandler.swift; sourceTree = "<group>"; };
 		86E8D1954B475B47F2B2051F /* FilePane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilePane.swift; sourceTree = "<group>"; };
 		87351B73D23FEAE3793DFD33 /* FileTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileTableView.swift; sourceTree = "<group>"; };
 		89BD872C179F52F865037212 /* SearchViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViewModelTests.swift; sourceTree = "<group>"; };
@@ -327,6 +331,8 @@
 			isa = PBXGroup;
 			children = (
 				DE9D7A80905496C12B372D73 /* FinderService.swift */,
+				7FDF3F697D764C5128E99BD1 /* ShortcutsIntents.swift */,
+				86CE7B8D47C64A9AAB391552 /* URLSchemeHandler.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -570,6 +576,7 @@
 				83436735E2F2C4A2419B726D /* SetPasswordSheet.swift in Sources */,
 				723A6BCAB2E8AA9FD84D303C /* SettingsSheet.swift in Sources */,
 				CFD8F3ECF6B06D682E8ED167 /* SettingsViewModel.swift in Sources */,
+				06D843FC3C1FCBD2CAD2CF03 /* ShortcutsIntents.swift in Sources */,
 				717FEE990CF602296BD40C7B /* SidebarView.swift in Sources */,
 				EA978993B6C5EB828DEEA921 /* SyncProfileSheet.swift in Sources */,
 				CFCBBBE6FA89E0AB9105A495 /* SyncView.swift in Sources */,
@@ -580,6 +587,7 @@
 				F95D1084ED438C375089F0CE /* TransferViewModel.swift in Sources */,
 				5A902CEEECB6CDA9633EEE9E /* TrashView.swift in Sources */,
 				4E0063D38E0A20A7742ADB9F /* TrashViewModel.swift in Sources */,
+				C4665B3B160E583A22C0674E /* URLSchemeHandler.swift in Sources */,
 				A81FA05C53B8494BAD01F87C /* UnionSetupSheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -770,7 +778,7 @@
 					"$(PROJECT_DIR)/Resources/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.1.2;
+				MARKETING_VERSION = 1.2.0;
 				OTHER_LDFLAGS = (
 					"-lrclone",
 				);
@@ -795,7 +803,7 @@
 					"$(PROJECT_DIR)/Resources/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.1.2;
+				MARKETING_VERSION = 1.2.0;
 				OTHER_LDFLAGS = (
 					"-lrclone",
 				);

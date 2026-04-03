@@ -188,10 +188,10 @@ A native macOS desktop application that lets you manage multiple cloud storage s
 - [x] Smart error recovery (auth/quota/network/404/rate-limit classification)
 
 ### v1.3.0 — Tier 2: Integration
-- [ ] URL scheme (rclonegui://open?remote=gdrive&path=/Documents)
-- [ ] Shortcuts & Automator support
-- [ ] Share Extension (Upload to Cloud from any app)
-- [ ] Keyboard navigation enhancement (vim keys, VoiceOver)
+- [x] URL scheme (rclonegui://open, mount, sync, upload)
+- [x] Shortcuts integration (List Remotes, List Files, Copy File, Create Folder)
+- [x] Quick Upload (sidebar button + NSOpenPanel)
+- [x] Keyboard navigation (Enter/Delete/↑↓←→/Space/Tab)
 
 ### v1.4.0 — Tier 3: Polish
 - [ ] Spotlight integration (search cloud files from Spotlight)
@@ -212,7 +212,7 @@ A native macOS desktop application that lets you manage multiple cloud storage s
 - **rclone Integration**: librclone (C shared library via FFI)
 - **Project Structure**: Swift Package Manager (RcloneKit, FileBrowser, TransferEngine)
 - **Minimum OS**: macOS 14 (Sonoma)
-- **Version**: 1.2.0
+- **Version**: 1.3.0
 
 ## Getting Started
 

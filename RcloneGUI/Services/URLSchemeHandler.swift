@@ -1,4 +1,5 @@
 import Foundation
+import RcloneKit
 
 enum URLSchemeHandler {
     /// Parse rclonegui://command?params URL
