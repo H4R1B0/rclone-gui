@@ -144,6 +144,8 @@ enum L10n {
         "settings.disabled":    ["ko": "비활성화", "en": "Disabled"],
         "settings.default":     ["ko": "기본값", "en": "Default"],
         "settings.multiThreadHelp": ["ko": "큰 파일 전송 시 여러 스레드로 분할하여 속도를 높입니다. 0 = 비활성화.", "en": "Splits large file transfers across multiple threads for speed. 0 = disabled."],
+        "settings.bwSchedule":  ["ko": "시간대별 대역폭 제한", "en": "Time-based Bandwidth Limit"],
+        "settings.addSchedule": ["ko": "시간대 추가", "en": "Add Time Slot"],
 
         // Status bar
         "status.active":        ["ko": "%d개 전송 중", "en": "%d active"],

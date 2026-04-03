@@ -70,12 +70,14 @@ final class AppState {
 
         transfers.startPolling()
         scheduler.startMonitoring()
+        settings.startBwScheduler()
         ready = true
     }
 
     func shutdown() {
         transfers.stopPolling()
         scheduler.stopMonitoring()
+        settings.stopBwScheduler()
         client.finalize()
     }
 }

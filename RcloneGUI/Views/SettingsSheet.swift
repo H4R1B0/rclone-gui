@@ -98,6 +98,44 @@ struct SettingsSheet: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             stringField(L10n.t("settings.bufferSize"), value: Bindable(appState.settings).bufferSize, placeholder: "16M")
                             stringField(L10n.t("settings.bwLimit"), value: Bindable(appState.settings).bwLimit, placeholder: L10n.t("settings.disabled"))
+
+                            // Bandwidth schedule
+                            Toggle(L10n.t("settings.bwSchedule"), isOn: Bindable(appState.settings).bwScheduleEnabled)
+                                .font(.system(size: 12))
+
+                            if appState.settings.bwScheduleEnabled {
+                                VStack(spacing: 4) {
+                                    ForEach(Bindable(appState.settings).bwSchedule) { $entry in
+                                        HStack(spacing: 4) {
+                                            Picker("", selection: $entry.startHour) {
+                                                ForEach(0..<24, id: \.self) { h in Text("\(h):00").tag(h) }
+                                            }
+                                            .frame(width: 70)
+                                            Text("~")
+                                            Picker("", selection: $entry.endHour) {
+                                                ForEach(0..<24, id: \.self) { h in Text("\(h):00").tag(h) }
+                                            }
+                                            .frame(width: 70)
+                                            TextField("rate", text: $entry.rate)
+                                                .textFieldStyle(.roundedBorder)
+                                                .frame(width: 70)
+                                            Button(action: {
+                                                appState.settings.bwSchedule.removeAll { $0.id == entry.id }
+                                            }) {
+                                                Image(systemName: "minus.circle").foregroundColor(.red)
+                                            }
+                                            .buttonStyle(.plain)
+                                        }
+                                        .font(.system(size: 11))
+                                    }
+                                    Button(action: {
+                                        appState.settings.bwSchedule.append(BwScheduleEntry())
+                                    }) {
+                                        Label(L10n.t("settings.addSchedule"), systemImage: "plus")
+                                    }
+                                    .controlSize(.small)
+                                }
+                            }
                         }
                         .padding(.vertical, 4)
                     }

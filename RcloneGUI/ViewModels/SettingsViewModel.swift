@@ -1,6 +1,20 @@
 import Foundation
 import RcloneKit
 
+struct BwScheduleEntry: Codable, Identifiable {
+    let id: UUID
+    var startHour: Int   // 0-23
+    var endHour: Int     // 0-23
+    var rate: String     // e.g., "10M", "off"
+
+    init(startHour: Int = 9, endHour: Int = 18, rate: String = "10M") {
+        self.id = UUID()
+        self.startHour = startHour
+        self.endHour = endHour
+        self.rate = rate
+    }
+}
+
 @Observable
 final class SettingsViewModel {
     // Performance
@@ -9,6 +23,10 @@ final class SettingsViewModel {
     var multiThreadStreams: Int = 4
     var bufferSize: String = "16M"
     var bwLimit: String = ""
+
+    // Bandwidth schedule
+    var bwSchedule: [BwScheduleEntry] = []
+    var bwScheduleEnabled: Bool = false
 
     // Reliability
     var retries: Int = 3
@@ -30,6 +48,7 @@ final class SettingsViewModel {
     private let client: RcloneClientProtocol
     private let settingsURL: URL
     private var saveTask: Task<Void, Never>?
+    private var bwTimer: Timer?
 
     init(client: RcloneClientProtocol) {
         self.client = client
@@ -86,7 +105,36 @@ final class SettingsViewModel {
         noTraverse = false; noUpdateModTime = false
     }
 
+    func startBwScheduler() {
+        bwTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
+            Task { await self?.applyCurrentBwLimit() }
+        }
+        Task { await applyCurrentBwLimit() }
+    }
+
+    func stopBwScheduler() {
+        bwTimer?.invalidate()
+        bwTimer = nil
+    }
+
+    @MainActor
+    private func applyCurrentBwLimit() async {
+        guard bwScheduleEnabled else { return }
+        let hour = Calendar.current.component(.hour, from: Date())
+        let matchingEntry = bwSchedule.first { entry in
+            if entry.startHour <= entry.endHour {
+                return hour >= entry.startHour && hour < entry.endHour
+            } else {
+                return hour >= entry.startHour || hour < entry.endHour
+            }
+        }
+        let rate = matchingEntry?.rate ?? "off"
+        try? await RcloneAPI.setBwLimit(using: client, rate: rate)
+    }
+
     func saveToDisk() {
+        let scheduleData = (try? JSONEncoder().encode(bwSchedule)) ?? Data()
+        let scheduleArray = (try? JSONSerialization.jsonObject(with: scheduleData)) ?? []
         let dict: [String: Any] = [
             "transfers": transfers, "checkers": checkers,
             "multiThreadStreams": multiThreadStreams,
@@ -97,6 +145,8 @@ final class SettingsViewModel {
             "ignoreExisting": ignoreExisting, "ignoreSize": ignoreSize,
             "noTraverse": noTraverse, "noUpdateModTime": noUpdateModTime,
             "locale": locale,
+            "bwSchedule": scheduleArray,
+            "bwScheduleEnabled": bwScheduleEnabled,
         ]
         if let data = try? JSONSerialization.data(withJSONObject: dict, options: .prettyPrinted) {
             try? data.write(to: settingsURL)
@@ -124,6 +174,12 @@ final class SettingsViewModel {
         noTraverse = dict["noTraverse"] as? Bool ?? false
         noUpdateModTime = dict["noUpdateModTime"] as? Bool ?? false
         locale = dict["locale"] as? String ?? "ko"
+        bwScheduleEnabled = dict["bwScheduleEnabled"] as? Bool ?? false
+        if let scheduleArray = dict["bwSchedule"],
+           let scheduleData = try? JSONSerialization.data(withJSONObject: scheduleArray),
+           let decoded = try? JSONDecoder().decode([BwScheduleEntry].self, from: scheduleData) {
+            bwSchedule = decoded
+        }
     }
 
     private func parseSizeToBytes(_ s: String) -> Int64 {
