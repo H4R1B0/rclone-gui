@@ -19,6 +19,7 @@ struct FilePanePathBar: View {
             .buttonStyle(.plain)
             .foregroundColor(tab.path.isEmpty ? .secondary.opacity(0.3) : .secondary)
             .disabled(tab.path.isEmpty)
+            .help(L10n.t("panel.goUp"))
 
             // Path
             if isEditing {
@@ -78,6 +79,7 @@ struct FilePanePathBar: View {
                     .foregroundColor(.secondary)
             }
             .buttonStyle(.plain)
+            .help(L10n.t("bookmark.title"))
             .popover(isPresented: $showBookmarks) {
                 BookmarkPopover(side: side, isPresented: $showBookmarks)
             }
@@ -89,6 +91,7 @@ struct FilePanePathBar: View {
                     .foregroundColor(.secondary)
             }
             .buttonStyle(.plain)
+            .help(L10n.t("retry"))
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 5)

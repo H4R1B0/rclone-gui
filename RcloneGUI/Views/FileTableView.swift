@@ -305,13 +305,19 @@ struct FileTableView: View {
             .padding(4)
         }
         .onTapGesture {
-            appState.panels.toggleSelect(side: side, name: file.name)
+            if NSEvent.modifierFlags.contains(.command) {
+                appState.panels.toggleSelect(side: side, name: file.name)
+            } else {
+                appState.panels.singleSelect(side: side, name: file.name)
+            }
             appState.panels.activePanel = side
         }
         .simultaneousGesture(
             TapGesture(count: 2).onEnded {
                 if file.isDir {
                     Task { await appState.panels.navigate(side: side, dirName: file.name) }
+                } else if isImageFile(file.name) || isMediaFile(file.name) {
+                    openWithDefaultApp(file)
                 }
             }
         )
@@ -494,5 +500,32 @@ struct FileTableView: View {
 
     private func fullLocalPath(_ file: FileItem) -> String {
         tab.path.isEmpty ? "/\(file.name)" : "/\(tab.path)/\(file.name)"
+    }
+
+    private func openWithDefaultApp(_ file: FileItem) {
+        if tab.mode == .local {
+            let path = fullLocalPath(file)
+            NSWorkspace.shared.open(URL(fileURLWithPath: path))
+        } else {
+            // Cloud file — download to temp, then open with default app
+            Task {
+                let tempDir = FileManager.default.temporaryDirectory
+                let tempFile = tempDir.appendingPathComponent(file.name)
+                do {
+                    try await RcloneAPI.copyFile(
+                        using: appState.client,
+                        srcFs: tab.remote, srcRemote: file.path,
+                        dstFs: "/", dstRemote: tempFile.path
+                    )
+                    _ = await MainActor.run {
+                        NSWorkspace.shared.open(tempFile)
+                    }
+                } catch {
+                    #if DEBUG
+                    print("[RcloneGUI] Failed to open file: \(error)")
+                    #endif
+                }
+            }
+        }
     }
 }

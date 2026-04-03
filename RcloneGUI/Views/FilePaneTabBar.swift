@@ -4,14 +4,28 @@ struct FilePaneTabBar: View {
     @Environment(AppState.self) private var appState
     let side: PanelSide
 
+    @State private var draggingTabId: UUID?
+
     private var sideState: PanelSideState { appState.panels.side(side) }
 
     var body: some View {
         HStack(spacing: 0) {
             ForEach(sideState.tabs) { tab in
-                tabItem(tab)
-                if tab.id != sideState.tabs.last?.id {
-                    Divider().frame(height: 14)
+                if !tab.label.isEmpty {
+                    tabItem(tab)
+                        .opacity(draggingTabId == tab.id ? 0.4 : 1)
+                        .onDrag {
+                            draggingTabId = tab.id
+                            return NSItemProvider(object: tab.id.uuidString as NSString)
+                        }
+                        .onDrop(of: [.text], delegate: TabDropDelegate(
+                            tabId: tab.id,
+                            sideState: sideState,
+                            draggingTabId: $draggingTabId
+                        ))
+                    if tab.id != sideState.tabs.last?.id {
+                        Divider().frame(height: 14)
+                    }
                 }
             }
 
@@ -39,6 +53,7 @@ struct FilePaneTabBar: View {
             }
             .menuStyle(.borderlessButton)
             .frame(width: 26)
+            .help(L10n.t("panel.newTab"))
         }
         .padding(.horizontal, 6)
         .padding(.vertical, 3)
@@ -60,15 +75,20 @@ struct FilePaneTabBar: View {
                 .font(.system(size: 11))
                 .lineLimit(1)
 
-            if sideState.tabs.count > 1 {
-                Button(action: { sideState.closeTab(id: tab.id) }) {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 7, weight: .bold))
-                        .foregroundColor(.secondary.opacity(0.6))
+            Button(action: {
+                if sideState.tabs.count > 1 {
+                    sideState.closeTab(id: tab.id)
+                } else {
+                    sideState.resetTab(tab)
                 }
-                .buttonStyle(.plain)
-                .opacity(sideState.activeTabId == tab.id ? 1 : 0)
+            }) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 7, weight: .bold))
+                    .foregroundColor(.secondary.opacity(0.6))
             }
+            .buttonStyle(.plain)
+            .help(L10n.t("panel.closeTab"))
+            .opacity(sideState.activeTabId == tab.id ? 1 : 0)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 5)
@@ -85,4 +105,30 @@ struct FilePaneTabBar: View {
         let remoteName = tab.remote.replacingOccurrences(of: ":", with: "")
         return appState.accounts.remotes.first(where: { $0.name == remoteName })?.type ?? "cloud"
     }
+}
+
+// MARK: - Tab Drag & Drop Delegate
+
+struct TabDropDelegate: DropDelegate {
+    let tabId: UUID
+    let sideState: PanelSideState
+    @Binding var draggingTabId: UUID?
+
+    func performDrop(info: DropInfo) -> Bool {
+        draggingTabId = nil
+        return true
+    }
+
+    func dropEntered(info: DropInfo) {
+        guard let from = draggingTabId, from != tabId else { return }
+        withAnimation(.easeInOut(duration: 0.2)) {
+            sideState.moveTab(fromId: from, toId: tabId)
+        }
+    }
+
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        DropProposal(operation: .move)
+    }
+
+    func dropExited(info: DropInfo) {}
 }

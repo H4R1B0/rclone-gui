@@ -23,7 +23,7 @@ struct ExplorerView: View {
                                     else { NSCursor.pop() }
                                 }
                                 .gesture(
-                                    DragGesture()
+                                    DragGesture(coordinateSpace: .named("explorer"))
                                         .onChanged { value in
                                             isDraggingDivider = true
                                             splitFraction = min(max(value.location.x / geo.size.width, 0.2), 0.8)
@@ -36,6 +36,7 @@ struct ExplorerView: View {
 
                     FilePane(side: .right)
                 }
+                .coordinateSpace(name: "explorer")
             }
         }
     }

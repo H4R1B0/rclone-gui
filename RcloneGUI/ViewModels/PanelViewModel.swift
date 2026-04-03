@@ -114,6 +114,23 @@ final class PanelSideState {
         guard tabs.contains(where: { $0.id == id }) else { return }
         activeTabId = id
     }
+
+    func moveTab(fromId: UUID, toId: UUID) {
+        guard let fromIdx = tabs.firstIndex(where: { $0.id == fromId }),
+              let toIdx = tabs.firstIndex(where: { $0.id == toId }),
+              fromIdx != toIdx else { return }
+        tabs.move(fromOffsets: IndexSet(integer: fromIdx), toOffset: toIdx > fromIdx ? toIdx + 1 : toIdx)
+    }
+
+    func resetTab(_ tab: TabState) {
+        tab.label = ""
+        tab.mode = .cloud
+        tab.remote = ""
+        tab.path = ""
+        tab.files = []
+        tab.selectedFiles = []
+        tab.error = nil
+    }
 }
 
 // MARK: - Panel ViewModel (dual panel coordinator)
@@ -132,13 +149,13 @@ final class PanelViewModel {
     private var transferVM: TransferViewModel?
     private var isSyncingLinked = false
     private var remotesLastLoaded: Date?
-    private let remotesCacheTTL: TimeInterval = 30  // 30 seconds
+    private let remotesCacheTTL: TimeInterval = AppConstants.remoteCacheTTL
 
     init(client: RcloneClientProtocol) {
         self.client = client
-        // Default: left panel = local home, right panel = local home
-        let leftTab = TabState(label: "Local", mode: .local, remote: "/", path: "")
-        let rightTab = TabState(label: "Local", mode: .local, remote: "/", path: "")
+        // Default: left panel = local home, right panel = cloud selector (empty)
+        let leftTab = TabState(label: L10n.t("panel.local"), mode: .local, remote: "/", path: "")
+        let rightTab = TabState(label: "", mode: .cloud, remote: "", path: "")
         self.left = PanelSideState(defaultTab: leftTab)
         self.right = PanelSideState(defaultTab: rightTab)
     }
@@ -178,6 +195,7 @@ final class PanelViewModel {
     func setRemote(side panelSide: PanelSide, remote: String) {
         let tab = side(panelSide).activeTab
         tab.remote = remote
+        tab.label = remote.replacingOccurrences(of: ":", with: "")
         tab.path = ""
         tab.files = []
         tab.selectedFiles = []
@@ -257,6 +275,11 @@ final class PanelViewModel {
         } else {
             tab.selectedFiles.insert(name)
         }
+    }
+
+    func singleSelect(side panelSide: PanelSide, name: String) {
+        let tab = side(panelSide).activeTab
+        tab.selectedFiles = [name]
     }
 
     func selectAll(side panelSide: PanelSide) {

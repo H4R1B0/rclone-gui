@@ -48,6 +48,7 @@ struct FilePane: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(appState.panels.activePanel == side ? Color.clear : Color(nsColor: .windowBackgroundColor).opacity(0.15))
             .clipped()
+            .focusEffectDisabled()
             .dropDestination(for: String.self) { items, _ in
                 guard let jsonStr = items.first,
                       let data = jsonStr.data(using: .utf8),
