@@ -3,6 +3,7 @@ import SwiftUI
 struct ExplorerView: View {
     @Environment(AppState.self) private var appState
     @State private var splitFraction: CGFloat = 0.5
+    @State private var isDraggingDivider = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -14,7 +15,7 @@ struct ExplorerView: View {
                     Divider()
                         .overlay(
                             Rectangle()
-                                .fill(Color.clear)
+                                .fill(isDraggingDivider ? Color.accentColor.opacity(0.5) : Color.clear)
                                 .frame(width: 8)
                                 .contentShape(Rectangle())
                                 .onHover { inside in
@@ -24,7 +25,11 @@ struct ExplorerView: View {
                                 .gesture(
                                     DragGesture()
                                         .onChanged { value in
+                                            isDraggingDivider = true
                                             splitFraction = min(max(value.location.x / geo.size.width, 0.2), 0.8)
+                                        }
+                                        .onEnded { _ in
+                                            isDraggingDivider = false
                                         }
                                 )
                         )

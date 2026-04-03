@@ -31,7 +31,6 @@ final class SearchViewModel {
 
     func initializeClouds(remotes: [String]) {
         selectedClouds = Set(remotes.map { "\($0):" })
-        selectedClouds.insert("/")
     }
 
     func toggleCloud(_ cloud: String) {

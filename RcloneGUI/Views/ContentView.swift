@@ -56,13 +56,7 @@ struct ContentView: View {
                     case .duplicates:
                         DuplicateFinderView()
                     case .remote(let name):
-                        ExplorerView()
-                            .onAppear {
-                                Task {
-                                    await appState.panels.navigateTo(side: .left, remote: "\(name):", path: "")
-                                }
-                            }
-                            .id("remote-\(name)")
+                        RemoteDetailsView(remoteName: name)
                     case .bookmark(let bookmark):
                         ExplorerView()
                             .onAppear {
@@ -92,6 +86,7 @@ struct ContentView: View {
             }
             .sheet(isPresented: Bindable(appState).showAccountSetup) {
                 AccountSetupView()
+                    .frame(minWidth: 650, minHeight: 550)
             }
             .toolbar {
                 ToolbarItemGroup(placement: .primaryAction) {

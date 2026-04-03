@@ -97,6 +97,7 @@
 		EA978993B6C5EB828DEEA921 /* SyncProfileSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E650D32A90352D9A20677AE8 /* SyncProfileSheet.swift */; };
 		EAE976E085C0DA2C5C395036 /* BookmarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52B1759FCB8FF98B4CC339C8 /* BookmarkView.swift */; };
 		EE5262051872458647D6BEF8 /* RemoteSelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E32FEF6A8F7293D51A39017 /* RemoteSelectorView.swift */; };
+		AA1B2C3D4E5F6A7B8C9D0E1F /* RemoteDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2C3D4E5F6A7B8C9D0E1F2A /* RemoteDetailsView.swift */; };
 		F95D1084ED438C375089F0CE /* TransferViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5150A4D8F6C0212533E53DD8 /* TransferViewModel.swift */; };
 		F9EEB6464F2F2D9D2596CC2A /* FilePaneTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5231D3878DEE9FAA784621A3 /* FilePaneTabBar.swift */; };
 		FAE1AC8FEAA9889057D1DAD9 /* FileTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87351B73D23FEAE3793DFD33 /* FileTableView.swift */; };
@@ -149,6 +150,7 @@
 		57B2EB5935174016E994EACA /* RcloneGUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RcloneGUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		58A22AE36DDDC9069C606251 /* FileBrowser */ = {isa = PBXFileReference; lastKnownFileType = folder; name = FileBrowser; path = Packages/FileBrowser; sourceTree = SOURCE_ROOT; };
 		5E32FEF6A8F7293D51A39017 /* RemoteSelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteSelectorView.swift; sourceTree = "<group>"; };
+		BB2C3D4E5F6A7B8C9D0E1F2A /* RemoteDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteDetailsView.swift; sourceTree = "<group>"; };
 		602A18F4A658CA2015CE8470 /* SetPasswordSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetPasswordSheet.swift; sourceTree = "<group>"; };
 		61C0A4DE01201EA56ED6DE78 /* ErrorBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorBannerView.swift; sourceTree = "<group>"; };
 		646DE6E8813FF584E2B95D5B /* SearchViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViewModel.swift; sourceTree = "<group>"; };
@@ -301,6 +303,7 @@
 				9F55FCB05C4CE60DF12120CE /* QuickLookBridge.swift */,
 				35520AB65C05142A7B448AC9 /* QuotaSheet.swift */,
 				5E32FEF6A8F7293D51A39017 /* RemoteSelectorView.swift */,
+				BB2C3D4E5F6A7B8C9D0E1F2A /* RemoteDetailsView.swift */,
 				4A15CD8D70189A5B13D8FCDB /* SchedulerView.swift */,
 				A2FFDECC974E2109E8B74D79 /* SearchPanelView.swift */,
 				602A18F4A658CA2015CE8470 /* SetPasswordSheet.swift */,
@@ -607,6 +610,7 @@
 				8585D96A6063CC692E40BB2F /* QuickLookBridge.swift in Sources */,
 				25959630071EDB113C17A17B /* QuotaSheet.swift in Sources */,
 				EE5262051872458647D6BEF8 /* RemoteSelectorView.swift in Sources */,
+				AA1B2C3D4E5F6A7B8C9D0E1F /* RemoteDetailsView.swift in Sources */,
 				E72A48C49418D7029790D3BA /* SchedulerView.swift in Sources */,
 				5F19F557B79DD21E7404E931 /* SchedulerViewModel.swift in Sources */,
 				909B9642CD5641144D3C4CBD /* SearchPanelView.swift in Sources */,
@@ -818,7 +822,7 @@
 					"$(PROJECT_DIR)/Resources/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.4.1;
+				MARKETING_VERSION = 1.4.2;
 				OTHER_LDFLAGS = (
 					"-lrclone",
 				);
@@ -843,7 +847,7 @@
 					"$(PROJECT_DIR)/Resources/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.4.1;
+				MARKETING_VERSION = 1.4.2;
 				OTHER_LDFLAGS = (
 					"-lrclone",
 				);

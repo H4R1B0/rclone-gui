@@ -109,7 +109,6 @@ struct SearchPanelView: View {
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 4) {
-                    cloudToggle("/", label: L10n.t("panel.local"))
                     ForEach(appState.panels.remotes, id: \.self) { remote in
                         cloudToggle("\(remote):", label: remote)
                     }

@@ -40,6 +40,8 @@ enum L10n {
         "sidebar.remotes":      ["ko": "클라우드", "en": "Cloud"],
         "sidebar.tools":        ["ko": "도구", "en": "Tools"],
         "sidebar.quickUpload":  ["ko": "빠른 업로드", "en": "Quick Upload"],
+        "sidebar.openInExplorer": ["ko": "탐색기에서 열기", "en": "Open in Explorer"],
+        "sidebar.config":         ["ko": "설정 정보", "en": "Configuration"],
 
         // Toolbar
         "toolbar.explore":      ["ko": "탐색", "en": "Explore"],
@@ -176,6 +178,7 @@ enum L10n {
         "bookmark.title":  ["ko": "북마크", "en": "Bookmarks"],
         "bookmark.add":    ["ko": "현재 경로 북마크", "en": "Bookmark Current Path"],
         "bookmark.empty":  ["ko": "북마크가 없습니다", "en": "No bookmarks"],
+        "bookmark.emptyHint": ["ko": "주소 바의 ☆ 버튼으로 현재 경로를 북마크하세요.", "en": "Use the ☆ button in the address bar to bookmark the current path."],
 
         // Scheduler
         "toolbar.scheduler":     ["ko": "스케줄러", "en": "Scheduler"],

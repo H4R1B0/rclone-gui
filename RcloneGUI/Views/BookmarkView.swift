@@ -41,9 +41,19 @@ struct BookmarkPopover: View {
             Divider()
 
             if appState.bookmarks.bookmarks.isEmpty {
-                Text(L10n.t("bookmark.empty"))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                VStack(spacing: 6) {
+                    Image(systemName: "bookmark")
+                        .font(.system(size: 16))
+                        .foregroundColor(.secondary)
+                    Text(L10n.t("bookmark.empty"))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text(L10n.t("bookmark.emptyHint"))
+                        .font(.system(size: 10))
+                        .foregroundColor(.secondary.opacity(0.7))
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.vertical, 8)
             } else {
                 ForEach(appState.bookmarks.bookmarks) { bookmark in
                     HStack {
