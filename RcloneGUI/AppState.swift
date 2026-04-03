@@ -30,6 +30,7 @@ final class AppState {
     var activeView: ActiveView = .explore
     var showSettings: Bool = false
     var showTransfers: Bool = true
+    var showAccountSetup: Bool = false
     var transferHeight: Double = 200
     var ready: Bool = false
 

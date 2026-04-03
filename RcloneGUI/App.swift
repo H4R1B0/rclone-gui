@@ -38,10 +38,10 @@ struct RcloneGUIApp: App {
         WindowGroup {
             ContentView()
                 .environment(appState)
-                .task { await appState.startup() }
         }
         .defaultSize(width: 1400, height: 900)
         .windowResizability(.contentMinSize)
+        .windowStyle(.hiddenTitleBar)
         .commands {
             CommandGroup(after: .newItem) {
                 Button("New Folder...") {

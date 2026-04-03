@@ -1,33 +1,27 @@
 import SwiftUI
 
-struct TabBarView: View {
+struct FilePaneTabBar: View {
     @Environment(AppState.self) private var appState
     let side: PanelSide
 
-    private var sideState: PanelSideState {
-        appState.panels.side(side)
-    }
+    private var sideState: PanelSideState { appState.panels.side(side) }
 
     var body: some View {
         HStack(spacing: 0) {
-            // Tab list — 탭 개수만큼 균등 분할
             ForEach(sideState.tabs) { tab in
                 tabItem(tab)
-                    .frame(maxWidth: .infinity)
-
                 if tab.id != sideState.tabs.last?.id {
-                    Divider()
-                        .frame(height: 16)
+                    Divider().frame(height: 14)
                 }
             }
 
-            // Add tab button
+            Spacer()
+
             Menu {
                 Button(L10n.t("panel.local")) {
                     sideState.addTab(mode: .local, remote: "/", path: NSHomeDirectory(), label: L10n.t("panel.local"))
                     Task { await appState.panels.loadFiles(side: side) }
                 }
-
                 if !appState.panels.remotes.isEmpty {
                     Divider()
                     ForEach(appState.panels.remotes, id: \.self) { remote in
@@ -39,45 +33,56 @@ struct TabBarView: View {
                 }
             } label: {
                 Image(systemName: "plus")
-                    .font(.system(size: 11))
-                    .frame(width: 24, height: 24)
+                    .font(.system(size: 10, weight: .medium))
+                    .frame(width: 22, height: 22)
+                    .contentShape(Rectangle())
             }
             .menuStyle(.borderlessButton)
-            .frame(width: 28)
+            .frame(width: 26)
         }
-        .padding(.horizontal, 4)
-        .padding(.vertical, 2)
-        .background(Color(nsColor: .controlBackgroundColor))
+        .padding(.horizontal, 6)
+        .padding(.vertical, 3)
+        .background(.ultraThinMaterial)
     }
 
     private func tabItem(_ tab: TabState) -> some View {
         HStack(spacing: 4) {
-            Image(systemName: tab.mode == .local ? "folder" : "cloud")
-                .font(.system(size: 10))
+            if tab.mode == .local {
+                Image(systemName: "internaldrive")
+                    .font(.system(size: 9))
+                    .foregroundColor(.secondary)
+            } else {
+                ProviderIcon.icon(for: tabRemoteType(tab))
+                    .font(.system(size: 9))
+            }
 
             Text(tab.label)
                 .font(.system(size: 11))
                 .lineLimit(1)
 
-            Spacer()
-
-            // Close button (hidden if last tab)
             if sideState.tabs.count > 1 {
                 Button(action: { sideState.closeTab(id: tab.id) }) {
                     Image(systemName: "xmark")
-                        .font(.system(size: 8))
-                        .foregroundColor(.secondary)
+                        .font(.system(size: 7, weight: .bold))
+                        .foregroundColor(.secondary.opacity(0.6))
                 }
                 .buttonStyle(.plain)
+                .opacity(sideState.activeTabId == tab.id ? 1 : 0)
             }
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(sideState.activeTabId == tab.id ? Color.accentColor.opacity(0.15) : Color.clear)
-        .cornerRadius(4)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .frame(maxWidth: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 6)
+                .fill(sideState.activeTabId == tab.id ? Color.accentColor.opacity(0.1) : Color.clear)
+        )
         .contentShape(Rectangle())
-        .onTapGesture {
-            sideState.switchTab(id: tab.id)
-        }
+        .onTapGesture { sideState.switchTab(id: tab.id) }
+    }
+
+    private func tabRemoteType(_ tab: TabState) -> String {
+        let remoteName = tab.remote.replacingOccurrences(of: ":", with: "")
+        return appState.accounts.remotes.first(where: { $0.name == remoteName })?.type ?? "cloud"
     }
 }

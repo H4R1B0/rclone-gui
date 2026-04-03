@@ -35,6 +35,11 @@ enum L10n {
         "app.restart.message":  ["ko": "언어를 변경하려면 앱을 재시작해야 합니다. 재시작하시겠습니까?", "en": "The app needs to restart to change language. Restart now?"],
         "app.restart":          ["ko": "재시작", "en": "Restart"],
 
+        // Sidebar
+        "sidebar.favorites":    ["ko": "즐겨찾기", "en": "Favorites"],
+        "sidebar.remotes":      ["ko": "클라우드", "en": "Cloud"],
+        "sidebar.tools":        ["ko": "도구", "en": "Tools"],
+
         // Toolbar
         "toolbar.explore":      ["ko": "탐색", "en": "Explore"],
         "toolbar.accounts":     ["ko": "계정", "en": "Accounts"],

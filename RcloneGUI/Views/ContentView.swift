@@ -1,11 +1,22 @@
 import SwiftUI
 
+enum SidebarItem: Hashable {
+    case explorer
+    case search
+    case sync
+    case scheduler
+    case mount
+    case trash
+    case remote(String)
+    case bookmark(Bookmark)
+}
+
 struct ContentView: View {
     @Environment(AppState.self) private var appState
+    @State private var selectedSidebar: SidebarItem? = .explorer
 
     var body: some View {
         if !appState.ready {
-            // Loading screen
             VStack(spacing: 12) {
                 ProgressView()
                     .controlSize(.large)
@@ -13,77 +24,85 @@ struct ContentView: View {
                     .foregroundColor(.secondary)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .task { await appState.startup() }
         } else {
-            VStack(spacing: 0) {
-                // Toolbar
-                ToolbarView()
-
-                Divider()
-
-                // Main content area
-                switch appState.activeView {
-                case .explore:
-                    DualPanelView()
-                case .account:
-                    AccountSetupView()
-                case .search:
-                    SearchPanelView()
-                case .sync:
-                    SyncView()
-                case .scheduler:
-                    SchedulerView()
-                case .mount:
-                    MountView()
-                case .trash:
-                    TrashView()
+            NavigationSplitView {
+                SidebarView(selection: $selectedSidebar)
+            } detail: {
+                Group {
+                    switch selectedSidebar {
+                    case .explorer, .none:
+                        ExplorerView()
+                    case .search:
+                        SearchPanelView()
+                    case .sync:
+                        SyncView()
+                    case .scheduler:
+                        SchedulerView()
+                    case .mount:
+                        MountView()
+                    case .trash:
+                        TrashView()
+                    case .remote(let name):
+                        ExplorerView()
+                            .onAppear {
+                                Task {
+                                    await appState.panels.navigateTo(side: .left, remote: "\(name):", path: "")
+                                }
+                            }
+                            .id("remote-\(name)")
+                    case .bookmark(let bookmark):
+                        ExplorerView()
+                            .onAppear {
+                                Task {
+                                    await appState.panels.navigateTo(side: .left, remote: bookmark.fs, path: bookmark.path)
+                                }
+                            }
+                            .id("bookmark-\(bookmark.id)")
+                    }
                 }
-
-                // Transfer area (resizable)
-                if appState.showTransfers {
-                    // Resizable divider
-                    transferDivider
-
-                    TransferPanelView()
-                        .frame(height: appState.transferHeight)
-                }
-
-                // Status bar
-                StatusBarView()
             }
-            .frame(minWidth: 900, minHeight: 600)
+            .navigationSplitViewStyle(.balanced)
+            .frame(minWidth: 1000, minHeight: 600)
+            .overlay(alignment: .bottom) {
+                if appState.showTransfers || appState.transfers.hasActiveTransfers {
+                    TransferBarView()
+                }
+            }
             .overlay {
                 if appState.appLock.isLocked == true {
                     LockScreenView()
                         .transition(.opacity)
                 }
             }
-            .onReceive(NotificationCenter.default.publisher(for: .requestSearch)) { _ in
-                appState.activeView = .search
-            }
             .sheet(isPresented: Bindable(appState).showSettings) {
                 SettingsSheet()
             }
-        }
-    }
+            .sheet(isPresented: Bindable(appState).showAccountSetup) {
+                AccountSetupView()
+            }
+            .toolbar {
+                ToolbarItemGroup(placement: .primaryAction) {
+                    Button(action: { appState.panels.linkedBrowsing.toggle() }) {
+                        Image(systemName: appState.panels.linkedBrowsing ? "link.circle.fill" : "link.circle")
+                    }
+                    .help(L10n.t("toolbar.linkedBrowsing"))
+                    .foregroundColor(appState.panels.linkedBrowsing ? .accentColor : .secondary)
 
-    private var transferDivider: some View {
-        Rectangle()
-            .fill(Color(nsColor: .separatorColor))
-            .frame(height: 1)
-            .overlay(
-                Rectangle()
-                    .fill(Color.clear)
-                    .frame(height: 8)
-                    .contentShape(Rectangle())
-                    .cursor(.resizeUpDown)
-                    .gesture(
-                        DragGesture()
-                            .onChanged { value in
-                                let delta = -value.translation.height
-                                let newHeight = appState.transferHeight + delta
-                                appState.transferHeight = min(max(newHeight, 80), 600)
-                            }
-                    )
-            )
+                    Button(action: { appState.showTransfers.toggle() }) {
+                        Image(systemName: appState.transfers.hasActiveTransfers ? "arrow.up.arrow.down.circle.fill" : "arrow.up.arrow.down.circle")
+                    }
+                    .help(L10n.t("toolbar.transfers"))
+
+                    Button(action: { appState.showSettings = true }) {
+                        Image(systemName: "gearshape")
+                    }
+                    .help(L10n.t("toolbar.settings"))
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .requestSearch)) { _ in
+                selectedSidebar = .search
+            }
+        }
     }
 }
