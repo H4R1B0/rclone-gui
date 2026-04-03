@@ -9,6 +9,10 @@ struct SearchPanelView: View {
     @State private var filterType: String = ""
     @State private var filterMinSize: String = ""
     @State private var filterMaxSize: String = ""
+    @State private var filterDateFrom: Date = Calendar.current.date(byAdding: .year, value: -10, to: Date())!
+    @State private var filterDateTo: Date = Date()
+    @State private var filterDateEnabled: Bool = false
+    @State private var filterPath: String = ""
 
     private var filteredResults: [SearchResult] {
         search.results.filter { result in
@@ -27,6 +31,16 @@ struct SearchPanelView: View {
             }
             if let min = Int64(filterMinSize), result.size < min * 1024 { return false }
             if let max = Int64(filterMaxSize), result.size > max * 1024 { return false }
+            if filterDateEnabled {
+                if result.modTime < filterDateFrom || result.modTime > filterDateTo {
+                    return false
+                }
+            }
+            if !filterPath.isEmpty {
+                if !result.path.localizedCaseInsensitiveContains(filterPath) {
+                    return false
+                }
+            }
             return true
         }
     }
@@ -122,6 +136,30 @@ struct SearchPanelView: View {
                 TextField(L10n.t("search.maxSize"), text: $filterMaxSize)
                     .textFieldStyle(.roundedBorder)
                     .frame(width: 80)
+            }
+            .padding(.horizontal, 12)
+            .padding(.bottom, 4)
+
+            HStack(spacing: 8) {
+                Toggle(L10n.t("search.dateFilter"), isOn: $filterDateEnabled)
+                    .font(.system(size: 11))
+                    .frame(width: 100)
+
+                if filterDateEnabled {
+                    DatePicker("", selection: $filterDateFrom, displayedComponents: .date)
+                        .frame(width: 110)
+                        .labelsHidden()
+                    Text("~")
+                    DatePicker("", selection: $filterDateTo, displayedComponents: .date)
+                        .frame(width: 110)
+                        .labelsHidden()
+                }
+
+                Spacer()
+
+                TextField(L10n.t("search.pathFilter"), text: $filterPath)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 150)
             }
             .padding(.horizontal, 12)
             .padding(.bottom, 4)

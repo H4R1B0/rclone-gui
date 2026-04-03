@@ -179,6 +179,10 @@ enum L10n {
         "scheduler.days":        ["ko": "일", "en": "day"],
         "scheduler.lastRun":     ["ko": "마지막 실행", "en": "Last run"],
         "scheduler.running":     ["ko": "실행 중", "en": "Running"],
+        "scheduler.logs":        ["ko": "로그", "en": "Logs"],
+        "scheduler.noLogs":      ["ko": "로그가 없습니다", "en": "No logs"],
+        "scheduler.exportLogs":  ["ko": "로그 내보내기", "en": "Export Logs"],
+        "scheduler.clearLogs":   ["ko": "지우기", "en": "Clear"],
 
         // Crypt
         "crypt.title":         ["ko": "암호화 리모트", "en": "Encrypted Remote"],
@@ -266,6 +270,8 @@ enum L10n {
         "search.archives":       ["ko": "압축파일", "en": "Archives"],
         "search.minSize":        ["ko": "최소(KB)", "en": "Min(KB)"],
         "search.maxSize":        ["ko": "최대(KB)", "en": "Max(KB)"],
+        "search.dateFilter":     ["ko": "날짜 필터", "en": "Date Filter"],
+        "search.pathFilter":     ["ko": "경로 필터...", "en": "Path filter..."],
 
         // Account Import/Export
         "account.export":        ["ko": "계정 내보내기", "en": "Export Accounts"],
