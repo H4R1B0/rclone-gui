@@ -15,6 +15,7 @@ struct FileTableView: View {
     @State private var hashCompareFiles: (FileItem, FileItem)?
     @State private var showCompress = false
     @State private var mediaFile: FileItem?
+    @State private var versionFile: FileItem?
     @FocusState private var isFocused: Bool
 
     private var tab: TabState {
@@ -41,12 +42,28 @@ struct FileTableView: View {
                 .contentShape(Rectangle())
                 .contextMenu { emptyAreaMenu }
             } else {
+                // File count bar
+                HStack {
+                    Text(String(format: L10n.t("performance.fileCount"), tab.sortedFiles.count))
+                        .font(.system(size: 10))
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    if tab.sortedFiles.count > 1000 {
+                        Text(L10n.t("performance.largeDir"))
+                            .font(.system(size: 10))
+                            .foregroundColor(.orange)
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 2)
+
                 ScrollView {
                     LazyVStack(spacing: 0) {
                         ForEach(tab.sortedFiles) { file in
                             fileRow(file)
                         }
                     }
+                    .drawingGroup()
                 }
                 .contextMenu { emptyAreaMenu }
             }
@@ -132,6 +149,9 @@ struct FileTableView: View {
         }
         .sheet(item: $mediaFile) { file in
             MediaPlayerSheet(file: file, fs: tab.remote)
+        }
+        .sheet(item: $versionFile) { file in
+            VersionHistorySheet(file: file, fs: tab.remote)
         }
         .onReceive(NotificationCenter.default.publisher(for: .requestQuickLook)) { _ in
             guard appState.panels.activePanel == side else { return }
@@ -352,6 +372,12 @@ struct FileTableView: View {
 
         Button(L10n.t("file.properties")) {
             showProperties = file
+        }
+
+        if !file.isDir {
+            Button(L10n.t("version.title")) {
+                versionFile = file
+            }
         }
 
         if tab.remote == "/" && !tab.selectedFiles.isEmpty {

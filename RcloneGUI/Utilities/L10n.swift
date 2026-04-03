@@ -372,6 +372,16 @@ enum L10n {
         "onboarding.readyDesc":  ["ko": "사이드바에서 클라우드를 선택하여 파일을 탐색하세요.", "en": "Select a cloud from the sidebar to start browsing."],
         "onboarding.start":      ["ko": "앱 시작", "en": "Start App"],
 
+        // Version History
+        "version.title":        ["ko": "버전 기록", "en": "Version History"],
+        "version.current":      ["ko": "현재", "en": "Current"],
+        "version.noVersions":   ["ko": "버전 기록이 없습니다", "en": "No version history"],
+        "version.notSupported": ["ko": "이 리모트는 파일 버전을 지원하지 않을 수 있습니다.", "en": "This remote may not support file versioning."],
+
+        // Large Directory Performance
+        "performance.fileCount": ["ko": "%d개 파일", "en": "%d files"],
+        "performance.largeDir":  ["ko": "대용량 디렉토리", "en": "Large directory"],
+
         // Error Recovery
         "error.authFailed":         ["ko": "인증에 실패했습니다", "en": "Authentication failed"],
         "error.authSuggestion":     ["ko": "계정을 다시 연결하거나 토큰을 갱신하세요.", "en": "Reconnect the account or refresh the token."],
