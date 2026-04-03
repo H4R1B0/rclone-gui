@@ -90,7 +90,11 @@ final class TransferViewModel {
         // 1. Get stats
         do {
             let stats = try await RcloneAPI.getStats(using: client)
-            transfers = stats.transferring ?? []
+            let newTransfers = stats.transferring ?? []
+            if newTransfers.map(\.name) != transfers.map(\.name)
+                || newTransfers.map(\.percentage) != transfers.map(\.percentage) {
+                transfers = newTransfers
+            }
             totalSpeed = stats.speed
             totalBytes = stats.bytes
             totalSize = stats.totalBytes

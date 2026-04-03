@@ -37,12 +37,14 @@ final class TabState: Identifiable {
     var mode: PanelMode
     var remote: String          // "gdrive:" or "/"
     var path: String            // current directory
-    var files: [FileItem] = []
+    var files: [FileItem] = [] { didSet { _cachedSortedFiles = nil } }
     var loading: Bool = false
     var error: String?
     var selectedFiles: Set<String> = []  // file NAMES (not paths) — matches TypeScript
-    var sortBy: SortField = .name
-    var sortAsc: Bool = true
+    var sortBy: SortField = .name { didSet { _cachedSortedFiles = nil } }
+    var sortAsc: Bool = true { didSet { _cachedSortedFiles = nil } }
+
+    private var _cachedSortedFiles: [FileItem]?
 
     init(id: UUID = UUID(), label: String, mode: PanelMode, remote: String, path: String = "") {
         self.id = id
@@ -53,6 +55,13 @@ final class TabState: Identifiable {
     }
 
     var sortedFiles: [FileItem] {
+        if let cached = _cachedSortedFiles { return cached }
+        let sorted = computeSortedFiles()
+        _cachedSortedFiles = sorted
+        return sorted
+    }
+
+    private func computeSortedFiles() -> [FileItem] {
         files.sorted { a, b in
             // Directories always first
             if a.isDir != b.isDir { return a.isDir }
@@ -109,7 +118,7 @@ final class PanelSideState {
 
 // MARK: - Panel ViewModel (dual panel coordinator)
 
-@Observable
+@Observable @MainActor
 final class PanelViewModel {
     let left: PanelSideState
     let right: PanelSideState
@@ -122,6 +131,8 @@ final class PanelViewModel {
     private let client: RcloneClientProtocol
     private var transferVM: TransferViewModel?
     private var isSyncingLinked = false
+    private var remotesLastLoaded: Date?
+    private let remotesCacheTTL: TimeInterval = 30  // 30 seconds
 
     init(client: RcloneClientProtocol) {
         self.client = client
@@ -146,11 +157,16 @@ final class PanelViewModel {
 
     // MARK: - Remote Management
 
-    @MainActor
     func loadRemotes() async {
+        if let last = remotesLastLoaded,
+           Date().timeIntervalSince(last) < remotesCacheTTL,
+           !remotes.isEmpty {
+            return  // Use cached
+        }
         remotesLoading = true
         do {
             remotes = try await RcloneAPI.listRemotes(using: client)
+            remotesLastLoaded = Date()
         } catch {
             print("[RcloneGUI] loadRemotes failed: \(error.localizedDescription)")
         }
@@ -159,7 +175,6 @@ final class PanelViewModel {
 
     // MARK: - File Operations
 
-    @MainActor
     func setRemote(side panelSide: PanelSide, remote: String) {
         let tab = side(panelSide).activeTab
         tab.remote = remote
@@ -169,7 +184,6 @@ final class PanelViewModel {
         tab.error = nil
     }
 
-    @MainActor
     func loadFiles(side panelSide: PanelSide, remote: String? = nil, path: String? = nil) async {
         let tab = side(panelSide).activeTab
         let fs = remote ?? tab.remote
@@ -202,7 +216,6 @@ final class PanelViewModel {
         }
     }
 
-    @MainActor
     func navigate(side panelSide: PanelSide, dirName: String) async {
         let tab = side(panelSide).activeTab
         let newPath = tab.path.isEmpty ? dirName : "\(tab.path)/\(dirName)"
@@ -210,7 +223,6 @@ final class PanelViewModel {
         await loadFiles(side: panelSide, path: newPath)
     }
 
-    @MainActor
     func goUp(side panelSide: PanelSide) async {
         let tab = side(panelSide).activeTab
         guard !tab.path.isEmpty else { return }
@@ -221,12 +233,10 @@ final class PanelViewModel {
         await loadFiles(side: panelSide, path: newPath)
     }
 
-    @MainActor
     func refresh(side panelSide: PanelSide) async {
         await loadFiles(side: panelSide)
     }
 
-    @MainActor
     func navigateTo(side panelSide: PanelSide, remote: String, path: String) async {
         let tab = side(panelSide).activeTab
         tab.remote = remote
@@ -268,7 +278,6 @@ final class PanelViewModel {
 
     // MARK: - File CRUD
 
-    @MainActor
     func createFolder(side panelSide: PanelSide, name: String) async throws {
         let tab = side(panelSide).activeTab
         let fullPath = tab.path.isEmpty ? name : "\(tab.path)/\(name)"
@@ -276,7 +285,6 @@ final class PanelViewModel {
         await refresh(side: panelSide)
     }
 
-    @MainActor
     func deleteSelected(side panelSide: PanelSide) async throws {
         let tab = side(panelSide).activeTab
         for fileName in tab.selectedFiles {
@@ -291,7 +299,6 @@ final class PanelViewModel {
         await refresh(side: panelSide)
     }
 
-    @MainActor
     func rename(side panelSide: PanelSide, oldName: String, newName: String) async throws {
         let tab = side(panelSide).activeTab
         let oldPath = tab.path.isEmpty ? oldName : "\(tab.path)/\(oldName)"
@@ -302,7 +309,6 @@ final class PanelViewModel {
 
     // MARK: - Clipboard Operations
 
-    @MainActor
     func paste(side panelSide: PanelSide, clipboard: ClipboardState) async throws {
         let tab = side(panelSide).activeTab
         for file in clipboard.files {
@@ -340,7 +346,6 @@ final class PanelViewModel {
 
     // MARK: - Drag & Drop
 
-    @MainActor
     func handleDrop(targetSide: PanelSide, files: [DraggedFile], isMove: Bool) async {
         let targetTab = side(targetSide).activeTab
         for file in files {

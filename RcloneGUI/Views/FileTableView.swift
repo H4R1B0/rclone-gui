@@ -260,8 +260,8 @@ struct FileTableView: View {
             Divider()
         }
 
-        Button(L10n.t("file.cut")) { performCut() }
-        Button(L10n.t("file.copy")) { performCopy() }
+        Button(L10n.t("file.cut")) { performClipboardAction(.cut) }
+        Button(L10n.t("file.copy")) { performClipboardAction(.copy) }
 
         Divider()
 
@@ -354,22 +354,15 @@ struct FileTableView: View {
         quickLookURL = URL(fileURLWithPath: fullPath)
     }
 
-    private func performCopy() {
+    private func performClipboardAction(_ action: ClipboardState.Action) {
         let selected = tab.files.filter { tab.selectedFiles.contains($0.name) }
-        appState.clipboard.copy(
-            fs: tab.remote,
-            path: tab.path,
-            selectedFiles: selected.map { ($0.name, $0.isDir) }
-        )
-    }
-
-    private func performCut() {
-        let selected = tab.files.filter { tab.selectedFiles.contains($0.name) }
-        appState.clipboard.cut(
-            fs: tab.remote,
-            path: tab.path,
-            selectedFiles: selected.map { ($0.name, $0.isDir) }
-        )
+        let files = selected.map { ($0.name, $0.isDir) }
+        switch action {
+        case .copy:
+            appState.clipboard.copy(fs: tab.remote, path: tab.path, selectedFiles: files)
+        case .cut:
+            appState.clipboard.cut(fs: tab.remote, path: tab.path, selectedFiles: files)
+        }
     }
 
     private func dragData(for file: FileItem) -> String {

@@ -30,12 +30,16 @@ enum FormatUtils {
         return "\(s / 3600)h \(s % 3600 / 60)m"
     }
 
+    private static let dateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd HH:mm"
+        f.locale = Locale(identifier: "ko-KR")
+        return f
+    }()
+
     /// Format Date to "YYYY-MM-DD HH:MM"
     static func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd HH:mm"
-        formatter.locale = Locale(identifier: "ko-KR")
-        return formatter.string(from: date)
+        dateFormatter.string(from: date)
     }
 
     /// Get SF Symbol name for file type (matches TypeScript getFileIcon)

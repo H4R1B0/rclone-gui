@@ -11,7 +11,7 @@ enum ActiveView {
     case trash
 }
 
-@Observable
+@Observable @MainActor
 final class AppState {
     let client: RcloneClient
     let panels: PanelViewModel

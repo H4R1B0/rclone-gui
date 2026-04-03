@@ -1,6 +1,7 @@
 import Foundation
 import LocalAuthentication
 import Security
+import CryptoKit
 
 @Observable
 final class AppLockViewModel {
@@ -25,9 +26,15 @@ final class AppLockViewModel {
 
     // MARK: - Keychain
 
+    private func sha256Hash(_ input: String) -> String {
+        let hash = SHA256.hash(data: Data(input.utf8))
+        return hash.compactMap { String(format: "%02x", $0) }.joined()
+    }
+
     func setPassword(_ password: String) -> Bool {
         removePassword()
-        guard let data = password.data(using: .utf8) else { return false }
+        let hashString = sha256Hash(password)
+        guard let data = hashString.data(using: .utf8) else { return false }
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: keychainService,
@@ -51,7 +58,7 @@ final class AppLockViewModel {
               let data = result as? Data,
               let stored = String(data: data, encoding: .utf8)
         else { return false }
-        return stored == input
+        return stored == sha256Hash(input)
     }
 
     func removePassword() {
@@ -87,7 +94,7 @@ final class AppLockViewModel {
         do {
             let result = try await context.evaluatePolicy(
                 .deviceOwnerAuthenticationWithBiometrics,
-                localizedReason: "Rclone GUI 잠금 해제"
+                localizedReason: L10n.t("lock.unlock")
             )
             if result {
                 isLocked = false

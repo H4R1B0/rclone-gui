@@ -26,8 +26,8 @@ struct RcloneGUIApp: App {
             let group = DispatchGroup()
             group.enter()
             Task.detached {
+                defer { group.leave() }
                 await CLIHandler.run(arguments: args)
-                group.leave()
             }
             group.wait()
             exit(0)

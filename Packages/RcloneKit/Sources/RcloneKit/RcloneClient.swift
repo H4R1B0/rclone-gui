@@ -24,7 +24,8 @@ public final class RcloneClient: RcloneClientProtocol, @unchecked Sendable {
     }
 
     public func call(_ method: String, params: [String: Any] = [:]) async throws -> [String: Any] {
-        guard isInitialized else {
+        let initialized = queue.sync { isInitialized }
+        guard initialized else {
             throw RcloneError.notInitialized
         }
 
