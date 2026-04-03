@@ -323,6 +323,12 @@ enum L10n {
         "trash.empty":            ["ko": "휴지통이 비어있습니다", "en": "Trash is empty"],
         "trash.emptyAll":         ["ko": "비우기", "en": "Empty Trash"],
 
+        // Menu Bar
+        "menubar.activeTransfers": ["ko": "개 전송 중", "en": "active transfers"],
+        "menubar.noTransfers":     ["ko": "전송 없음", "en": "No active transfers"],
+        "menubar.openWindow":      ["ko": "창 열기", "en": "Open Window"],
+        "menubar.quit":            ["ko": "종료", "en": "Quit"],
+
         // Transfer Report
         "report.title":           ["ko": "전송 리포트", "en": "Transfer Report"],
         "report.total":           ["ko": "전체", "en": "Total"],

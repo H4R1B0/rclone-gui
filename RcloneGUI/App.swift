@@ -24,7 +24,6 @@ struct RcloneGUIApp: App {
             ContentView()
                 .environment(appState)
                 .task { await appState.startup() }
-                .onDisappear { appState.shutdown() }
         }
         .defaultSize(width: 1400, height: 900)
         .windowResizability(.contentMinSize)
@@ -83,6 +82,15 @@ struct RcloneGUIApp: App {
                 }
                 .keyboardShortcut("a", modifiers: .command)
             }
+        }
+
+        MenuBarExtra {
+            MenuBarView()
+                .environment(appState)
+        } label: {
+            Image(systemName: appState.transfers.hasActiveTransfers
+                ? "arrow.up.arrow.down.circle.fill"
+                : "arrow.up.arrow.down.circle")
         }
     }
 }
