@@ -74,6 +74,7 @@
 		B1FD9190EC9CBFF2A867370F /* SettingsViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C95D8C42FA5FEB5BC8174C /* SettingsViewModelTests.swift */; };
 		B8376551C59A3B4F5420CE4A /* PathUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05D52EE497A536CF66B6BA14 /* PathUtils.swift */; };
 		BA935CD5B8638757177817B5 /* AccountSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D882FD253104D9E1A8B2876C /* AccountSetupView.swift */; };
+		BF0A0FB832CFE82BACE80D5B /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = F97568BD0CB49B6A34C34FE4 /* AppIcon.icns */; };
 		C15F14F4A9A7C849F47A3F91 /* CompressUploadSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49E767503D6DA16E81118049 /* CompressUploadSheet.swift */; };
 		C459DD6871CEA692FAB4DBE4 /* MountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3367A1B528B7C25267CA61E4 /* MountView.swift */; };
 		C4665B3B160E583A22C0674E /* URLSchemeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86CE7B8D47C64A9AAB391552 /* URLSchemeHandler.swift */; };
@@ -203,6 +204,7 @@
 		F65BAEDE8D4FA63EFECA57F3 /* PropertiesSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertiesSheet.swift; sourceTree = "<group>"; };
 		F77B2A5E96B7F7D084C89482 /* SchedulerViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchedulerViewModelTests.swift; sourceTree = "<group>"; };
 		F9666750B3BBF443A4303DE9 /* MountViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountViewModelTests.swift; sourceTree = "<group>"; };
+		F97568BD0CB49B6A34C34FE4 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
 		FD99C551471C572C575EF951 /* VersionHistorySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VersionHistorySheet.swift; sourceTree = "<group>"; };
 		FE94DFF88C4A3C2100E5E0FA /* LockScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -347,6 +349,7 @@
 		BFB47F516659086949ECA886 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				F97568BD0CB49B6A34C34FE4 /* AppIcon.icns */,
 				6B9DD946499F99FC5F3E724C /* Localizable.xcstrings */,
 			);
 			path = Resources;
@@ -499,6 +502,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BF0A0FB832CFE82BACE80D5B /* AppIcon.icns in Resources */,
 				6B955B64ED84261BDFC765D2 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -814,7 +818,7 @@
 					"$(PROJECT_DIR)/Resources/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.4.0;
+				MARKETING_VERSION = 1.4.1;
 				OTHER_LDFLAGS = (
 					"-lrclone",
 				);
@@ -839,7 +843,7 @@
 					"$(PROJECT_DIR)/Resources/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.4.0;
+				MARKETING_VERSION = 1.4.1;
 				OTHER_LDFLAGS = (
 					"-lrclone",
 				);
