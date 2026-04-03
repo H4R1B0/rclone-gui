@@ -102,8 +102,8 @@ A native macOS desktop application that lets you manage multiple cloud storage s
 - [x] Stop / Restart individual and all transfers
 - [x] Transfer restart from history (copyOrigins tracking)
 - [x] Resizable transfer panel
-- [ ] Multi-threaded transfer speed optimization
-- [ ] Time-based bandwidth limit scheduling
+- [x] Multi-threaded transfer speed optimization (configurable streams)
+- [x] Time-based bandwidth limit scheduling (per-hour rules)
 - [x] Detailed transfer reports (summary + clipboard copy)
 
 ### 5. Sync & Backup
@@ -113,7 +113,7 @@ A native macOS desktop application that lets you manage multiple cloud storage s
 - [x] Bidirectional sync (Bisync)
 - [x] Sync profile management (save/load/delete)
 - [x] Sync execution logs
-- [ ] Custom sync rules
+- [x] Custom sync rules (exclude/include/size/age rule builder)
 - [x] Filter rules (ExcludeRule applied to sync operations)
 
 ### 6. Scheduling & Automation
@@ -187,7 +187,7 @@ A native macOS desktop application that lets you manage multiple cloud storage s
 - **rclone Integration**: librclone (C shared library via FFI)
 - **Project Structure**: Swift Package Manager (RcloneKit, FileBrowser, TransferEngine)
 - **Minimum OS**: macOS 14 (Sonoma)
-- **Version**: 1.0.1
+- **Version**: 1.0.2
 
 ## Getting Started
 
