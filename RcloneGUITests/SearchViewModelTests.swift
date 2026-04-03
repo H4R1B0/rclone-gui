@@ -4,14 +4,14 @@ import RcloneKit
 
 @Suite("SearchViewModel Tests")
 struct SearchViewModelTests {
-    @Test("initializeClouds adds colon and local")
+    @Test("initializeClouds adds colon (cloud only)")
     func initializeClouds() {
         let vm = SearchViewModel(client: MockRcloneClient())
         vm.initializeClouds(remotes: ["gdrive", "s3"])
         #expect(vm.selectedClouds.contains("gdrive:"))
         #expect(vm.selectedClouds.contains("s3:"))
-        #expect(vm.selectedClouds.contains("/"))
-        #expect(vm.selectedClouds.count == 3)
+        #expect(!vm.selectedClouds.contains("/"))  // 로컬 제외
+        #expect(vm.selectedClouds.count == 2)
     }
 
     @Test("toggleCloud removes if present")
