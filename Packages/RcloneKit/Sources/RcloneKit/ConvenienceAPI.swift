@@ -116,13 +116,18 @@ public enum RcloneAPI {
     public static func copyFileAsync(
         using client: RcloneClientProtocol,
         srcFs: String, srcRemote: String,
-        dstFs: String, dstRemote: String
+        dstFs: String, dstRemote: String,
+        multiThreadStreams: Int = 0
     ) async throws -> Int {
-        let result = try await client.call("operations/copyfile", params: [
+        var params: [String: Any] = [
             "srcFs": srcFs, "srcRemote": srcRemote,
             "dstFs": dstFs, "dstRemote": dstRemote,
             "_async": true
-        ])
+        ]
+        if multiThreadStreams > 0 {
+            params["_config"] = ["MultiThreadStreams": multiThreadStreams]
+        }
+        let result = try await client.call("operations/copyfile", params: params)
         return result["jobid"] as? Int ?? 0
     }
 
@@ -145,7 +150,9 @@ public enum RcloneAPI {
         using client: RcloneClientProtocol,
         srcFs: String, srcRemote: String,
         dstFs: String, dstRemote: String,
-        filterRules: [String] = []
+        filterRules: [String] = [],
+        transfers: Int = 0,
+        multiThreadStreams: Int = 0
     ) async throws -> Int {
         var params: [String: Any] = [
             "srcFs": "\(srcFs)\(srcRemote)",
@@ -155,6 +162,10 @@ public enum RcloneAPI {
         if !filterRules.isEmpty {
             params["_filter"] = ["ExcludeRule": filterRules]
         }
+        var config: [String: Any] = [:]
+        if transfers > 0 { config["Transfers"] = transfers }
+        if multiThreadStreams > 0 { config["MultiThreadStreams"] = multiThreadStreams }
+        if !config.isEmpty { params["_config"] = config }
         let result = try await client.call("sync/copy", params: params)
         return result["jobid"] as? Int ?? 0
     }
@@ -162,13 +173,20 @@ public enum RcloneAPI {
     public static func moveDir(
         using client: RcloneClientProtocol,
         srcFs: String, srcRemote: String,
-        dstFs: String, dstRemote: String
+        dstFs: String, dstRemote: String,
+        transfers: Int = 0,
+        multiThreadStreams: Int = 0
     ) async throws -> Int {
-        let result = try await client.call("sync/move", params: [
+        var params: [String: Any] = [
             "srcFs": "\(srcFs)\(srcRemote)",
             "dstFs": "\(dstFs)\(dstRemote)",
             "_async": true
-        ])
+        ]
+        var config: [String: Any] = [:]
+        if transfers > 0 { config["Transfers"] = transfers }
+        if multiThreadStreams > 0 { config["MultiThreadStreams"] = multiThreadStreams }
+        if !config.isEmpty { params["_config"] = config }
+        let result = try await client.call("sync/move", params: params)
         return result["jobid"] as? Int ?? 0
     }
 

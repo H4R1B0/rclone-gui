@@ -6,8 +6,9 @@ public actor TransferManager {
     private var transfers: [UUID: TransferOperation] = [:]
     private let maxConcurrent: Int
     private var runningCount = 0
+    private var pendingQueue: [UUID] = []
 
-    public init(client: RcloneClientProtocol, maxConcurrent: Int = 3) {
+    public init(client: RcloneClientProtocol, maxConcurrent: Int = 4) {
         self.client = client
         self.maxConcurrent = maxConcurrent
     }
@@ -35,18 +36,31 @@ public actor TransferManager {
 
     public func enqueue(_ operation: TransferOperation) {
         transfers[operation.id] = operation
+        pendingQueue.append(operation.id)
+        drainQueue()
+    }
 
-        Task {
-            await execute(id: operation.id)
+    /// Start pending operations up to maxConcurrent limit
+    private func drainQueue() {
+        while runningCount < maxConcurrent, !pendingQueue.isEmpty {
+            let id = pendingQueue.removeFirst()
+            guard let op = transfers[id], op.status == .pending else { continue }
+            runningCount += 1
+            Task {
+                await execute(id: id)
+            }
         }
     }
 
     private func execute(id: UUID) async {
-        guard var op = transfers[id] else { return }
+        guard var op = transfers[id] else {
+            runningCount -= 1
+            drainQueue()
+            return
+        }
 
         op.status = .transferring
         transfers[id] = op
-        runningCount += 1
 
         do {
             switch op.kind {
@@ -71,10 +85,13 @@ public actor TransferManager {
 
         transfers[id] = op
         runningCount -= 1
+        drainQueue()
     }
 
     public func cancel(id: UUID) {
         guard var op = transfers[id], !op.status.isTerminal else { return }
+        // Remove from pending queue if still waiting
+        pendingQueue.removeAll { $0 == id }
         op.status = .failed(message: "Cancelled by user")
         transfers[id] = op
     }
@@ -84,4 +101,5 @@ public actor TransferManager {
             transfers.removeValue(forKey: id)
         }
     }
+
 }

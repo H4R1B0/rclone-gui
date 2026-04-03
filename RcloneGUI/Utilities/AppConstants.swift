@@ -27,6 +27,7 @@ enum AppConstants {
     static let trashFile = "trash.json"
     static let transferCheckpointsFile = "transfer-checkpoints.json"
     static let appLockConfigFile = "app-lock-config.json"
+    static let remoteOrderFile = "remote-order.json"
 
     /// Application Support/RcloneGUI 디렉토리 — 생성 보장
     static let appSupportDir: URL = {
@@ -53,4 +54,6 @@ enum AppConstants {
     static let maxCompletedTransfers = 200
     static let maxSearchConcurrency = 5
     static let maxSpotlightItems = 1000
+    static let defaultConcurrentTransfers = 4
+    static let defaultMultiThreadStreams = 4
 }
