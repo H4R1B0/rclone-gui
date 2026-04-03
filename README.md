@@ -187,7 +187,7 @@ A native macOS desktop application that lets you manage multiple cloud storage s
 - **rclone Integration**: librclone (C shared library via FFI)
 - **Project Structure**: Swift Package Manager (RcloneKit, FileBrowser, TransferEngine)
 - **Minimum OS**: macOS 14 (Sonoma)
-- **Version**: 1.1.1
+- **Version**: 1.1.2
 
 ## Getting Started
 
