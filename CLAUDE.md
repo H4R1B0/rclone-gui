@@ -331,6 +331,32 @@ chore: 빌드/설정 변경
 test: 테스트 추가/수정
 ```
 
+## 릴리즈 노트 형식
+
+GitHub Release 생성 시 한국어/영어 이중 표기 + 번호 리스트 형식을 사용한다:
+
+```markdown
+<details>
+<summary>🇰🇷 한국어</summary>
+
+## vX.Y.Z — 한줄 요약
+
+1. **기능명** — 설명
+2. **기능명** — 설명
+
+</details>
+
+<details>
+<summary>🇺🇸 English</summary>
+
+## vX.Y.Z — One-line summary
+
+1. **Feature name** — description
+2. **Feature name** — description
+
+</details>
+```
+
 ## 개발 워크플로우
 
 - 기능 구현/버그 수정 단위로 **단계적으로 git commit**을 남긴다
