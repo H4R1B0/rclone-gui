@@ -1,4 +1,5 @@
 import SwiftUI
+import RcloneKit
 
 struct CompressUploadSheet: View {
     @Environment(AppState.self) private var appState
