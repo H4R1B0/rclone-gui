@@ -122,7 +122,7 @@ enum CLIHandler {
         """)
     }
 
-    private static func parseRemotePath(_ input: String) -> (fs: String, path: String) {
+    static func parseRemotePath(_ input: String) -> (fs: String, path: String) {
         if let colonIndex = input.firstIndex(of: ":") {
             let fs = String(input[input.startIndex...colonIndex])
             let path = String(input[input.index(after: colonIndex)...])
