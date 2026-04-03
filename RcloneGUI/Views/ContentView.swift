@@ -31,6 +31,9 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .task { await appState.startup() }
+        } else if !appState.onboardingComplete {
+            OnboardingView()
+                .environment(appState)
         } else {
             NavigationSplitView {
                 SidebarView(selection: $selectedSidebar)

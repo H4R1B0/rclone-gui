@@ -33,6 +33,7 @@ final class AppState {
     var showAccountSetup: Bool = false
     var transferHeight: Double = 200
     var ready: Bool = false
+    var onboardingComplete: Bool = false
 
     init() {
         let client = RcloneClient()
@@ -78,6 +79,7 @@ final class AppState {
         scheduler.startMonitoring()
         settings.startBwScheduler()
         ready = true
+        onboardingComplete = UserDefaults.standard.bool(forKey: "onboardingComplete")
     }
 
     func shutdown() {

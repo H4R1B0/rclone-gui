@@ -358,5 +358,33 @@ enum L10n {
         // Transfer Resume
         "transfer.resumable":  ["ko": "재시도 가능", "en": "Resumable"],
         "transfer.retryAll":   ["ko": "모두 재시도", "en": "Retry All"],
+
+        // Onboarding
+        "onboarding.subtitle":   ["ko": "70+ 클라우드를 하나의 앱에서 관리하세요", "en": "Manage 70+ cloud services in one app"],
+        "onboarding.feature1":   ["ko": "듀얼 패널 파일 브라우저", "en": "Dual-panel file browser"],
+        "onboarding.feature2":   ["ko": "70+ 클라우드 스토리지 지원", "en": "70+ cloud storage services"],
+        "onboarding.feature3":   ["ko": "암호화 및 앱 잠금", "en": "Encryption & app lock"],
+        "onboarding.feature4":   ["ko": "동기화 및 스케줄링", "en": "Sync & scheduling"],
+        "onboarding.getStarted": ["ko": "시작하기", "en": "Get Started"],
+        "onboarding.skip":       ["ko": "건너뛰기", "en": "Skip"],
+        "onboarding.ready":      ["ko": "준비 완료!", "en": "All Set!"],
+        "onboarding.readyDesc":  ["ko": "사이드바에서 클라우드를 선택하여 파일을 탐색하세요.", "en": "Select a cloud from the sidebar to start browsing."],
+        "onboarding.start":      ["ko": "앱 시작", "en": "Start App"],
+
+        // Error Recovery
+        "error.authFailed":         ["ko": "인증에 실패했습니다", "en": "Authentication failed"],
+        "error.authSuggestion":     ["ko": "계정을 다시 연결하거나 토큰을 갱신하세요.", "en": "Reconnect the account or refresh the token."],
+        "error.reauth":             ["ko": "재인증", "en": "Reauthenticate"],
+        "error.quotaFull":          ["ko": "저장 공간이 부족합니다", "en": "Storage quota exceeded"],
+        "error.quotaSuggestion":    ["ko": "불필요한 파일을 삭제하거나 요금제를 업그레이드하세요.", "en": "Delete unnecessary files or upgrade your plan."],
+        "error.network":            ["ko": "네트워크 연결에 실패했습니다", "en": "Network connection failed"],
+        "error.networkSuggestion":  ["ko": "인터넷 연결을 확인하고 다시 시도하세요.", "en": "Check your internet connection and try again."],
+        "error.notFound":           ["ko": "파일 또는 경로를 찾을 수 없습니다", "en": "File or path not found"],
+        "error.notFoundSuggestion": ["ko": "경로가 올바른지 확인하거나 파일이 이동/삭제되었을 수 있습니다.", "en": "Check the path or the file may have been moved/deleted."],
+        "error.rateLimit":          ["ko": "요청이 너무 많습니다", "en": "Too many requests"],
+        "error.rateLimitSuggestion": ["ko": "잠시 후 다시 시도하세요. 자동으로 재시도됩니다.", "en": "Wait a moment and try again. Auto-retry will resume."],
+        "error.conflict":           ["ko": "파일이 이미 존재합니다", "en": "File already exists"],
+        "error.conflictSuggestion": ["ko": "이름을 변경하거나 덮어쓰기를 선택하세요.", "en": "Rename the file or choose to overwrite."],
+        "error.genericSuggestion":  ["ko": "문제가 지속되면 설정에서 계정을 확인하세요.", "en": "If the problem persists, check the account in Settings."],
     ]
 }

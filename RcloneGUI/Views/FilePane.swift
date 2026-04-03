@@ -29,19 +29,18 @@ struct FilePane: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if let error = tab.error {
                     VStack(spacing: 12) {
-                        Image(systemName: "exclamationmark.triangle")
-                            .font(.system(size: 28))
-                            .foregroundColor(.secondary)
-                        Text(error)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
+                        let classified = ErrorClassifier.classify(error)
+                        ErrorBannerView(classified: classified, onAction: {
+                            Task { await appState.panels.refresh(side: side) }
+                        }, onDismiss: nil)
+                        .padding(.horizontal, 20)
+
                         Button(L10n.t("retry")) {
                             Task { await appState.panels.refresh(side: side) }
                         }
                         .controlSize(.small)
                     }
-                    .padding()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     FileTableView(side: side)
                 }
