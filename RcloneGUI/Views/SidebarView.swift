@@ -66,19 +66,43 @@ struct SidebarView: View {
         .listStyle(.sidebar)
         .navigationSplitViewColumnWidth(min: 180, ideal: 220, max: 300)
         .safeAreaInset(edge: .bottom) {
-            HStack {
-                Image(systemName: "cloud.fill")
-                    .foregroundColor(.accentColor)
-                Text("RcloneGUI")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                Spacer()
-                Text("v1.1.1")
-                    .font(.caption2)
-                    .foregroundColor(.secondary.opacity(0.5))
+            VStack(spacing: 0) {
+                Divider()
+
+                Button(action: {
+                    let panel = NSOpenPanel()
+                    panel.allowsMultipleSelection = true
+                    panel.canChooseFiles = true
+                    panel.canChooseDirectories = true
+                    panel.begin { result in
+                        guard result == .OK else { return }
+                        NotificationCenter.default.post(name: .finderUploadRequested, object: panel.urls)
+                    }
+                }) {
+                    Label(L10n.t("sidebar.quickUpload"), systemImage: "arrow.up.circle.fill")
+                        .font(.system(size: 12))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.accentColor)
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .padding(.bottom, 4)
+
+                HStack {
+                    Image(systemName: "cloud.fill")
+                        .foregroundColor(.accentColor)
+                    Text("RcloneGUI")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text("v1.1.1")
+                        .font(.caption2)
+                        .foregroundColor(.secondary.opacity(0.5))
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
         }
     }
 }

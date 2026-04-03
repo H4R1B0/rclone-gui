@@ -15,6 +15,7 @@ struct FileTableView: View {
     @State private var hashCompareFiles: (FileItem, FileItem)?
     @State private var showCompress = false
     @State private var mediaFile: FileItem?
+    @FocusState private var isFocused: Bool
 
     private var tab: TabState {
         appState.panels.side(side).activeTab
@@ -51,6 +52,54 @@ struct FileTableView: View {
             }
         }
         .focusable()
+        .focused($isFocused)
+        .onAppear { isFocused = true }
+        .onKeyPress(.return) {
+            if let fileName = tab.selectedFiles.first,
+               let file = tab.files.first(where: { $0.name == fileName }) {
+                if file.isDir {
+                    Task { await appState.panels.navigate(side: side, dirName: file.name) }
+                } else {
+                    renamingFile = file.name
+                    renameText = file.name
+                }
+            }
+            return .handled
+        }
+        .onKeyPress(.delete) {
+            if !tab.selectedFiles.isEmpty {
+                showDeleteConfirm = true
+            }
+            return .handled
+        }
+        .onKeyPress(.upArrow) {
+            selectAdjacentFile(direction: -1)
+            return .handled
+        }
+        .onKeyPress(.downArrow) {
+            selectAdjacentFile(direction: 1)
+            return .handled
+        }
+        .onKeyPress(.leftArrow) {
+            Task { await appState.panels.goUp(side: side) }
+            return .handled
+        }
+        .onKeyPress(.rightArrow) {
+            if let fileName = tab.selectedFiles.first,
+               let file = tab.files.first(where: { $0.name == fileName }),
+               file.isDir {
+                Task { await appState.panels.navigate(side: side, dirName: file.name) }
+            }
+            return .handled
+        }
+        .onKeyPress(.space) {
+            handleQuickLook()
+            return .handled
+        }
+        .onKeyPress(.tab) {
+            appState.panels.activePanel = (side == .left) ? .right : .left
+            return .handled
+        }
         .sheet(isPresented: $showNewFolder) {
             NewFolderSheet(side: side)
         }
@@ -343,6 +392,20 @@ struct FileTableView: View {
     }
 
     // MARK: - Actions
+
+    private func selectAdjacentFile(direction: Int) {
+        let sorted = tab.sortedFiles
+        guard !sorted.isEmpty else { return }
+
+        if let currentName = tab.selectedFiles.first,
+           let currentIndex = sorted.firstIndex(where: { $0.name == currentName }) {
+            let newIndex = max(0, min(sorted.count - 1, currentIndex + direction))
+            appState.panels.clearSelection(side: side)
+            appState.panels.toggleSelect(side: side, name: sorted[newIndex].name)
+        } else {
+            appState.panels.toggleSelect(side: side, name: sorted[0].name)
+        }
+    }
 
     private func handleQuickLook() {
         guard tab.remote == "/" else { return }  // Only local files

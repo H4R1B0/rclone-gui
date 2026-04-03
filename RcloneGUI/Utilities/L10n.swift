@@ -39,6 +39,7 @@ enum L10n {
         "sidebar.favorites":    ["ko": "즐겨찾기", "en": "Favorites"],
         "sidebar.remotes":      ["ko": "클라우드", "en": "Cloud"],
         "sidebar.tools":        ["ko": "도구", "en": "Tools"],
+        "sidebar.quickUpload":  ["ko": "빠른 업로드", "en": "Quick Upload"],
 
         // Toolbar
         "toolbar.explore":      ["ko": "탐색", "en": "Explore"],
