@@ -38,6 +38,9 @@ struct RcloneGUIApp: App {
         WindowGroup {
             ContentView()
                 .environment(appState)
+                .onOpenURL { url in
+                    URLSchemeHandler.handle(url, appState: appState)
+                }
         }
         .defaultSize(width: 1400, height: 900)
         .windowResizability(.contentMinSize)
