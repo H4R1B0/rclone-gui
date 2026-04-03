@@ -22,7 +22,14 @@ struct MountView: View {
 
             Divider()
 
-            if mountVM.mounts.isEmpty {
+            if mountVM.isLoading {
+                MountListSkeleton()
+            } else if let error = mountVM.error {
+                ErrorRetryView(
+                    message: error,
+                    onRetry: { Task { await mountVM.loadMounts() } }
+                )
+            } else if mountVM.mounts.isEmpty {
                 VStack(spacing: 8) {
                     Image(systemName: "externaldrive.connected.to.line.below")
                         .font(.system(size: 32))

@@ -24,14 +24,9 @@ struct ContentView: View {
 
     var body: some View {
         if !appState.ready {
-            VStack(spacing: 12) {
-                ProgressView()
-                    .controlSize(.large)
-                Text(L10n.t("app.initializing"))
-                    .foregroundColor(.secondary)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .task { await appState.startup() }
+            AppStartupSkeleton()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .task { await appState.startup() }
         } else if !appState.onboardingComplete {
             OnboardingView()
                 .environment(appState)
@@ -74,6 +69,7 @@ struct ContentView: View {
                 }
             }
             .navigationSplitViewStyle(.balanced)
+            .animation(.easeInOut(duration: 0.25), value: selectedSidebar)
             .frame(minWidth: 1000, minHeight: 600)
             .overlay {
                 if appState.appLock.isLocked == true {
@@ -89,26 +85,23 @@ struct ContentView: View {
                     .frame(minWidth: 650, minHeight: 550)
             }
             .toolbar {
-                ToolbarItemGroup(placement: .primaryAction) {
-                    Button(action: { appState.panels.linkedBrowsing.toggle() }) {
-                        Image(systemName: appState.panels.linkedBrowsing ? "link.circle.fill" : "link.circle")
-                    }
-                    .help(L10n.t("toolbar.linkedBrowsing"))
-                    .foregroundColor(appState.panels.linkedBrowsing ? .accentColor : .secondary)
-
+                ToolbarItem(placement: .primaryAction) {
                     Button(action: { appState.showTransfers.toggle() }) {
-                        Image(systemName: appState.transfers.hasActiveTransfers ? "arrow.up.arrow.down.circle.fill" : "arrow.up.arrow.down.circle")
+                        Label(L10n.t("toolbar.transfers"), systemImage: appState.transfers.hasActiveTransfers ? "arrow.up.arrow.down.circle.fill" : "arrow.up.arrow.down.circle")
                     }
-                    .help(L10n.t("toolbar.transfers"))
+                }
 
+                ToolbarItem(placement: .primaryAction) {
                     Button(action: { appState.showSettings = true }) {
-                        Image(systemName: "gearshape")
+                        Label(L10n.t("toolbar.settings"), systemImage: "gearshape")
                     }
-                    .help(L10n.t("toolbar.settings"))
                 }
             }
             .onReceive(NotificationCenter.default.publisher(for: .requestSearch)) { _ in
                 selectedSidebar = .search
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .requestExplorer)) { _ in
+                selectedSidebar = .explorer
             }
             .onReceive(NotificationCenter.default.publisher(for: .finderUploadRequested)) { notification in
                 if let urls = notification.object as? [URL] {

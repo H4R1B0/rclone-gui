@@ -25,22 +25,13 @@ struct FilePane: View {
                 if tab.mode == .cloud && tab.remote.isEmpty {
                     RemoteSelectorView(side: side)
                 } else if tab.loading {
-                    ProgressView()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    FileListSkeleton()
                 } else if let error = tab.error {
-                    VStack(spacing: 12) {
-                        let classified = ErrorClassifier.classify(error)
-                        ErrorBannerView(classified: classified, onAction: {
-                            Task { await appState.panels.refresh(side: side) }
-                        }, onDismiss: nil)
-                        .padding(.horizontal, 20)
-
-                        Button(L10n.t("retry")) {
-                            Task { await appState.panels.refresh(side: side) }
-                        }
-                        .controlSize(.small)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    ErrorRetryView(
+                        message: ErrorClassifier.classify(error).userMessage,
+                        detail: ErrorClassifier.classify(error).suggestion,
+                        onRetry: { Task { await appState.panels.refresh(side: side) } }
+                    )
                 } else {
                     FileTableView(side: side)
                 }

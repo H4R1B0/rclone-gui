@@ -16,82 +16,88 @@ struct RemoteDetailsView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                // Header
-                HStack(spacing: 12) {
-                    ProviderIcon.icon(for: remote?.type ?? "cloud")
-                        .font(.system(size: 32))
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(remoteName)
-                            .font(.title2.bold())
-                        Text(remote?.type ?? "")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    Spacer()
-
-                    Button(L10n.t("sidebar.openInExplorer")) {
-                        appState.panels.side(.left).addTab(mode: .cloud, remote: "\(remoteName):", label: remoteName)
-                        Task { await appState.panels.loadFiles(side: .left) }
-                    }
-                    .controlSize(.small)
-                }
-                .padding()
-                .background(.ultraThinMaterial)
-                .cornerRadius(10)
-
-                // Quota
-                if let quota = quota {
-                    GroupBox(L10n.t("quota.title")) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            let fraction = quota.total > 0 ? Double(quota.used) / Double(quota.total) : 0
-                            ProgressView(value: fraction)
-                                .tint(fraction > 0.9 ? .red : fraction > 0.7 ? .orange : .accentColor)
-                            HStack {
-                                Text("\(L10n.t("quota.used")): \(FormatUtils.formatBytes(quota.used))")
+        Group {
+            if isLoading {
+                ScrollView { DetailSkeleton() }
+            } else {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 20) {
+                        // Header
+                        HStack(spacing: 12) {
+                            ProviderIcon.icon(for: remote?.type ?? "cloud")
+                                .font(.system(size: 32))
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(remoteName)
+                                    .font(.title2.bold())
+                                Text(remote?.type ?? "")
                                     .font(.caption)
-                                Spacer()
-                                Text("\(L10n.t("quota.total")): \(FormatUtils.formatBytes(quota.total))")
-                                    .font(.caption)
+                                    .foregroundColor(.secondary)
                             }
-                            .foregroundColor(.secondary)
-                        }
-                    }
-                }
+                            Spacer()
 
-                // Config
-                if !config.isEmpty {
-                    GroupBox(L10n.t("sidebar.config")) {
-                        VStack(alignment: .leading, spacing: 6) {
-                            ForEach(Array(config.keys.sorted()), id: \.self) { key in
-                                HStack {
-                                    Text(key)
-                                        .font(.system(size: 11, weight: .medium))
-                                        .frame(width: 120, alignment: .trailing)
-                                    Text(key.lowercased().contains("password") || key.lowercased().contains("token") ? "------" : (config[key] ?? ""))
-                                        .font(.system(size: 11))
-                                        .foregroundColor(.secondary)
-                                        .lineLimit(1)
-                                        .textSelection(.enabled)
+                            Button(L10n.t("sidebar.openInExplorer")) {
+                                appState.panels.side(.left).addTab(mode: .cloud, remote: "\(remoteName):", label: remoteName)
+                                Task { await appState.panels.loadFiles(side: .left) }
+                            }
+                            .controlSize(.small)
+                        }
+                        .padding()
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(10)
+
+                        // Quota
+                        if let quota = quota {
+                            GroupBox(L10n.t("quota.title")) {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    let fraction = quota.total > 0 ? Double(quota.used) / Double(quota.total) : 0
+                                    ProgressView(value: fraction)
+                                        .tint(fraction > 0.9 ? .red : fraction > 0.7 ? .orange : .accentColor)
+                                    HStack {
+                                        Text("\(L10n.t("quota.used")): \(FormatUtils.formatBytes(quota.used))")
+                                            .font(.caption)
+                                        Spacer()
+                                        Text("\(L10n.t("quota.total")): \(FormatUtils.formatBytes(quota.total))")
+                                            .font(.caption)
+                                    }
+                                    .foregroundColor(.secondary)
                                 }
                             }
                         }
-                    }
-                }
 
-                // Actions
-                HStack(spacing: 12) {
-                    Button(L10n.t("edit")) {
-                        if let r = remote { editingRemote = r }
-                    }
+                        // Config
+                        if !config.isEmpty {
+                            GroupBox(L10n.t("sidebar.config")) {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    ForEach(Array(config.keys.sorted()), id: \.self) { key in
+                                        HStack {
+                                            Text(key)
+                                                .font(.system(size: 11, weight: .medium))
+                                                .frame(width: 120, alignment: .trailing)
+                                            Text(key.lowercased().contains("password") || key.lowercased().contains("token") ? "------" : (config[key] ?? ""))
+                                                .font(.system(size: 11))
+                                                .foregroundColor(.secondary)
+                                                .lineLimit(1)
+                                                .textSelection(.enabled)
+                                        }
+                                    }
+                                }
+                            }
+                        }
 
-                    Button(L10n.t("delete"), role: .destructive) {
-                        showDeleteConfirm = true
+                        // Actions
+                        HStack(spacing: 12) {
+                            Button(L10n.t("edit")) {
+                                if let r = remote { editingRemote = r }
+                            }
+
+                            Button(L10n.t("delete"), role: .destructive) {
+                                showDeleteConfirm = true
+                            }
+                        }
                     }
+                    .padding(20)
                 }
             }
-            .padding(20)
         }
         .task(id: remoteName) {
             await loadData()

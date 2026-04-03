@@ -40,15 +40,13 @@ struct VersionHistorySheet: View {
             Divider()
 
             if isLoading {
-                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+                VersionListSkeleton()
             } else if let error = error {
-                VStack(spacing: 8) {
-                    Image(systemName: "exclamationmark.triangle").font(.title2).foregroundColor(.secondary)
-                    Text(error).font(.caption).foregroundColor(.secondary).multilineTextAlignment(.center)
-                    Text(L10n.t("version.notSupported")).font(.caption).foregroundColor(.secondary)
-                }
-                .padding()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                ErrorRetryView(
+                    message: L10n.t("version.notSupported"),
+                    detail: error,
+                    onRetry: { Task { await loadVersions() } }
+                )
             } else if versions.isEmpty {
                 Text(L10n.t("version.noVersions")).foregroundColor(.secondary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)

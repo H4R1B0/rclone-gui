@@ -22,12 +22,12 @@ struct DuplicateFinderView: View {
             Divider()
 
             if detector?.isScanning == true {
-                VStack(spacing: 12) {
-                    ProgressView()
+                VStack(spacing: 0) {
                     Text(detector?.progress ?? "")
                         .font(.caption).foregroundColor(.secondary)
+                        .padding(.vertical, 8)
+                    FileListSkeleton()
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let det = detector, !det.groups.isEmpty {
                 // Results
                 List {

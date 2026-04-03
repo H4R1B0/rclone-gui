@@ -51,7 +51,9 @@ struct SearchPanelView: View {
 
             Divider()
 
-            if search.isSearching || search.hasSearched {
+            if search.isSearching && !search.hasSearched {
+                SearchResultsSkeleton()
+            } else if search.isSearching || search.hasSearched {
                 resultsTable
             } else {
                 VStack(spacing: 8) {
@@ -185,7 +187,7 @@ struct SearchPanelView: View {
 
     private var resultsTable: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 0) {
+            HStack(spacing: 8) {
                 Text(L10n.t("column.name")).frame(maxWidth: .infinity, alignment: .leading)
                 Text(L10n.t("search.cloud")).frame(width: 100, alignment: .leading)
                 Text(L10n.t("column.size")).frame(width: 80, alignment: .trailing)
@@ -217,7 +219,7 @@ struct SearchPanelView: View {
     }
 
     private func resultRow(_ result: SearchResult) -> some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 8) {
             HStack(spacing: 6) {
                 Image(systemName: FormatUtils.fileIcon(name: result.name, isDir: result.isDir))
                     .font(.system(size: 12))
@@ -259,11 +261,10 @@ struct SearchPanelView: View {
         .padding(.vertical, 3)
         .contentShape(Rectangle())
         .onTapGesture(count: 2) {
-            if result.isDir {
-                Task {
-                    await appState.panels.navigateTo(side: .right, remote: result.remoteFs, path: result.path)
-                    appState.activeView = .explore
-                }
+            Task {
+                let targetPath = result.isDir ? result.path : PathUtils.parent(result.path)
+                await appState.panels.navigateTo(side: .right, remote: result.remoteFs, path: targetPath)
+                NotificationCenter.default.post(name: .requestExplorer, object: nil)
             }
         }
     }
