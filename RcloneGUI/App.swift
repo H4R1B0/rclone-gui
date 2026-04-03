@@ -19,6 +19,21 @@ extension Notification.Name {
 struct RcloneGUIApp: App {
     @State private var appState = AppState()
 
+    init() {
+        let args = CommandLine.arguments
+        let cliCommands: Set<String> = ["list", "ls", "remotes", "copy", "move", "mkdir", "version", "help", "--help", "-h"]
+        if args.count > 1 && cliCommands.contains(args[1]) {
+            let group = DispatchGroup()
+            group.enter()
+            Task.detached {
+                await CLIHandler.run(arguments: args)
+                group.leave()
+            }
+            group.wait()
+            exit(0)
+        }
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()
