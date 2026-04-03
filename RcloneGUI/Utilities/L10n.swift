@@ -139,7 +139,7 @@ enum L10n {
         "settings.ignoreExist": ["ko": "기존 파일 무시", "en": "Ignore Existing Files"],
         "settings.ignoreSize":  ["ko": "크기 무시", "en": "Ignore Size"],
         "settings.noTraverse":  ["ko": "디렉토리 순회 건너뛰기", "en": "Skip Directory Traversal"],
-        "settings.noModTime":   ["ko": "수정시간 업데이트 안함", "en": "Don't Update Mod Time"],
+        "settings.noModTime":   ["ko": "수정시간 업데이트 안함 (원본 날짜 유지)", "en": "Don't Update Mod Time (preserve original dates)"],
         "settings.resetDefaults": ["ko": "기본값 복원", "en": "Restore Defaults"],
         "settings.disabled":    ["ko": "비활성화", "en": "Disabled"],
         "settings.default":     ["ko": "기본값", "en": "Default"],
