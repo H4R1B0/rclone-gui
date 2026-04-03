@@ -1,5 +1,31 @@
 import SwiftUI
 
+struct SyncRule: Identifiable {
+    let id = UUID()
+    var type: RuleType = .exclude
+    var pattern: String = ""
+
+    enum RuleType: String, CaseIterable {
+        case exclude = "exclude"
+        case include = "include"
+        case minSize = "min-size"
+        case maxSize = "max-size"
+        case minAge = "min-age"
+        case maxAge = "max-age"
+
+        var label: String {
+            switch self {
+            case .exclude: return L10n.t("sync.rule.exclude")
+            case .include: return L10n.t("sync.rule.include")
+            case .minSize: return L10n.t("sync.rule.minSize")
+            case .maxSize: return L10n.t("sync.rule.maxSize")
+            case .minAge: return L10n.t("sync.rule.minAge")
+            case .maxAge: return L10n.t("sync.rule.maxAge")
+            }
+        }
+    }
+}
+
 struct SyncProfileSheet: View {
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
@@ -11,7 +37,7 @@ struct SyncProfileSheet: View {
     @State private var sourcePath = ""
     @State private var destFs = "/"
     @State private var destPath = ""
-    @State private var filterText = ""
+    @State private var rules: [SyncRule] = []
     @State private var error: String?
 
     var body: some View {
@@ -50,9 +76,36 @@ struct SyncProfileSheet: View {
                     TextField(L10n.t("properties.path"), text: $destPath)
                 }
 
-                // Filters
-                Section(L10n.t("sync.filters")) {
-                    TextField(L10n.t("sync.filterHint"), text: $filterText)
+                // Sync Rules
+                Section(L10n.t("sync.rules")) {
+                    ForEach($rules) { $rule in
+                        HStack(spacing: 4) {
+                            Picker("", selection: $rule.type) {
+                                ForEach(SyncRule.RuleType.allCases, id: \.self) { t in
+                                    Text(t.label).tag(t)
+                                }
+                            }
+                            .frame(width: 120)
+
+                            TextField(L10n.t("sync.rule.pattern"), text: $rule.pattern)
+                                .textFieldStyle(.roundedBorder)
+
+                            Button(action: { rules.removeAll { $0.id == rule.id } }) {
+                                Image(systemName: "minus.circle").foregroundColor(.red)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        .font(.system(size: 11))
+                    }
+
+                    Button(action: { rules.append(SyncRule()) }) {
+                        Label(L10n.t("sync.rule.add"), systemImage: "plus")
+                    }
+                    .controlSize(.small)
+
+                    Text(L10n.t("sync.rule.help"))
+                        .font(.system(size: 10))
+                        .foregroundColor(.secondary)
                 }
             }
             .formStyle(.grouped)
@@ -83,7 +136,10 @@ struct SyncProfileSheet: View {
         let trimmedName = name.trimmingCharacters(in: .whitespaces)
         guard !trimmedName.isEmpty else { return }
 
-        let filters = filterText.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+        let filters = rules.compactMap { rule -> String? in
+            guard !rule.pattern.isEmpty else { return nil }
+            return "\(rule.type.rawValue) \(rule.pattern)"
+        }
 
         let profile = SyncProfile(
             name: trimmedName,
