@@ -21,6 +21,7 @@
 		149D582FB3244547035A56E5 /* SkeletonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 420E8C2FB49CEBC1188BDCBF /* SkeletonView.swift */; };
 		157CC405111B97E225993A86 /* SearchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 646DE6E8813FF584E2B95D5B /* SearchViewModel.swift */; };
 		1AC1A2FC404036D746E2AE2C /* TrashViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE67102A0159FB8CD76EC539 /* TrashViewModelTests.swift */; };
+		1B915E15D773570EEB16685F /* settings.local.json in Resources */ = {isa = PBXBuildFile; fileRef = AE3E7577846C1264585FD0EF /* settings.local.json */; };
 		1C4DDDC5B6E7269EAE3F7D2E /* AppConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FC5ABBD675A8685AA515709 /* AppConstants.swift */; };
 		2035AB8F25AD0E36FB555B2D /* TransferViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5DD1E4E18F2F1415841AC39 /* TransferViewModelTests.swift */; };
 		21CB500AD95C384A59F470EC /* drive.png in Resources */ = {isa = PBXBuildFile; fileRef = F79202E232B2C1C5E1F1749B /* drive.png */; };
@@ -73,6 +74,7 @@
 		5A902CEEECB6CDA9633EEE9E /* TrashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26BAABCB2AEDE0EFAA539908 /* TrashView.swift */; };
 		5C0FE9AB062E1AEB390E4FBF /* hdfs.png in Resources */ = {isa = PBXBuildFile; fileRef = 7329755A412A5A3BED2B8530 /* hdfs.png */; };
 		5F19F557B79DD21E7404E931 /* SchedulerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D049D4A21803DCC4AB6CF6D3 /* SchedulerViewModel.swift */; };
+		5F47FCD17EC8BA627C937D5E /* subagent-tracking.json in Resources */ = {isa = PBXBuildFile; fileRef = 1E8D1224A8ADC8DA9E67127B /* subagent-tracking.json */; };
 		601BCDEA338A934A8E854FF4 /* box.png in Resources */ = {isa = PBXBuildFile; fileRef = 34600F8DFB8A8B4F92D80D8F /* box.png */; };
 		6660433B4E54CFC18EC9227C /* googlephotos.png in Resources */ = {isa = PBXBuildFile; fileRef = 71159A942E5CDE4D26F8F2B9 /* googlephotos.png */; };
 		6AE5B27977F360E37A399953 /* FinderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE9D7A80905496C12B372D73 /* FinderService.swift */; };
@@ -83,6 +85,7 @@
 		725E546F38CE997C29650604 /* SchedulerViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77B2A5E96B7F7D084C89482 /* SchedulerViewModelTests.swift */; };
 		76BC2ADDA314F0810B3121D4 /* pcloud.png in Resources */ = {isa = PBXBuildFile; fileRef = 25AAD7A8B64650F9216DDDD3 /* pcloud.png */; };
 		775C9E6CC5E68EC6E531E7B8 /* FormatUtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F06D0C41F9ACC57735FA133F /* FormatUtilsTests.swift */; };
+		7A17BE19AA80E5914FEA6F8F /* idle-notif-cooldown.json in Resources */ = {isa = PBXBuildFile; fileRef = 1C2175EE199C33078F0A1E1A /* idle-notif-cooldown.json */; };
 		7A4E0B7D0D9BDB51404DDAB7 /* webdav.png in Resources */ = {isa = PBXBuildFile; fileRef = C95728DC28BC9504DDCA0D38 /* webdav.png */; };
 		7AFDDB9AAA2B36856AF1065E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0738E70B6EF3196F869BAEA /* ContentView.swift */; };
 		7C832FE825698D513D86F419 /* smb.png in Resources */ = {isa = PBXBuildFile; fileRef = EC64715AEA08ACD89A1E7188 /* smb.png */; };
@@ -90,7 +93,9 @@
 		7D2725A9803E1DD23F89E3F3 /* imagekit.png in Resources */ = {isa = PBXBuildFile; fileRef = C39052C9D36832AD867377D5 /* imagekit.png */; };
 		7D417F5DA5CBADC946E9B8AB /* OnboardingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A43386B751808B34AA0015F /* OnboardingTests.swift */; };
 		7D75A7D6936A3833BD58ED09 /* ExplorerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1388A665368F1961BD685D05 /* ExplorerView.swift */; };
+		7DA28F7B21094DFB956857C6 /* agent-replay-f5e9b70a-52ed-4de3-952c-2007f89b728f.jsonl in Resources */ = {isa = PBXBuildFile; fileRef = 92353164FCAD3ABAEA24CAF3 /* agent-replay-f5e9b70a-52ed-4de3-952c-2007f89b728f.jsonl */; };
 		7EB8A8A641FA5153FA040294 /* opendrive.png in Resources */ = {isa = PBXBuildFile; fileRef = 96F09A5454597AA93AA144B2 /* opendrive.png */; };
+		7EC29E0D63BD298B8159CDC0 /* mission-state.json in Resources */ = {isa = PBXBuildFile; fileRef = E01555A5CD6EB89A9CA041F9 /* mission-state.json */; };
 		7EE0AC25E5A2309B494A8CE3 /* FilePane.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86E8D1954B475B47F2B2051F /* FilePane.swift */; };
 		83436735E2F2C4A2419B726D /* SetPasswordSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 602A18F4A658CA2015CE8470 /* SetPasswordSheet.swift */; };
 		83C3017DFCE8E01FC33C1B03 /* FormatUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9A677D7F57716D008D17B43 /* FormatUtils.swift */; };
@@ -115,6 +120,7 @@
 		AF0672B516705DCFBA0EAD97 /* ProviderIconLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D441F5806727706567006F7 /* ProviderIconLoader.swift */; };
 		AF231BC7853B6BA5258C0A00 /* CLIHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0EDA99E878E768D6B75F4E4 /* CLIHandler.swift */; };
 		B1FD9190EC9CBFF2A867370F /* SettingsViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C95D8C42FA5FEB5BC8174C /* SettingsViewModelTests.swift */; };
+		B72AC5CF640A2FE6F3F99497 /* last-tool-error.json in Resources */ = {isa = PBXBuildFile; fileRef = 63691A6DB7EBDF794CF964BF /* last-tool-error.json */; };
 		B8376551C59A3B4F5420CE4A /* PathUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05D52EE497A536CF66B6BA14 /* PathUtils.swift */; };
 		BA935CD5B8638757177817B5 /* AccountSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D882FD253104D9E1A8B2876C /* AccountSetupView.swift */; };
 		BCF394566713C186E1DBD305 /* sharefile.png in Resources */ = {isa = PBXBuildFile; fileRef = BE0BEEB1956F45527B59319B /* sharefile.png */; };
@@ -183,8 +189,10 @@
 		139A5116C5D4FEF70104E38D /* dropbox.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = dropbox.png; sourceTree = "<group>"; };
 		13A63A7A9F5F4B2EDC776437 /* sftp.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = sftp.png; sourceTree = "<group>"; };
 		19791174FAAA33B08D7296AE /* ClipboardStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardStateTests.swift; sourceTree = "<group>"; };
+		1C2175EE199C33078F0A1E1A /* idle-notif-cooldown.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "idle-notif-cooldown.json"; sourceTree = "<group>"; };
 		1CDFB613CC67B5487CB22016 /* RemoteDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteDetailsView.swift; sourceTree = "<group>"; };
 		1D441F5806727706567006F7 /* ProviderIconLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderIconLoader.swift; sourceTree = "<group>"; };
+		1E8D1224A8ADC8DA9E67127B /* subagent-tracking.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "subagent-tracking.json"; sourceTree = "<group>"; };
 		25AAD7A8B64650F9216DDDD3 /* pcloud.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = pcloud.png; sourceTree = "<group>"; };
 		269144626D6FD12771BB6625 /* fichier.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = fichier.png; sourceTree = "<group>"; };
 		26A0C4C1091ADA8841374430 /* azurefiles.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = azurefiles.png; sourceTree = "<group>"; };
@@ -228,6 +236,7 @@
 		602A18F4A658CA2015CE8470 /* SetPasswordSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetPasswordSheet.swift; sourceTree = "<group>"; };
 		618B015D32E1E710D63FF782 /* oracle.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = oracle.png; sourceTree = "<group>"; };
 		61C0A4DE01201EA56ED6DE78 /* ErrorBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorBannerView.swift; sourceTree = "<group>"; };
+		63691A6DB7EBDF794CF964BF /* last-tool-error.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "last-tool-error.json"; sourceTree = "<group>"; };
 		646DE6E8813FF584E2B95D5B /* SearchViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViewModel.swift; sourceTree = "<group>"; };
 		650CEA0EC9BA454C60CBD091 /* putio.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = putio.png; sourceTree = "<group>"; };
 		670AF53D6ACFFDDDEDFA3846 /* AppLockViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLockViewModelTests.swift; sourceTree = "<group>"; };
@@ -250,6 +259,7 @@
 		86E8D1954B475B47F2B2051F /* FilePane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilePane.swift; sourceTree = "<group>"; };
 		87351B73D23FEAE3793DFD33 /* FileTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileTableView.swift; sourceTree = "<group>"; };
 		89BD872C179F52F865037212 /* SearchViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViewModelTests.swift; sourceTree = "<group>"; };
+		92353164FCAD3ABAEA24CAF3 /* agent-replay-f5e9b70a-52ed-4de3-952c-2007f89b728f.jsonl */ = {isa = PBXFileReference; path = "agent-replay-f5e9b70a-52ed-4de3-952c-2007f89b728f.jsonl"; sourceTree = "<group>"; };
 		92B8FB43EAE124EBE7E8E504 /* filescom.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = filescom.png; sourceTree = "<group>"; };
 		96C95D8C42FA5FEB5BC8174C /* SettingsViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModelTests.swift; sourceTree = "<group>"; };
 		96F09A5454597AA93AA144B2 /* opendrive.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = opendrive.png; sourceTree = "<group>"; };
@@ -268,6 +278,7 @@
 		A9A677D7F57716D008D17B43 /* FormatUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatUtils.swift; sourceTree = "<group>"; };
 		AA008259D11872FF50784ACF /* BookmarkViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkViewModel.swift; sourceTree = "<group>"; };
 		AA2DDEAA5890ACBA159AE7B2 /* RcloneGUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RcloneGUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE3E7577846C1264585FD0EF /* settings.local.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = settings.local.json; sourceTree = "<group>"; };
 		AE67102A0159FB8CD76EC539 /* TrashViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrashViewModelTests.swift; sourceTree = "<group>"; };
 		AEB1250C1F8F68DDE448A0AF /* onedrive.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = onedrive.png; sourceTree = "<group>"; };
 		AEEF648B949FDB2F3DB38619 /* nextcloud.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = nextcloud.png; sourceTree = "<group>"; };
@@ -300,6 +311,7 @@
 		DE9D7A80905496C12B372D73 /* FinderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderService.swift; sourceTree = "<group>"; };
 		DEB82F506CED5E93848B9E8A /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		DEE731FEF9343F36A7C52E62 /* ClipboardState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardState.swift; sourceTree = "<group>"; };
+		E01555A5CD6EB89A9CA041F9 /* mission-state.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "mission-state.json"; sourceTree = "<group>"; };
 		E16BDCB5E0350028A0219D11 /* BookmarkViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarkViewModelTests.swift; sourceTree = "<group>"; };
 		E650D32A90352D9A20677AE8 /* SyncProfileSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncProfileSheet.swift; sourceTree = "<group>"; };
 		E75F7431EB6BB248ED9CBB23 /* UnionSetupSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnionSetupSheet.swift; sourceTree = "<group>"; };
@@ -360,6 +372,14 @@
 				B0EDA99E878E768D6B75F4E4 /* CLIHandler.swift */,
 			);
 			path = CLI;
+			sourceTree = "<group>";
+		};
+		385E799F20176CF2BCA04630 /* .omc */ = {
+			isa = PBXGroup;
+			children = (
+				71A7EF160B60C656EDA17C8F /* state */,
+			);
+			path = .omc;
 			sourceTree = "<group>";
 		};
 		547B3118239459170C7C29A6 /* ProviderIcons */ = {
@@ -441,6 +461,18 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		71A7EF160B60C656EDA17C8F /* state */ = {
+			isa = PBXGroup;
+			children = (
+				92353164FCAD3ABAEA24CAF3 /* agent-replay-f5e9b70a-52ed-4de3-952c-2007f89b728f.jsonl */,
+				1C2175EE199C33078F0A1E1A /* idle-notif-cooldown.json */,
+				63691A6DB7EBDF794CF964BF /* last-tool-error.json */,
+				E01555A5CD6EB89A9CA041F9 /* mission-state.json */,
+				1E8D1224A8ADC8DA9E67127B /* subagent-tracking.json */,
+			);
+			path = state;
+			sourceTree = "<group>";
+		};
 		75FE0B993AF7FD3D2421DBDA /* Views */ = {
 			isa = PBXGroup;
 			children = (
@@ -518,6 +550,14 @@
 			path = RcloneGUITests;
 			sourceTree = "<group>";
 		};
+		84440BB0BA2033C918AAC05C /* .claude */ = {
+			isa = PBXGroup;
+			children = (
+				AE3E7577846C1264585FD0EF /* settings.local.json */,
+			);
+			path = .claude;
+			sourceTree = "<group>";
+		};
 		BFB47F516659086949ECA886 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -554,6 +594,8 @@
 			children = (
 				A3CD57E91417206AF17DDB71 /* App.swift */,
 				00AE9EB594683D318ED922F6 /* AppState.swift */,
+				84440BB0BA2033C918AAC05C /* .claude */,
+				385E799F20176CF2BCA04630 /* .omc */,
 				3431E2050F0179AB700B0401 /* CLI */,
 				BFB47F516659086949ECA886 /* Resources */,
 				BFBD0B203B2EDCBC9B799216 /* Services */,
@@ -679,6 +721,7 @@
 				BF0A0FB832CFE82BACE80D5B /* AppIcon.icns in Resources */,
 				6B955B64ED84261BDFC765D2 /* Localizable.xcstrings in Resources */,
 				8EA6667F07C90BEDDEECDF85 /* ProviderIcons in Resources */,
+				7DA28F7B21094DFB956857C6 /* agent-replay-f5e9b70a-52ed-4de3-952c-2007f89b728f.jsonl in Resources */,
 				577B7B9FE157A13A9AD5943C /* azureblob.png in Resources */,
 				E6F88D4D97D6302A7096A9E3 /* azurefiles.png in Resources */,
 				EE62258D683097825D814B9E /* b2.png in Resources */,
@@ -694,13 +737,16 @@
 				5C0FE9AB062E1AEB390E4FBF /* hdfs.png in Resources */,
 				E27414294B5BC8C8F2F311F5 /* hidrive.png in Resources */,
 				0CEC8D8D5C5438330270EA54 /* hubic.png in Resources */,
+				7A17BE19AA80E5914FEA6F8F /* idle-notif-cooldown.json in Resources */,
 				7D2725A9803E1DD23F89E3F3 /* imagekit.png in Resources */,
 				91E607E8FC47EA005B26070D /* internetarchive.png in Resources */,
 				36C6D695C2AB196F35C52936 /* jottacloud.png in Resources */,
 				4A9FA462AEB183CE2C43F6E6 /* koofr.png in Resources */,
+				B72AC5CF640A2FE6F3F99497 /* last-tool-error.json in Resources */,
 				34D81D51BD7CA3E20E5BC554 /* linkbox.png in Resources */,
 				AAFFB5D65518B7F3E006F1E2 /* mailru.png in Resources */,
 				8E89A38CBC79D6F6BB079776 /* mega.png in Resources */,
+				7EC29E0D63BD298B8159CDC0 /* mission-state.json in Resources */,
 				27FB8FF7B423BAD0D0D51E28 /* netstorage.png in Resources */,
 				3360E70B10671086D11026B6 /* nextcloud.png in Resources */,
 				4CF5432E6472933A5A076B11 /* onedrive.png in Resources */,
@@ -715,11 +761,13 @@
 				41379BCAC00B8C55D84F43F0 /* quatrix.png in Resources */,
 				39E9EF5CC942E8000871500D /* s3.png in Resources */,
 				0846BBDAF58C63FA7B651375 /* seafile.png in Resources */,
+				1B915E15D773570EEB16685F /* settings.local.json in Resources */,
 				D6E5FE14D07450818802924D /* sftp.png in Resources */,
 				BCF394566713C186E1DBD305 /* sharefile.png in Resources */,
 				2BD721BC4AEA7E3F47EC6E1B /* sia.png in Resources */,
 				7C832FE825698D513D86F419 /* smb.png in Resources */,
 				95BD52CF339BFC0C8B03A8C4 /* storj.png in Resources */,
+				5F47FCD17EC8BA627C937D5E /* subagent-tracking.json in Resources */,
 				2991A127F249BED3D3B91AB3 /* sugarsync.png in Resources */,
 				07903421301330FCC247F7DC /* swift.png in Resources */,
 				0A5B284FD454E8B3EA58A36F /* tardigrade.png in Resources */,
@@ -1046,7 +1094,7 @@
 					"$(PROJECT_DIR)/Resources/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.4.4;
+				MARKETING_VERSION = 1.4.5;
 				OTHER_LDFLAGS = (
 					"-lrclone",
 				);
@@ -1071,7 +1119,7 @@
 					"$(PROJECT_DIR)/Resources/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.4.4;
+				MARKETING_VERSION = 1.4.5;
 				OTHER_LDFLAGS = (
 					"-lrclone",
 				);
