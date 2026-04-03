@@ -31,7 +31,7 @@ final class SchedulerViewModel {
     var tasks: [ScheduledTask] = []
     var logs: [String] = []
 
-    private var timer: Timer?
+    private var monitorTask: Task<Void, Never>?
     private let configURL: URL
     private let logsURL: URL
 
@@ -46,14 +46,22 @@ final class SchedulerViewModel {
     }
 
     func startMonitoring() {
-        timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
-            self?.checkAndRun()
+        stopMonitoring()
+        monitorTask = Task { [weak self] in
+            while !Task.isCancelled {
+                await MainActor.run { self?.checkAndRun() }
+                try? await Task.sleep(for: .seconds(60))
+            }
         }
     }
 
     func stopMonitoring() {
-        timer?.invalidate()
-        timer = nil
+        monitorTask?.cancel()
+        monitorTask = nil
+    }
+
+    deinit {
+        monitorTask?.cancel()
     }
 
     func addTask(_ task: ScheduledTask) {

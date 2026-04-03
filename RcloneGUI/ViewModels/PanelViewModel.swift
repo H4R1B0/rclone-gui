@@ -30,6 +30,7 @@ struct DraggedFile: Codable {
 }
 
 @Observable
+@MainActor
 final class TabState: Identifiable {
     let id: UUID
     var label: String
@@ -72,6 +73,7 @@ final class TabState: Identifiable {
 // MARK: - Side State (left or right panel)
 
 @Observable
+@MainActor
 final class PanelSideState {
     var tabs: [TabState]
     var activeTabId: UUID
@@ -118,7 +120,7 @@ final class PanelViewModel {
     var remotesLoading: Bool = false
 
     private let client: RcloneClientProtocol
-    private weak var transferVM: TransferViewModel?
+    private var transferVM: TransferViewModel?
     private var isSyncingLinked = false
 
     init(client: RcloneClientProtocol) {
@@ -150,7 +152,7 @@ final class PanelViewModel {
         do {
             remotes = try await RcloneAPI.listRemotes(using: client)
         } catch {
-            // silently fail — remotes list will be empty
+            print("[RcloneGUI] loadRemotes failed: \(error.localizedDescription)")
         }
         remotesLoading = false
     }
@@ -362,7 +364,9 @@ final class PanelViewModel {
                     srcFs: file.sourceFs, srcRemote: srcRemote,
                     dstFs: targetTab.remote, dstRemote: dstRemote, isDir: file.isDir
                 ))
-            } catch {}
+            } catch {
+                print("[RcloneGUI] Drop failed for \(file.fileName): \(error.localizedDescription)")
+            }
         }
         await refresh(side: targetSide)
     }

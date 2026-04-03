@@ -48,7 +48,7 @@ final class SettingsViewModel {
     private let client: RcloneClientProtocol
     private let settingsURL: URL
     private var saveTask: Task<Void, Never>?
-    private var bwTimer: Timer?
+    private var bwScheduleTask: Task<Void, Never>?
 
     init(client: RcloneClientProtocol) {
         self.client = client
@@ -106,15 +106,23 @@ final class SettingsViewModel {
     }
 
     func startBwScheduler() {
-        bwTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
-            Task { await self?.applyCurrentBwLimit() }
+        stopBwScheduler()
+        bwScheduleTask = Task { [weak self] in
+            while !Task.isCancelled {
+                await self?.applyCurrentBwLimit()
+                try? await Task.sleep(for: .seconds(60))
+            }
         }
-        Task { await applyCurrentBwLimit() }
     }
 
     func stopBwScheduler() {
-        bwTimer?.invalidate()
-        bwTimer = nil
+        bwScheduleTask?.cancel()
+        bwScheduleTask = nil
+    }
+
+    deinit {
+        bwScheduleTask?.cancel()
+        saveTask?.cancel()
     }
 
     @MainActor

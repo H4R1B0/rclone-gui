@@ -71,6 +71,8 @@ final class SearchViewModel {
             let batch = Array(queue.prefix(maxConcurrency))
             queue.removeFirst(min(maxConcurrency, queue.count))
 
+            var batchSubdirs: [String] = []
+
             // Process batch concurrently
             await withTaskGroup(of: (matches: [SearchResult], subdirs: [String]).self) { group in
                 for dir in batch {
@@ -108,6 +110,7 @@ final class SearchViewModel {
 
                             return (matches, subdirs)
                         } catch {
+                            print("[RcloneGUI] Search list error for \(cloud)\(dir): \(error.localizedDescription)")
                             return ([], [])
                         }
                     }
@@ -119,9 +122,11 @@ final class SearchViewModel {
                             self.results.append(contentsOf: result.matches)
                         }
                     }
-                    queue.append(contentsOf: result.subdirs)
+                    batchSubdirs.append(contentsOf: result.subdirs)
                 }
             }
+
+            queue.append(contentsOf: batchSubdirs)
         }
     }
 

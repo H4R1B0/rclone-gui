@@ -108,7 +108,9 @@ final class TransferViewModel {
                 }
             }
         } catch {
-            // Stats fetch failed, skip this cycle
+            #if DEBUG
+            print("[RcloneGUI] Stats poll error: \(error.localizedDescription)")
+            #endif
         }
 
         // 2. Get completed transfers
@@ -129,14 +131,18 @@ final class TransferViewModel {
                 completed = Array(completed.prefix(200))
             }
         } catch {
-            // Transferred fetch failed, skip
+            #if DEBUG
+            print("[RcloneGUI] Transferred fetch error: \(error.localizedDescription)")
+            #endif
         }
 
         // 3. Get job list
         do {
             jobIds = try await RcloneAPI.getJobList(using: client)
         } catch {
-            // Job list fetch failed, skip
+            #if DEBUG
+            print("[RcloneGUI] Job list fetch error: \(error.localizedDescription)")
+            #endif
         }
     }
 
@@ -147,7 +153,9 @@ final class TransferViewModel {
         do {
             try await RcloneAPI.setBwLimit(using: client, rate: "1")
             paused = true
-        } catch {}
+        } catch {
+            print("[RcloneGUI] pauseAll failed: \(error.localizedDescription)")
+        }
     }
 
     @MainActor
@@ -155,7 +163,9 @@ final class TransferViewModel {
         do {
             try await RcloneAPI.setBwLimit(using: client, rate: "off")
             paused = false
-        } catch {}
+        } catch {
+            print("[RcloneGUI] resumeAll failed: \(error.localizedDescription)")
+        }
     }
 
     @MainActor
@@ -191,7 +201,9 @@ final class TransferViewModel {
             }
             // Remove from stopped
             stopped.removeAll { $0.id == transfer.id }
-        } catch {}
+        } catch {
+            print("[RcloneGUI] restartTransfer failed: \(error.localizedDescription)")
+        }
     }
 
     // MARK: - Stopped Management
