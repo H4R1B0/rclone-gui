@@ -11,9 +11,15 @@ enum SidebarItem: Hashable {
     case bookmark(Bookmark)
 }
 
+struct FinderUploadData: Identifiable {
+    let id = UUID()
+    let urls: [URL]
+}
+
 struct ContentView: View {
     @Environment(AppState.self) private var appState
     @State private var selectedSidebar: SidebarItem? = .explorer
+    @State private var finderUploadURLs: [URL]?
 
     var body: some View {
         if !appState.ready {
@@ -102,6 +108,17 @@ struct ContentView: View {
             }
             .onReceive(NotificationCenter.default.publisher(for: .requestSearch)) { _ in
                 selectedSidebar = .search
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .finderUploadRequested)) { notification in
+                if let urls = notification.object as? [URL] {
+                    finderUploadURLs = urls
+                }
+            }
+            .sheet(item: Binding(
+                get: { finderUploadURLs.map { FinderUploadData(urls: $0) } },
+                set: { _ in finderUploadURLs = nil }
+            )) { data in
+                FinderUploadSheet(urls: data.urls)
             }
         }
     }

@@ -72,6 +72,8 @@ final class AppState {
         await panels.loadFiles(side: .left, remote: "/", path: homePath)
         await panels.loadFiles(side: .right, remote: "/", path: homePath)
 
+        FinderService.shared.registerServices()
+
         transfers.startPolling()
         scheduler.startMonitoring()
         settings.startBwScheduler()

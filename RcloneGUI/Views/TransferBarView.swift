@@ -159,6 +159,56 @@ struct TransferBarView: View {
                     }
                     .padding(.vertical, 2)
                 }
+
+                // Failed checkpoints (resumable)
+                if !appState.transfers.checkpoints.isEmpty {
+                    Section {
+                        ForEach(appState.transfers.checkpoints) { cp in
+                            HStack(spacing: 8) {
+                                Image(systemName: "arrow.clockwise.circle")
+                                    .foregroundColor(.orange)
+                                    .font(.system(size: 11))
+                                VStack(alignment: .leading, spacing: 1) {
+                                    Text(cp.fileName)
+                                        .font(.system(size: 11))
+                                        .lineLimit(1)
+                                    if let error = cp.lastError {
+                                        Text(error)
+                                            .font(.system(size: 9))
+                                            .foregroundColor(.red)
+                                            .lineLimit(1)
+                                    }
+                                }
+                                Spacer()
+                                Text("\(cp.attempts)/\(3)")
+                                    .font(.system(size: 9, design: .monospaced))
+                                    .foregroundColor(.secondary)
+                                Button(L10n.t("transfer.restart")) {
+                                    Task { await appState.transfers.retryCheckpoint(cp) }
+                                }
+                                .controlSize(.mini)
+                                Button(action: { appState.transfers.removeCheckpoint(id: cp.id) }) {
+                                    Image(systemName: "xmark")
+                                        .font(.system(size: 8))
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    } header: {
+                        HStack {
+                            Text(L10n.t("transfer.resumable"))
+                                .font(.system(size: 10, weight: .semibold))
+                            Spacer()
+                            if appState.transfers.checkpoints.count > 1 {
+                                Button(L10n.t("transfer.retryAll")) {
+                                    Task { await appState.transfers.retryAllFailed() }
+                                }
+                                .font(.system(size: 10))
+                                .controlSize(.mini)
+                            }
+                        }
+                    }
+                }
             }
             .listStyle(.plain)
         }

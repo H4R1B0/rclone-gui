@@ -81,6 +81,9 @@
 		EE5262051872458647D6BEF8 /* RemoteSelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E32FEF6A8F7293D51A39017 /* RemoteSelectorView.swift */; };
 		F95D1084ED438C375089F0CE /* TransferViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5150A4D8F6C0212533E53DD8 /* TransferViewModel.swift */; };
 		F9EEB6464F2F2D9D2596CC2A /* FilePaneTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5231D3878DEE9FAA784621A3 /* FilePaneTabBar.swift */; };
+		AA1B2C3D4E5F6A7B8C9D0E1F /* FinderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2C3D4E5F6A7B8C9D0E1F2A /* FinderService.swift */; };
+		CC3D4E5F6A7B8C9D0E1F2A3B /* FinderUploadSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD4E5F6A7B8C9D0E1F2A3B4C /* FinderUploadSheet.swift */; };
+		EE5F6A7B8C9D0E1F2A3B4C5D /* TransferCheckpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF6A7B8C9D0E1F2A3B4C5D6E /* TransferCheckpoint.swift */; };
 		FAE1AC8FEAA9889057D1DAD9 /* FileTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87351B73D23FEAE3793DFD33 /* FileTableView.swift */; };
 		FD5B29F642486E001174AE69 /* ClipboardStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19791174FAAA33B08D7296AE /* ClipboardStateTests.swift */; };
 /* End PBXBuildFile section */
@@ -98,6 +101,9 @@
 /* Begin PBXFileReference section */
 		00AE9EB594683D318ED922F6 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		0144915081E072ECFA22FEDF /* PanelViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelViewModel.swift; sourceTree = "<group>"; };
+		BB2C3D4E5F6A7B8C9D0E1F2A /* FinderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderService.swift; sourceTree = "<group>"; };
+		DD4E5F6A7B8C9D0E1F2A3B4C /* FinderUploadSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderUploadSheet.swift; sourceTree = "<group>"; };
+		FF6A7B8C9D0E1F2A3B4C5D6E /* TransferCheckpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferCheckpoint.swift; sourceTree = "<group>"; };
 		021C8E67C73648A086FC35F8 /* SyncViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncViewModelTests.swift; sourceTree = "<group>"; };
 		051EC24A61AA65FEFC569813 /* AccountViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountViewModel.swift; sourceTree = "<group>"; };
 		05D52EE497A536CF66B6BA14 /* PathUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathUtils.swift; sourceTree = "<group>"; };
@@ -249,6 +255,7 @@
 				6D77238B2C3C271A813BE9AB /* FilePanePathBar.swift */,
 				5231D3878DEE9FAA784621A3 /* FilePaneTabBar.swift */,
 				87351B73D23FEAE3793DFD33 /* FileTableView.swift */,
+				DD4E5F6A7B8C9D0E1F2A3B4C /* FinderUploadSheet.swift */,
 				7C17292A13239D0E9FC11E27 /* HashCompareSheet.swift */,
 				FE94DFF88C4A3C2100E5E0FA /* LockScreenView.swift */,
 				C0DF32F9F85FC56862BA973A /* MediaPlayerSheet.swift */,
@@ -317,6 +324,14 @@
 			path = Packages;
 			sourceTree = "<group>";
 		};
+		AB1C2D3E4F5A6B7C8D9E0F1A /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				BB2C3D4E5F6A7B8C9D0E1F2A /* FinderService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
 		EA78287C2567114A91DE54B4 /* RcloneGUI */ = {
 			isa = PBXGroup;
 			children = (
@@ -324,6 +339,7 @@
 				00AE9EB594683D318ED922F6 /* AppState.swift */,
 				3431E2050F0179AB700B0401 /* CLI */,
 				BFB47F516659086949ECA886 /* Resources */,
+				AB1C2D3E4F5A6B7C8D9E0F1A /* Services */,
 				55A7FB889A439EC6DD0CC80F /* Utilities */,
 				F264F73329BC49ACB742ED58 /* ViewModels */,
 				75FE0B993AF7FD3D2421DBDA /* Views */,
@@ -344,6 +360,7 @@
 				646DE6E8813FF584E2B95D5B /* SearchViewModel.swift */,
 				D8D14C998D5512918431EA71 /* SettingsViewModel.swift */,
 				409240D17EC1A7C4B0AEB92F /* SyncViewModel.swift */,
+				FF6A7B8C9D0E1F2A3B4C5D6E /* TransferCheckpoint.swift */,
 				5150A4D8F6C0212533E53DD8 /* TransferViewModel.swift */,
 				52461AC666D6A7DBE670DCE2 /* TrashViewModel.swift */,
 			);
@@ -516,6 +533,8 @@
 				E4E96BEC6FE83A2149D06E22 /* FilePanePathBar.swift in Sources */,
 				F9EEB6464F2F2D9D2596CC2A /* FilePaneTabBar.swift in Sources */,
 				FAE1AC8FEAA9889057D1DAD9 /* FileTableView.swift in Sources */,
+				AA1B2C3D4E5F6A7B8C9D0E1F /* FinderService.swift in Sources */,
+				CC3D4E5F6A7B8C9D0E1F2A3B /* FinderUploadSheet.swift in Sources */,
 				83C3017DFCE8E01FC33C1B03 /* FormatUtils.swift in Sources */,
 				C706CB7F75EC151B17E37F45 /* HashCompareSheet.swift in Sources */,
 				40D08091F09CE22B1ECC0FD3 /* L10n.swift in Sources */,
@@ -544,6 +563,7 @@
 				CFCBBBE6FA89E0AB9105A495 /* SyncView.swift in Sources */,
 				DE92648DB6DB91BD20C8E7A9 /* SyncViewModel.swift in Sources */,
 				AEB6A193DBE982BD53687ADD /* TransferBarView.swift in Sources */,
+				EE5F6A7B8C9D0E1F2A3B4C5D /* TransferCheckpoint.swift in Sources */,
 				D6B9E5A5F380557102335AD1 /* TransferReportSheet.swift in Sources */,
 				F95D1084ED438C375089F0CE /* TransferViewModel.swift in Sources */,
 				5A902CEEECB6CDA9633EEE9E /* TrashView.swift in Sources */,

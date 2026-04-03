@@ -46,6 +46,11 @@ final class TransferViewModel {
     // Pause state
     var paused: Bool = false
 
+    // Checkpoints (resumable failed transfers)
+    var checkpoints: [TransferCheckpoint] = []
+    private let checkpointURL: URL
+    private let maxRetries = 3
+
     private let client: RcloneClientProtocol
     private var pollingTask: Task<Void, Never>?
     private var completedKeys: Set<String> = []
@@ -65,6 +70,11 @@ final class TransferViewModel {
 
     init(client: RcloneClientProtocol) {
         self.client = client
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let appDir = appSupport.appendingPathComponent("RcloneGUI")
+        try? FileManager.default.createDirectory(at: appDir, withIntermediateDirectories: true)
+        self.checkpointURL = appDir.appendingPathComponent("transfer-checkpoints.json")
+        loadCheckpoints()
     }
 
     // MARK: - Polling (matches TypeScript useTransferPolling)
@@ -127,6 +137,19 @@ final class TransferViewModel {
                     // Skip "context canceled" — those go to stopped, not completed
                     if !item.error.contains("context canceled") {
                         completed.insert(item, at: 0)
+
+                        // Auto-checkpoint failed transfers
+                        if !item.ok {
+                            if let origin = copyOrigins[item.group] ?? copyOrigins[item.name] {
+                                let cp = TransferCheckpoint(
+                                    fileName: item.name,
+                                    srcFs: origin.srcFs, srcRemote: origin.srcRemote,
+                                    dstFs: origin.dstFs, dstRemote: origin.dstRemote,
+                                    isDir: origin.isDir, totalSize: item.size
+                                )
+                                addCheckpoint(cp)
+                            }
+                        }
                     }
                 }
             }
@@ -208,6 +231,62 @@ final class TransferViewModel {
         } catch {
             print("[RcloneGUI] restartTransfer failed: \(error.localizedDescription)")
         }
+    }
+
+    // MARK: - Checkpoint Management (Resume)
+
+    func addCheckpoint(_ cp: TransferCheckpoint) {
+        checkpoints.append(cp)
+        saveCheckpoints()
+    }
+
+    func removeCheckpoint(id: UUID) {
+        checkpoints.removeAll { $0.id == id }
+        saveCheckpoints()
+    }
+
+    @MainActor
+    func retryCheckpoint(_ cp: TransferCheckpoint) async {
+        var updated = cp
+        updated.attempts += 1
+        updated.lastAttempt = Date()
+
+        do {
+            if cp.isDir {
+                _ = try await RcloneAPI.copyDir(using: client, srcFs: cp.srcFs, srcRemote: cp.srcRemote, dstFs: cp.dstFs, dstRemote: cp.dstRemote)
+            } else {
+                _ = try await RcloneAPI.copyFileAsync(using: client, srcFs: cp.srcFs, srcRemote: cp.srcRemote, dstFs: cp.dstFs, dstRemote: cp.dstRemote)
+            }
+            // Success — remove checkpoint
+            removeCheckpoint(id: cp.id)
+        } catch {
+            updated.lastError = error.localizedDescription
+            if let idx = checkpoints.firstIndex(where: { $0.id == cp.id }) {
+                checkpoints[idx] = updated
+            }
+            saveCheckpoints()
+        }
+    }
+
+    @MainActor
+    func retryAllFailed() async {
+        let retryable = checkpoints.filter { $0.attempts < maxRetries }
+        for cp in retryable {
+            await retryCheckpoint(cp)
+        }
+    }
+
+    func saveCheckpoints() {
+        if let data = try? JSONEncoder().encode(checkpoints) {
+            try? data.write(to: checkpointURL)
+        }
+    }
+
+    func loadCheckpoints() {
+        guard let data = try? Data(contentsOf: checkpointURL),
+              let loaded = try? JSONDecoder().decode([TransferCheckpoint].self, from: data)
+        else { return }
+        checkpoints = loaded
     }
 
     // MARK: - Stopped Management

@@ -348,5 +348,15 @@ enum L10n {
         "report.successFiles":    ["ko": "완료된 파일", "en": "Completed Files"],
         "report.andMore":         ["ko": "외", "en": "and more"],
         "report.copyToClipboard": ["ko": "클립보드에 복사", "en": "Copy to Clipboard"],
+
+        // Finder Service
+        "finder.uploadTitle":  ["ko": "클라우드에 업로드", "en": "Upload to Cloud"],
+        "finder.fileCount":    ["ko": "%d개 파일 선택됨", "en": "%d files selected"],
+        "finder.uploading":    ["ko": "업로드 중...", "en": "Uploading..."],
+        "finder.upload":       ["ko": "업로드", "en": "Upload"],
+
+        // Transfer Resume
+        "transfer.resumable":  ["ko": "재시도 가능", "en": "Resumable"],
+        "transfer.retryAll":   ["ko": "모두 재시도", "en": "Retry All"],
     ]
 }
