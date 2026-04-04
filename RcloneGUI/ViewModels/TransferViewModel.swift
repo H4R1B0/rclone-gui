@@ -305,11 +305,15 @@ final class TransferViewModel {
     // MARK: - History Management
 
     func clearCompleted() {
+        let keysToRemove = completed.filter { $0.ok }.map { "\($0.name)-\($0.completed_at)" }
         completed.removeAll { $0.ok }
+        for key in keysToRemove { completedKeys.remove(key) }
     }
 
     func clearErrors() {
+        let keysToRemove = completed.filter { !$0.ok }.map { "\($0.name)-\($0.completed_at)" }
         completed.removeAll { !$0.ok }
+        for key in keysToRemove { completedKeys.remove(key) }
         lastErrors.removeAll()
     }
 
@@ -322,5 +326,7 @@ final class TransferViewModel {
         stopped.removeAll()
         lastErrors.removeAll()
         completedKeys.removeAll()
+        let c = client
+        Task { try? await RcloneAPI.resetStats(using: c) }
     }
 }
