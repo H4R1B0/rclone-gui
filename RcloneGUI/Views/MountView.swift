@@ -24,6 +24,23 @@ struct MountView: View {
 
             if mountVM.isLoading {
                 MountListSkeleton()
+            } else if let error = mountVM.error, error.contains("couldn't find method") || error.contains("status 404") {
+                // macFUSE not installed
+                VStack(spacing: 12) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(.system(size: 36))
+                        .foregroundColor(.orange)
+                    Text(L10n.t("mount.fuseRequired"))
+                        .font(.headline)
+                    Text(L10n.t("mount.fuseDescription"))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: 350)
+                    Link(L10n.t("mount.fuseDownload"), destination: URL(string: "https://osxfuse.github.io/")!)
+                        .font(.system(size: 12))
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let error = mountVM.error {
                 ErrorRetryView(
                     message: error,

@@ -6,10 +6,16 @@ struct TrashView: View {
     private var trash: TrashViewModel { appState.trash }
 
     @State private var showEmptyConfirm = false
+    @State private var emptyTarget: String? // nil = all, "/" = local, "remote:" = specific cloud
     @State private var errorMessage: String?
 
-    private var groupedItems: [(String, [TrashedFile])] {
-        let groups = Dictionary(grouping: trash.items, by: \.originalFs)
+    private var localItems: [TrashedFile] {
+        trash.items.filter { $0.originalFs == "/" }
+    }
+
+    private var cloudGrouped: [(String, [TrashedFile])] {
+        let cloudItems = trash.items.filter { $0.originalFs != "/" }
+        let groups = Dictionary(grouping: cloudItems, by: \.originalFs)
         return groups.sorted { $0.key < $1.key }
     }
 
@@ -21,7 +27,8 @@ struct TrashView: View {
                 Text(L10n.t("trash.itemCount", String(trash.items.count)))
                     .font(.caption).foregroundColor(.secondary)
                 if !trash.items.isEmpty {
-                    Button(L10n.t("trash.empty"), role: .destructive) {
+                    Button(L10n.t("trash.emptyAll"), role: .destructive) {
+                        emptyTarget = nil
                         showEmptyConfirm = true
                     }
                     .controlSize(.small)
@@ -49,11 +56,55 @@ struct TrashView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 List {
-                    ForEach(groupedItems, id: \.0) { fs, items in
-                        Section(fs) {
-                            ForEach(items) { item in
+                    // Local trash section
+                    if !localItems.isEmpty {
+                        Section {
+                            ForEach(localItems) { item in
                                 TrashItemRow(item: item) { action in
                                     handleAction(action, item: item)
+                                }
+                            }
+                        } header: {
+                            HStack {
+                                Image(systemName: "laptopcomputer")
+                                Text(L10n.t("trash.local"))
+                                    .font(.system(size: 12, weight: .semibold))
+                                Text("(\(localItems.count))")
+                                    .font(.caption).foregroundColor(.secondary)
+                                Spacer()
+                                Button(L10n.t("trash.emptySection"), role: .destructive) {
+                                    emptyTarget = "/"
+                                    showEmptyConfirm = true
+                                }
+                                .font(.caption)
+                                .controlSize(.mini)
+                            }
+                        }
+                    }
+
+                    // Cloud trash sections (grouped by remote)
+                    if !cloudGrouped.isEmpty {
+                        ForEach(cloudGrouped, id: \.0) { fs, items in
+                            Section {
+                                ForEach(items) { item in
+                                    TrashItemRow(item: item) { action in
+                                        handleAction(action, item: item)
+                                    }
+                                }
+                            } header: {
+                                HStack {
+                                    Image(systemName: "cloud")
+                                    Text(fs.replacingOccurrences(of: ":", with: ""))
+                                        .font(.system(size: 12, weight: .semibold))
+                                    Text("(\(items.count))")
+                                        .font(.caption).foregroundColor(.secondary)
+                                    Spacer()
+                                    Button(L10n.t("trash.emptySection"), role: .destructive) {
+                                        emptyTarget = fs
+                                        showEmptyConfirm = true
+                                    }
+                                    .font(.caption)
+                                    .controlSize(.mini)
                                 }
                             }
                         }
@@ -62,11 +113,11 @@ struct TrashView: View {
                 .listStyle(.inset)
             }
         }
-        .alert(L10n.t("trash.empty"), isPresented: $showEmptyConfirm) {
-            Button(L10n.t("trash.empty"), role: .destructive) {
+        .alert(L10n.t("trash.emptyAll"), isPresented: $showEmptyConfirm) {
+            Button(L10n.t("trash.emptyAll"), role: .destructive) {
                 Task {
                     do {
-                        try await trash.emptyTrash()
+                        try await trash.emptyTrash(fs: emptyTarget)
                     } catch {
                         errorMessage = error.localizedDescription
                     }

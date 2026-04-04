@@ -33,6 +33,8 @@ final class TransferViewModel {
     var copyOrigins: [String: CopyOrigin] = [:]
     // Active job IDs
     var jobIds: [Int] = []
+    // Callback when transfer completes (dstFs to refresh)
+    var onTransferComplete: ((String) -> Void)?
 
     // Aggregate stats
     var totalSpeed: Double = 0
@@ -54,6 +56,7 @@ final class TransferViewModel {
     private let client: RcloneClientProtocol
     private var pollingTask: Task<Void, Never>?
     private var completedKeys: Set<String> = []
+    private var previousTransferNames: Set<String> = []
 
     // Computed
     var successfulCompleted: [RcloneCompletedTransfer] {
@@ -98,6 +101,26 @@ final class TransferViewModel {
         do {
             let stats = try await RcloneAPI.getStats(using: client)
             let newTransfers = stats.transferring ?? []
+            let newNames = Set(newTransfers.map(\.name))
+
+            // Detect disappeared transfers (stopped by user or vanished)
+            let disappeared = previousTransferNames.subtracting(newNames)
+            let completedNames = Set(completed.map(\.name))
+            for name in disappeared {
+                // Only add to stopped if not already in completed list
+                if !completedNames.contains(name),
+                   let prev = transfers.first(where: { $0.name == name }) {
+                    let origin = copyOrigins[prev.group] ?? copyOrigins[prev.name]
+                    addStopped(StoppedTransfer(
+                        name: prev.name, group: prev.group, size: prev.size,
+                        srcFs: origin?.srcFs, srcRemote: origin?.srcRemote,
+                        dstFs: origin?.dstFs, dstRemote: origin?.dstRemote,
+                        isDir: origin?.isDir ?? false
+                    ))
+                }
+            }
+            previousTransferNames = newNames
+
             if newTransfers.map(\.name) != transfers.map(\.name)
                 || newTransfers.map(\.percentage) != transfers.map(\.percentage) {
                 transfers = newTransfers
@@ -131,8 +154,19 @@ final class TransferViewModel {
                 let key = "\(item.name)-\(item.completed_at)"
                 if !completedKeys.contains(key) {
                     completedKeys.insert(key)
-                    // Skip "context canceled" — those go to stopped, not completed
-                    if !item.error.contains("context canceled") {
+                    if item.error.contains("context canceled") {
+                        // User-stopped transfers: add to stopped list (not silently dropped)
+                        let origin = copyOrigins[item.group] ?? copyOrigins[item.name]
+                        // Avoid duplicate if already detected by disappeared-transfer logic
+                        if !stopped.contains(where: { $0.name == item.name }) {
+                            addStopped(StoppedTransfer(
+                                name: item.name, group: item.group, size: item.size,
+                                srcFs: origin?.srcFs, srcRemote: origin?.srcRemote,
+                                dstFs: origin?.dstFs, dstRemote: origin?.dstRemote,
+                                isDir: origin?.isDir ?? false
+                            ))
+                        }
+                    } else {
                         completed.insert(item, at: 0)
 
                         // Auto-checkpoint failed transfers
@@ -147,6 +181,17 @@ final class TransferViewModel {
                                 addCheckpoint(cp)
                             }
                         }
+
+                        // Notify destination panel to refresh on success
+                        if item.ok {
+                            if let origin = copyOrigins[item.group] ?? copyOrigins[item.name] {
+                                onTransferComplete?(origin.dstFs)
+                            }
+                        }
+
+                        // Clean up copyOrigin for completed transfers
+                        copyOrigins.removeValue(forKey: item.group)
+                        copyOrigins.removeValue(forKey: item.name)
                     }
                 }
             }
@@ -175,7 +220,7 @@ final class TransferViewModel {
     func pauseAll() async {
         paused = true
         do {
-            try await RcloneAPI.setBwLimit(using: client, rate: "1")
+            try await RcloneAPI.setBwLimit(using: client, rate: "0")
         } catch {
             paused = false
             #if DEBUG
@@ -228,7 +273,11 @@ final class TransferViewModel {
             } else {
                 _ = try await RcloneAPI.copyFileAsync(using: client, srcFs: srcFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote)
             }
-            // Remove from stopped
+            // Re-register copyOrigin for retry tracking
+            addCopyOrigin(group: transfer.name, origin: CopyOrigin(
+                srcFs: srcFs, srcRemote: srcRemote,
+                dstFs: dstFs, dstRemote: dstRemote, isDir: transfer.isDir
+            ))
             stopped.removeAll { $0.id == transfer.id }
         } catch {
             print("[RcloneGUI] restartTransfer failed: \(error.localizedDescription)")
@@ -302,6 +351,13 @@ final class TransferViewModel {
         stopped.removeAll { $0.id == id }
     }
 
+    func removeCompleted(name: String, completedAt: String) {
+        let key = "\(name)-\(completedAt)"
+        completed.removeAll { "\($0.name)-\($0.completed_at)" == key }
+        completedKeys.remove(key)
+        copyOrigins.removeValue(forKey: name)
+    }
+
     // MARK: - History Management
 
     func clearCompleted() {
@@ -326,6 +382,8 @@ final class TransferViewModel {
         stopped.removeAll()
         lastErrors.removeAll()
         completedKeys.removeAll()
+        copyOrigins.removeAll()
+        previousTransferNames.removeAll()
         let c = client
         Task { try? await RcloneAPI.resetStats(using: c) }
     }

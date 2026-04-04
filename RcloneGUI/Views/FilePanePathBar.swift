@@ -96,5 +96,8 @@ struct FilePanePathBar: View {
         .padding(.horizontal, 10)
         .padding(.vertical, 5)
         .background(.ultraThinMaterial)
+        .onChange(of: tab.path) {
+            isEditing = false
+        }
     }
 }

@@ -42,24 +42,35 @@ struct FilePane: View {
             .focusEffectDisabled()
             .dropDestination(for: String.self) { items, _ in
                 guard let jsonStr = items.first,
-                      let data = jsonStr.data(using: .utf8),
-                      let draggedFile = try? JSONDecoder().decode(DraggedFile.self, from: data)
+                      let data = jsonStr.data(using: .utf8)
                 else { return false }
 
-                let sourceSide: PanelSide = draggedFile.sideName == "left" ? .left : .right
+                // Decode as array (new format) or single item (legacy)
+                let draggedFiles: [DraggedFile]
+                if let arr = try? JSONDecoder().decode([DraggedFile].self, from: data) {
+                    draggedFiles = arr
+                } else if let single = try? JSONDecoder().decode(DraggedFile.self, from: data) {
+                    draggedFiles = [single]
+                } else {
+                    return false
+                }
+
+                guard let first = draggedFiles.first else { return false }
+                let sourceSide: PanelSide = first.sideName == "left" ? .left : .right
                 guard sourceSide != side else { return false }
 
                 let isMove = NSEvent.modifierFlags.contains(.option)
                 Task {
                     await appState.panels.handleDrop(
                         targetSide: side,
-                        files: [draggedFile],
+                        files: draggedFiles,
                         isMove: isMove
                     )
                 }
                 return true
             }
             .onDrop(of: [.fileURL], isTargeted: nil) { providers in
+                // Collect all URLs first, then process in parallel
                 for provider in providers {
                     _ = provider.loadObject(ofClass: URL.self) { url, _ in
                         guard let url = url else { return }
@@ -68,11 +79,17 @@ struct FilePane: View {
                         Task { @MainActor in
                             let tab = appState.panels.side(side).activeTab
                             let dstRemote = tab.path.isEmpty ? fileName : "\(tab.path)/\(fileName)"
+                            let isDir = (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
                             _ = try? await RcloneAPI.copyFileAsync(
                                 using: appState.client,
                                 srcFs: "/", srcRemote: srcPath,
-                                dstFs: tab.remote, dstRemote: dstRemote
+                                dstFs: tab.remote, dstRemote: dstRemote,
+                                multiThreadStreams: appState.settings.multiThreadStreams
                             )
+                            appState.transfers.addCopyOrigin(group: fileName, origin: CopyOrigin(
+                                srcFs: "/", srcRemote: srcPath,
+                                dstFs: tab.remote, dstRemote: dstRemote, isDir: isDir
+                            ))
                             await appState.panels.refresh(side: side)
                         }
                     }

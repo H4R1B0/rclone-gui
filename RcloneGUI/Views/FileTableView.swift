@@ -305,7 +305,9 @@ struct FileTableView: View {
             .padding(4)
         }
         .onTapGesture {
-            if NSEvent.modifierFlags.contains(.command) {
+            if NSEvent.modifierFlags.contains(.shift) {
+                appState.panels.rangeSelect(side: side, toName: file.name)
+            } else if NSEvent.modifierFlags.contains(.command) {
                 appState.panels.toggleSelect(side: side, name: file.name)
             } else {
                 appState.panels.singleSelect(side: side, name: file.name)
@@ -461,14 +463,23 @@ struct FileTableView: View {
     }
 
     private func dragData(for file: FileItem) -> String {
-        let data = DraggedFile(
-            sideName: side == .left ? "left" : "right",
-            fileName: file.name,
-            isDir: file.isDir,
-            sourceFs: tab.remote,
-            sourcePath: tab.path
-        )
-        guard let json = try? JSONEncoder().encode(data),
+        // If the dragged file is part of a multi-selection, include all selected files
+        let filesToDrag: [FileItem]
+        if tab.selectedFiles.contains(file.name) && tab.selectedFiles.count > 1 {
+            filesToDrag = tab.files.filter { tab.selectedFiles.contains($0.name) }
+        } else {
+            filesToDrag = [file]
+        }
+        let items = filesToDrag.map {
+            DraggedFile(
+                sideName: side == .left ? "left" : "right",
+                fileName: $0.name,
+                isDir: $0.isDir,
+                sourceFs: tab.remote,
+                sourcePath: tab.path
+            )
+        }
+        guard let json = try? JSONEncoder().encode(items),
               let str = String(data: json, encoding: .utf8) else { return "" }
         return str
     }

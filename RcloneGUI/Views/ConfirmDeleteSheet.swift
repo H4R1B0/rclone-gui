@@ -12,6 +12,10 @@ struct ConfirmDeleteSheet: View {
         return tab.files.filter { tab.selectedFiles.contains($0.name) }
     }
 
+    private var isLocal: Bool {
+        appState.panels.side(side).activeTab.remote == "/"
+    }
+
     var body: some View {
         VStack(spacing: 16) {
             Image(systemName: "trash")
@@ -24,7 +28,7 @@ struct ConfirmDeleteSheet: View {
                 Text(String(format: L10n.t("delete.title.multi"), filesToDelete.count)).font(.headline)
             }
 
-            Text(L10n.t("delete.warning"))
+            Text(isLocal ? L10n.t("delete.moveToTrash") : L10n.t("delete.moveToCloudTrash"))
                 .foregroundColor(.secondary).font(.caption)
 
             if filesToDelete.count <= 10 {
@@ -55,10 +59,10 @@ struct ConfirmDeleteSheet: View {
                     Task {
                         do {
                             try await appState.panels.deleteSelected(side: side)
-                            dismiss()
                         } catch {
                             errorMessage = error.localizedDescription
                         }
+                        dismiss()
                     }
                 }
                 .keyboardShortcut(.defaultAction)

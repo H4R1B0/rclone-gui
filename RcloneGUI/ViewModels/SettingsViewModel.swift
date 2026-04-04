@@ -1,6 +1,20 @@
 import Foundation
 import RcloneKit
 
+enum TransferDisplayMode: String, Codable, CaseIterable {
+    case iconAndText
+    case iconOnly
+    case textOnly
+
+    var label: String {
+        switch self {
+        case .iconAndText: return L10n.t("settings.displayIconAndText")
+        case .iconOnly: return L10n.t("settings.displayIconOnly")
+        case .textOnly: return L10n.t("settings.displayTextOnly")
+        }
+    }
+}
+
 struct BwScheduleEntry: Codable, Identifiable {
     let id: UUID
     var startHour: Int   // 0-23
@@ -41,6 +55,9 @@ final class SettingsViewModel {
     var ignoreSize: Bool = false
     var noTraverse: Bool = false
     var noUpdateModTime: Bool = false
+
+    // UI
+    var transferDisplayMode: TransferDisplayMode = .iconAndText
 
     // Language — 한국어 기본
     var locale: String = AppConstants.defaultLocale
@@ -89,6 +106,7 @@ final class SettingsViewModel {
             try? await Task.sleep(for: .seconds(AppConstants.settingsSaveDebounce))
             guard !Task.isCancelled else { return }
             saveToDisk()
+            await applyToRclone()
         }
     }
 
@@ -100,6 +118,7 @@ final class SettingsViewModel {
         userAgent = ""; noCheckCertificate = false
         ignoreExisting = false; ignoreSize = false
         noTraverse = false; noUpdateModTime = false
+        transferDisplayMode = .iconAndText
     }
 
     func startBwScheduler() {
@@ -152,6 +171,7 @@ final class SettingsViewModel {
             "locale": locale,
             "bwSchedule": scheduleArray,
             "bwScheduleEnabled": bwScheduleEnabled,
+            "transferDisplayMode": transferDisplayMode.rawValue,
         ]
         if let data = try? JSONSerialization.data(withJSONObject: dict, options: .prettyPrinted) {
             try? data.write(to: settingsURL)
@@ -180,6 +200,12 @@ final class SettingsViewModel {
         noUpdateModTime = dict["noUpdateModTime"] as? Bool ?? false
         locale = dict["locale"] as? String ?? "ko"
         bwScheduleEnabled = dict["bwScheduleEnabled"] as? Bool ?? false
+        if let modeStr = dict["transferDisplayMode"] as? String,
+           let mode = TransferDisplayMode(rawValue: modeStr) {
+            transferDisplayMode = mode
+        } else if let legacy = dict["transferIconOnly"] as? Bool, legacy {
+            transferDisplayMode = .iconOnly
+        }
         if let scheduleArray = dict["bwSchedule"],
            let scheduleData = try? JSONSerialization.data(withJSONObject: scheduleArray),
            let decoded = try? JSONDecoder().decode([BwScheduleEntry].self, from: scheduleData) {

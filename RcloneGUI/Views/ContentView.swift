@@ -89,12 +89,14 @@ struct ContentView: View {
                     Button(action: { appState.showTransfers.toggle() }) {
                         Label(L10n.t("toolbar.transfers"), systemImage: appState.transfers.hasActiveTransfers ? "arrow.up.arrow.down.circle.fill" : "arrow.up.arrow.down.circle")
                     }
+                    .quickTooltip(L10n.t("toolbar.transfers"))
                 }
 
                 ToolbarItem(placement: .primaryAction) {
                     Button(action: { appState.showSettings = true }) {
                         Label(L10n.t("toolbar.settings"), systemImage: "gearshape")
                     }
+                    .quickTooltip(L10n.t("toolbar.settings"))
                 }
             }
             .onReceive(NotificationCenter.default.publisher(for: .requestSearch)) { _ in

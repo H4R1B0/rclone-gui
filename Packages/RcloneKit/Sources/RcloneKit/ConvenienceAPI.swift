@@ -134,13 +134,18 @@ public enum RcloneAPI {
     public static func moveFileAsync(
         using client: RcloneClientProtocol,
         srcFs: String, srcRemote: String,
-        dstFs: String, dstRemote: String
+        dstFs: String, dstRemote: String,
+        multiThreadStreams: Int = 0
     ) async throws -> Int {
-        let result = try await client.call("operations/movefile", params: [
+        var params: [String: Any] = [
             "srcFs": srcFs, "srcRemote": srcRemote,
             "dstFs": dstFs, "dstRemote": dstRemote,
             "_async": true
-        ])
+        ]
+        if multiThreadStreams > 0 {
+            params["_config"] = ["MultiThreadStreams": multiThreadStreams]
+        }
+        let result = try await client.call("operations/movefile", params: params)
         return result["jobid"] as? Int ?? 0
     }
 

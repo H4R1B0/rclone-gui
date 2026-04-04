@@ -68,6 +68,8 @@ final class AppState {
         search.initializeClouds(remotes: panels.remotes)
 
         // 저장된 rclone 옵션 적용
+        panels.maxConcurrentTransfers = settings.transfers
+        panels.multiThreadStreams = settings.multiThreadStreams
         await settings.applyToRclone()
 
         let homePath = NSHomeDirectory()
@@ -75,6 +77,20 @@ final class AppState {
 
         FinderService.shared.registerServices()
 
+        // Auto-refresh destination panel when transfer completes
+        let p = panels
+        transfers.onTransferComplete = { dstFs in
+            Task { @MainActor in
+                // Refresh any tab matching the destination remote
+                for tab in p.left.tabs + p.right.tabs {
+                    if tab.remote == dstFs {
+                        let side: PanelSide = p.left.tabs.contains(where: { $0.id == tab.id }) ? .left : .right
+                        await p.loadFiles(side: side)
+                        break
+                    }
+                }
+            }
+        }
         transfers.startPolling()
         scheduler.startMonitoring()
         settings.startBwScheduler()

@@ -148,6 +148,8 @@ final class PanelViewModel {
     private let client: RcloneClientProtocol
     private var transferVM: TransferViewModel?
     var trashVM: TrashViewModel?
+    var maxConcurrentTransfers: Int = 4
+    var multiThreadStreams: Int = 4
     private var isSyncingLinked = false
     private var remotesLastLoaded: Date?
     private let remotesCacheTTL: TimeInterval = AppConstants.remoteCacheTTL
@@ -296,6 +298,28 @@ final class PanelViewModel {
         side(panelSide).activeTab.selectedFiles = []
     }
 
+    func rangeSelect(side panelSide: PanelSide, toName: String) {
+        let tab = side(panelSide).activeTab
+        let sorted = tab.sortedFiles
+        let names = sorted.map(\.name)
+
+        // Find anchor (last selected item) and target
+        guard let toIndex = names.firstIndex(of: toName) else { return }
+
+        // Find the anchor: the first currently-selected item in sorted order
+        let anchorIndex: Int
+        if let first = names.firstIndex(where: { tab.selectedFiles.contains($0) }) {
+            anchorIndex = first
+        } else {
+            anchorIndex = toIndex
+        }
+
+        let start = min(anchorIndex, toIndex)
+        let end = max(anchorIndex, toIndex)
+        let rangeNames = Set(names[start...end])
+        tab.selectedFiles = rangeNames
+    }
+
     // MARK: - Sorting (TypeScript: same field → toggle direction)
 
     func setSort(side panelSide: PanelSide, field: SortField) {
@@ -319,26 +343,33 @@ final class PanelViewModel {
 
     func deleteSelected(side panelSide: PanelSide) async throws {
         let tab = side(panelSide).activeTab
-        for fileName in tab.selectedFiles {
+        let filesToDelete = tab.selectedFiles
+        tab.selectedFiles = []
+        var lastError: Error?
+        for fileName in filesToDelete {
             guard let file = tab.files.first(where: { $0.name == fileName }) else { continue }
-            if let trash = trashVM {
-                try await trash.deleteToTrash(
-                    fs: tab.remote,
-                    path: file.path,
-                    name: file.name,
-                    isDir: file.isDir,
-                    size: file.isDir ? 0 : file.size
-                )
-            } else {
-                if file.isDir {
-                    try await RcloneAPI.purge(using: client, fs: tab.remote, remote: file.path)
+            do {
+                if let trash = trashVM {
+                    try await trash.deleteToTrash(
+                        fs: tab.remote,
+                        path: file.path,
+                        name: file.name,
+                        isDir: file.isDir,
+                        size: file.isDir ? 0 : file.size
+                    )
                 } else {
-                    try await RcloneAPI.deleteFile(using: client, fs: tab.remote, remote: file.path)
+                    if file.isDir {
+                        try await RcloneAPI.purge(using: client, fs: tab.remote, remote: file.path)
+                    } else {
+                        try await RcloneAPI.deleteFile(using: client, fs: tab.remote, remote: file.path)
+                    }
                 }
+            } catch {
+                lastError = error
             }
         }
-        tab.selectedFiles = []
         await refresh(side: panelSide)
+        if let lastError { throw lastError }
     }
 
     func rename(side panelSide: PanelSide, oldName: String, newName: String) async throws {
@@ -353,33 +384,54 @@ final class PanelViewModel {
 
     func paste(side panelSide: PanelSide, clipboard: ClipboardState) async throws {
         let tab = side(panelSide).activeTab
-        for file in clipboard.files {
-            let srcRemote = clipboard.sourcePath.isEmpty ? file.name : "\(clipboard.sourcePath)/\(file.name)"
-            let dstRemote = tab.path.isEmpty ? file.name : "\(tab.path)/\(file.name)"
+        let action = clipboard.action
+        let sourceFs = clipboard.sourceFs
+        let sourcePath = clipboard.sourcePath
+        let filesToPaste = clipboard.files
 
-            switch clipboard.action {
-            case .cut:
-                if file.isDir {
-                    _ = try await RcloneAPI.moveDir(using: client, srcFs: clipboard.sourceFs, srcRemote: srcRemote, dstFs: tab.remote, dstRemote: dstRemote)
-                } else {
-                    _ = try await RcloneAPI.moveFileAsync(using: client, srcFs: clipboard.sourceFs, srcRemote: srcRemote, dstFs: tab.remote, dstRemote: dstRemote)
+        // Launch transfers with concurrency limit from settings
+        let maxConcurrent = self.maxConcurrentTransfers
+        let mts = self.multiThreadStreams
+        await withTaskGroup(of: Void.self) { group in
+            var running = 0
+            for file in filesToPaste {
+                if running >= maxConcurrent {
+                    await group.next()
+                    running -= 1
                 }
-                transferVM?.addCopyOrigin(group: file.name, origin: CopyOrigin(
-                    srcFs: clipboard.sourceFs, srcRemote: srcRemote,
-                    dstFs: tab.remote, dstRemote: dstRemote, isDir: file.isDir
-                ))
-            case .copy:
-                if file.isDir {
-                    _ = try await RcloneAPI.copyDir(using: client, srcFs: clipboard.sourceFs, srcRemote: srcRemote, dstFs: tab.remote, dstRemote: dstRemote)
-                } else {
-                    _ = try await RcloneAPI.copyFileAsync(using: client, srcFs: clipboard.sourceFs, srcRemote: srcRemote, dstFs: tab.remote, dstRemote: dstRemote)
+                let srcRemote = sourcePath.isEmpty ? file.name : "\(sourcePath)/\(file.name)"
+                let dstRemote = tab.path.isEmpty ? file.name : "\(tab.path)/\(file.name)"
+                let dstFs = tab.remote
+                let c = self.client
+                let tvm = self.transferVM
+
+                group.addTask { @MainActor in
+                    do {
+                        switch action {
+                        case .cut:
+                            if file.isDir {
+                                _ = try await RcloneAPI.moveDir(using: c, srcFs: sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, transfers: maxConcurrent, multiThreadStreams: mts)
+                            } else {
+                                _ = try await RcloneAPI.moveFileAsync(using: c, srcFs: sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, multiThreadStreams: mts)
+                            }
+                        case .copy:
+                            if file.isDir {
+                                _ = try await RcloneAPI.copyDir(using: c, srcFs: sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, transfers: maxConcurrent, multiThreadStreams: mts)
+                            } else {
+                                _ = try await RcloneAPI.copyFileAsync(using: c, srcFs: sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, multiThreadStreams: mts)
+                            }
+                        case .none:
+                            return
+                        }
+                        tvm?.addCopyOrigin(group: file.name, origin: CopyOrigin(
+                            srcFs: sourceFs, srcRemote: srcRemote,
+                            dstFs: dstFs, dstRemote: dstRemote, isDir: file.isDir
+                        ))
+                    } catch {
+                        print("[RcloneGUI] Paste failed for \(file.name): \(error.localizedDescription)")
+                    }
                 }
-                transferVM?.addCopyOrigin(group: file.name, origin: CopyOrigin(
-                    srcFs: clipboard.sourceFs, srcRemote: srcRemote,
-                    dstFs: tab.remote, dstRemote: dstRemote, isDir: file.isDir
-                ))
-            case .none:
-                break
+                running += 1
             }
         }
         clipboard.clear()
@@ -390,29 +442,47 @@ final class PanelViewModel {
 
     func handleDrop(targetSide: PanelSide, files: [DraggedFile], isMove: Bool) async {
         let targetTab = side(targetSide).activeTab
-        for file in files {
-            let srcRemote = file.sourcePath.isEmpty ? file.fileName : "\(file.sourcePath)/\(file.fileName)"
-            let dstRemote = targetTab.path.isEmpty ? file.fileName : "\(targetTab.path)/\(file.fileName)"
-            do {
-                if isMove {
-                    if file.isDir {
-                        _ = try await RcloneAPI.moveDir(using: client, srcFs: file.sourceFs, srcRemote: srcRemote, dstFs: targetTab.remote, dstRemote: dstRemote)
-                    } else {
-                        _ = try await RcloneAPI.moveFileAsync(using: client, srcFs: file.sourceFs, srcRemote: srcRemote, dstFs: targetTab.remote, dstRemote: dstRemote)
-                    }
-                } else {
-                    if file.isDir {
-                        _ = try await RcloneAPI.copyDir(using: client, srcFs: file.sourceFs, srcRemote: srcRemote, dstFs: targetTab.remote, dstRemote: dstRemote)
-                    } else {
-                        _ = try await RcloneAPI.copyFileAsync(using: client, srcFs: file.sourceFs, srcRemote: srcRemote, dstFs: targetTab.remote, dstRemote: dstRemote)
+        let dstFs = targetTab.remote
+        let dstPath = targetTab.path
+        let c = self.client
+        let tvm = self.transferVM
+
+        let maxConcurrent = self.maxConcurrentTransfers
+        let mts = self.multiThreadStreams
+        await withTaskGroup(of: Void.self) { group in
+            var running = 0
+            for file in files {
+                if running >= maxConcurrent {
+                    await group.next()
+                    running -= 1
+                }
+                let srcRemote = file.sourcePath.isEmpty ? file.fileName : "\(file.sourcePath)/\(file.fileName)"
+                let dstRemote = dstPath.isEmpty ? file.fileName : "\(dstPath)/\(file.fileName)"
+
+                group.addTask { @MainActor in
+                    do {
+                        if isMove {
+                            if file.isDir {
+                                _ = try await RcloneAPI.moveDir(using: c, srcFs: file.sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, transfers: maxConcurrent, multiThreadStreams: mts)
+                            } else {
+                                _ = try await RcloneAPI.moveFileAsync(using: c, srcFs: file.sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, multiThreadStreams: mts)
+                            }
+                        } else {
+                            if file.isDir {
+                                _ = try await RcloneAPI.copyDir(using: c, srcFs: file.sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, transfers: maxConcurrent, multiThreadStreams: mts)
+                            } else {
+                                _ = try await RcloneAPI.copyFileAsync(using: c, srcFs: file.sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, multiThreadStreams: mts)
+                            }
+                        }
+                        tvm?.addCopyOrigin(group: file.fileName, origin: CopyOrigin(
+                            srcFs: file.sourceFs, srcRemote: srcRemote,
+                            dstFs: dstFs, dstRemote: dstRemote, isDir: file.isDir
+                        ))
+                    } catch {
+                        print("[RcloneGUI] Drop failed for \(file.fileName): \(error.localizedDescription)")
                     }
                 }
-                transferVM?.addCopyOrigin(group: file.fileName, origin: CopyOrigin(
-                    srcFs: file.sourceFs, srcRemote: srcRemote,
-                    dstFs: targetTab.remote, dstRemote: dstRemote, isDir: file.isDir
-                ))
-            } catch {
-                print("[RcloneGUI] Drop failed for \(file.fileName): \(error.localizedDescription)")
+                running += 1
             }
         }
         await refresh(side: targetSide)

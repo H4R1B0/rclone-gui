@@ -93,6 +93,8 @@ enum L10n {
         "delete.title.single":  ["ko": "\"%@\" 삭제?", "en": "Delete \"%@\"?"],
         "delete.title.multi":   ["ko": "%d개 항목 삭제?", "en": "Delete %d items?"],
         "delete.warning":       ["ko": "이 작업은 되돌릴 수 없습니다.", "en": "This action cannot be undone."],
+        "delete.moveToTrash":   ["ko": "선택한 항목이 휴지통으로 이동됩니다.", "en": "Selected items will be moved to Trash."],
+        "delete.moveToCloudTrash": ["ko": "선택한 항목이 클라우드 휴지통(.trash)으로 이동됩니다.", "en": "Selected items will be moved to cloud trash (.trash)."],
 
         // Properties
         "properties.name":      ["ko": "이름", "en": "Name"],
@@ -106,8 +108,6 @@ enum L10n {
         "properties.file":      ["ko": "파일", "en": "File"],
 
         // Transfer
-        "transfer.active":      ["ko": "진행 중", "en": "Active"],
-        "transfer.completed":   ["ko": "완료", "en": "Completed"],
         "transfer.errors":      ["ko": "오류", "en": "Errors"],
         "transfer.noTransfers": ["ko": "전송 없음", "en": "No transfers"],
         "transfer.pause":       ["ko": "일시정지", "en": "Pause"],
@@ -117,9 +117,7 @@ enum L10n {
         "transfer.stopAll":     ["ko": "모두 중지", "en": "Stop All"],
         "transfer.stop":        ["ko": "중지", "en": "Stop"],
         "transfer.restart":     ["ko": "재시작", "en": "Restart"],
-        "transfer.remove":      ["ko": "제거", "en": "Remove"],
         "transfer.clear":       ["ko": "지우기", "en": "Clear"],
-        "transfer.stopped":     ["ko": "중지됨", "en": "Stopped"],
 
         // Account
         "account.title":        ["ko": "계정", "en": "Accounts"],
@@ -143,6 +141,9 @@ enum L10n {
         // Settings
         "settings.title":       ["ko": "설정", "en": "Settings"],
         "settings.language":    ["ko": "언어", "en": "Language"],
+        "settings.displayIconAndText": ["ko": "아이콘 및 텍스트", "en": "Icon & Text"],
+        "settings.displayIconOnly": ["ko": "아이콘만", "en": "Icon Only"],
+        "settings.displayTextOnly": ["ko": "텍스트만", "en": "Text Only"],
         "settings.appLanguage": ["ko": "앱 언어", "en": "App Language"],
         "settings.performance": ["ko": "성능", "en": "Performance"],
         "settings.transfers":   ["ko": "동시 전송 수 (Transfers)", "en": "Concurrent Transfers"],
@@ -254,6 +255,9 @@ enum L10n {
         "mount.unmount":        ["ko": "마운트 해제", "en": "Unmount"],
         "mount.mountPoint":     ["ko": "마운트 경로", "en": "Mount Point"],
         "mount.mountPointHint": ["ko": "예: /tmp/mycloud", "en": "e.g., /tmp/mycloud"],
+        "mount.fuseRequired":   ["ko": "macFUSE 설치 필요", "en": "macFUSE Required"],
+        "mount.fuseDescription": ["ko": "클라우드 마운트 기능을 사용하려면 macFUSE를 설치해야 합니다.\n설치 후 시스템을 재시작하세요.", "en": "macFUSE is required to mount cloud storage as a local drive.\nRestart your system after installation."],
+        "mount.fuseDownload":   ["ko": "macFUSE 다운로드", "en": "Download macFUSE"],
 
         // Sync
         "toolbar.sync":          ["ko": "동기화", "en": "Sync"],
@@ -355,6 +359,8 @@ enum L10n {
         "trash.restoring":        ["ko": "복원 중...", "en": "Restoring..."],
         "trash.emptyState":       ["ko": "휴지통이 비어 있습니다", "en": "Trash is empty"],
         "trash.itemCount":        ["ko": "항목 {0}개", "en": "{0} items"],
+        "trash.local":            ["ko": "로컬 휴지통", "en": "Local Trash"],
+        "trash.emptySection":     ["ko": "비우기", "en": "Empty"],
 
         // Menu Bar
         "menubar.activeTransfers": ["ko": "개 전송 중", "en": "active transfers"],
@@ -394,6 +400,23 @@ enum L10n {
         // Transfer Resume
         "transfer.resumable":  ["ko": "재시도 가능", "en": "Resumable"],
         "transfer.retryAll":   ["ko": "모두 재시도", "en": "Retry All"],
+
+        // Transfer Status & Actions
+        "transfer.active":          ["ko": "진행 중", "en": "Active"],
+        "transfer.completed":       ["ko": "완료", "en": "Completed"],
+        "transfer.failed":          ["ko": "실패", "en": "Failed"],
+        "transfer.stopped":         ["ko": "중지됨", "en": "Stopped"],
+        "transfer.checkpoints":     ["ko": "재시도 대기", "en": "Pending Retry"],
+        "transfer.stopThis":        ["ko": "이 전송 중지", "en": "Stop This Transfer"],
+        "transfer.retry":           ["ko": "재시도", "en": "Retry"],
+        "transfer.remove":          ["ko": "삭제", "en": "Remove"],
+        "transfer.openSource":      ["ko": "원본 위치 열기", "en": "Open Source Location"],
+        "transfer.openDest":        ["ko": "목적지 열기", "en": "Open Destination"],
+        "transfer.errorDetails":    ["ko": "오류 상세", "en": "Error Details"],
+        "transfer.noErrors":        ["ko": "오류 없음", "en": "No Errors"],
+        "transfer.settingsApplied": ["ko": "설정 적용됨", "en": "Settings Applied"],
+        "transfer.itemCount":       ["ko": "항목 {0}개", "en": "{0} items"],
+        "transfer.pauseResume":     ["ko": "일시정지/재개", "en": "Pause/Resume"],
 
         // Onboarding
         "onboarding.subtitle":   ["ko": "70+ 클라우드를 하나의 앱에서 관리하세요", "en": "Manage 70+ cloud services in one app"],

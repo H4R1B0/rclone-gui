@@ -51,15 +51,31 @@ struct FinderUploadSheet: View {
     private func upload() {
         isUploading = true
         Task {
-            for url in urls {
-                let fileName = url.lastPathComponent
-                let srcPath = url.path
-                let dstRemote = destPath.isEmpty ? fileName : "\(destPath)/\(fileName)"
-                _ = try? await RcloneAPI.copyFileAsync(
-                    using: appState.client,
-                    srcFs: "/", srcRemote: srcPath,
-                    dstFs: selectedRemote, dstRemote: dstRemote
-                )
+            let remote = selectedRemote
+            let dest = destPath
+            let c = appState.client
+            let maxConcurrent = appState.settings.transfers
+            let mts = appState.settings.multiThreadStreams
+            await withTaskGroup(of: Void.self) { group in
+                var running = 0
+                for url in urls {
+                    if running >= maxConcurrent {
+                        await group.next()
+                        running -= 1
+                    }
+                    let fileName = url.lastPathComponent
+                    let srcPath = url.path
+                    let dstRemote = dest.isEmpty ? fileName : "\(dest)/\(fileName)"
+                    group.addTask {
+                        _ = try? await RcloneAPI.copyFileAsync(
+                            using: c,
+                            srcFs: "/", srcRemote: srcPath,
+                            dstFs: remote, dstRemote: dstRemote,
+                            multiThreadStreams: mts
+                        )
+                    }
+                    running += 1
+                }
             }
             isUploading = false
             dismiss()

@@ -185,6 +185,8 @@ struct SettingsSheet: View {
                     .keyboardShortcut(.cancelAction)
 
                 Button(L10n.t("save")) {
+                    appState.panels.maxConcurrentTransfers = settings.transfers
+                    appState.panels.multiThreadStreams = settings.multiThreadStreams
                     Task { await settings.applyToRclone() }
                     dismiss()
                 }
