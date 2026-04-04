@@ -395,14 +395,11 @@ final class TransferViewModel {
         stopped.removeAll()
     }
 
-    /// Clear non-active items (completed, stopped, errors) — keeps active transfers and queued
+    /// Clear completed/failed items — keeps active, queued, stopped (restartable)
     func clearInactive() {
         completed.removeAll()
-        stopped.removeAll()
         lastErrors.removeAll()
         completedKeys.removeAll()
-        checkpoints.removeAll()
-        saveCheckpoints()
     }
 
     func clearAll() {
@@ -420,6 +417,6 @@ final class TransferViewModel {
     }
 
     var hasInactiveItems: Bool {
-        !completed.isEmpty || !stopped.isEmpty || !checkpoints.isEmpty
+        !completed.isEmpty
     }
 }
