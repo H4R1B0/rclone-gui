@@ -47,6 +47,7 @@ enum AppConstants {
 
     // MARK: - Limits
 
+    static let trashDirName = ".trash"
     static let maxTransferRetries = 3
     static let maxSchedulerLogs = 500
     static let maxTrashItems = 500

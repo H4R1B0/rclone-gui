@@ -49,7 +49,7 @@ final class AppState {
         self.scheduler = SchedulerViewModel()
         self.bookmarks = BookmarkViewModel()
         self.mount = MountViewModel(client: client)
-        self.trash = TrashViewModel()
+        self.trash = TrashViewModel(client: client)
     }
 
     @MainActor
@@ -58,6 +58,7 @@ final class AppState {
         appLock.checkLockStatus()
         client.initialize()
         panels.setTransferVM(transfers)
+        panels.setTrashVM(trash)
 
         await panels.loadRemotes()
         await accounts.loadRemotes()

@@ -54,15 +54,6 @@ struct ConfirmDeleteSheet: View {
                 Button(L10n.t("delete"), role: .destructive) {
                     Task {
                         do {
-                            let tab = appState.panels.side(side).activeTab
-                            for file in filesToDelete {
-                                appState.trash.recordDeletion(
-                                    name: file.name,
-                                    fs: tab.remote,
-                                    path: file.path,
-                                    size: file.isDir ? 0 : file.size
-                                )
-                            }
                             try await appState.panels.deleteSelected(side: side)
                             dismiss()
                         } catch {

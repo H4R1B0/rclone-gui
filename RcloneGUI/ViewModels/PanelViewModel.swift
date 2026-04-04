@@ -147,6 +147,7 @@ final class PanelViewModel {
 
     private let client: RcloneClientProtocol
     private var transferVM: TransferViewModel?
+    var trashVM: TrashViewModel?
     private var isSyncingLinked = false
     private var remotesLastLoaded: Date?
     private let remotesCacheTTL: TimeInterval = AppConstants.remoteCacheTTL
@@ -162,6 +163,10 @@ final class PanelViewModel {
 
     func setTransferVM(_ vm: TransferViewModel) {
         self.transferVM = vm
+    }
+
+    func setTrashVM(_ vm: TrashViewModel) {
+        self.trashVM = vm
     }
 
     func side(_ side: PanelSide) -> PanelSideState {
@@ -316,10 +321,20 @@ final class PanelViewModel {
         let tab = side(panelSide).activeTab
         for fileName in tab.selectedFiles {
             guard let file = tab.files.first(where: { $0.name == fileName }) else { continue }
-            if file.isDir {
-                try await RcloneAPI.purge(using: client, fs: tab.remote, remote: file.path)
+            if let trash = trashVM {
+                try await trash.deleteToTrash(
+                    fs: tab.remote,
+                    path: file.path,
+                    name: file.name,
+                    isDir: file.isDir,
+                    size: file.isDir ? 0 : file.size
+                )
             } else {
-                try await RcloneAPI.deleteFile(using: client, fs: tab.remote, remote: file.path)
+                if file.isDir {
+                    try await RcloneAPI.purge(using: client, fs: tab.remote, remote: file.path)
+                } else {
+                    try await RcloneAPI.deleteFile(using: client, fs: tab.remote, remote: file.path)
+                }
             }
         }
         tab.selectedFiles = []
