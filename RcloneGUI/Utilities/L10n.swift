@@ -349,6 +349,12 @@ enum L10n {
         "trash.items":            ["ko": "개 항목", "en": "items"],
         "trash.empty":            ["ko": "휴지통이 비어있습니다", "en": "Trash is empty"],
         "trash.emptyAll":         ["ko": "비우기", "en": "Empty Trash"],
+        "trash.restore":          ["ko": "복원", "en": "Restore"],
+        "trash.permanentDelete":  ["ko": "영구 삭제", "en": "Delete Permanently"],
+        "trash.confirmEmpty":     ["ko": "휴지통을 비우시겠습니까? 이 작업은 되돌릴 수 없습니다.", "en": "Empty the trash? This cannot be undone."],
+        "trash.restoring":        ["ko": "복원 중...", "en": "Restoring..."],
+        "trash.emptyState":       ["ko": "휴지통이 비어 있습니다", "en": "Trash is empty"],
+        "trash.itemCount":        ["ko": "항목 {0}개", "en": "{0} items"],
 
         // Menu Bar
         "menubar.activeTransfers": ["ko": "개 전송 중", "en": "active transfers"],
