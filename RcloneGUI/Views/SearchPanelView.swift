@@ -111,8 +111,8 @@ struct SearchPanelView: View {
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 4) {
-                    ForEach(appState.panels.remotes, id: \.self) { remote in
-                        cloudToggle("\(remote):", label: remote)
+                    ForEach(appState.accounts.orderedRemotes) { remote in
+                        cloudToggle("\(remote.name):", label: remote.displayName)
                     }
                 }
                 .padding(.horizontal, 12)

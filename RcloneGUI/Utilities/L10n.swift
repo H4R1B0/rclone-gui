@@ -118,6 +118,14 @@ enum L10n {
         "transfer.stop":        ["ko": "중지", "en": "Stop"],
         "transfer.restart":     ["ko": "재시작", "en": "Restart"],
         "transfer.clear":       ["ko": "지우기", "en": "Clear"],
+        "transfer.clearInactive": ["ko": "목록 비우기", "en": "Clear List"],
+        "transfer.queued":      ["ko": "대기중", "en": "Queued"],
+        "transfer.section.active": ["ko": "전송 중", "en": "Active"],
+        "transfer.section.queued": ["ko": "대기", "en": "Queued"],
+        "transfer.section.completed": ["ko": "완료", "en": "Completed"],
+        "transfer.section.failed": ["ko": "실패", "en": "Failed"],
+        "transfer.section.stopped": ["ko": "중지됨", "en": "Stopped"],
+        "transfer.section.retryWaiting": ["ko": "재시도 대기", "en": "Retry Waiting"],
 
         // Account
         "account.title":        ["ko": "계정", "en": "Accounts"],

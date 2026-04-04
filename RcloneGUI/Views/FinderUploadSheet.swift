@@ -67,12 +67,17 @@ struct FinderUploadSheet: View {
                     let srcPath = url.path
                     let dstRemote = dest.isEmpty ? fileName : "\(dest)/\(fileName)"
                     group.addTask {
-                        _ = try? await RcloneAPI.copyFileAsync(
-                            using: c,
-                            srcFs: "/", srcRemote: srcPath,
-                            dstFs: remote, dstRemote: dstRemote,
-                            multiThreadStreams: mts
-                        )
+                        do {
+                            let jobId = try await RcloneAPI.copyFileAsync(
+                                using: c,
+                                srcFs: "/", srcRemote: srcPath,
+                                dstFs: remote, dstRemote: dstRemote,
+                                multiThreadStreams: mts
+                            )
+                            try await RcloneAPI.waitForJob(using: c, jobid: jobId)
+                        } catch {
+                            print("[RcloneGUI] Upload failed for \(fileName): \(error.localizedDescription)")
+                        }
                     }
                     running += 1
                 }

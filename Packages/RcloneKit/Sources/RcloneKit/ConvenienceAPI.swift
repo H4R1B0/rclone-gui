@@ -229,6 +229,16 @@ public enum RcloneAPI {
         return RcloneJobStatus(from: result)
     }
 
+    /// Wait for an async job to finish by polling job/status
+    public static func waitForJob(using client: RcloneClientProtocol, jobid: Int, pollInterval: TimeInterval = 0.5) async throws {
+        guard jobid > 0 else { return }
+        while true {
+            let status = try await getJobStatus(using: client, jobid: jobid)
+            if status.finished { return }
+            try await Task.sleep(for: .seconds(pollInterval))
+        }
+    }
+
     // MARK: - Settings
 
     public static func setBwLimit(using client: RcloneClientProtocol, rate: String) async throws {

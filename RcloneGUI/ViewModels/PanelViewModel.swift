@@ -389,6 +389,12 @@ final class PanelViewModel {
         let sourcePath = clipboard.sourcePath
         let filesToPaste = clipboard.files
 
+        // Enqueue all files first so they appear in UI
+        let tvm = self.transferVM
+        for file in filesToPaste {
+            tvm?.enqueue(QueuedTransfer(name: file.name, isDir: file.isDir))
+        }
+
         // Launch transfers with concurrency limit from settings
         let maxConcurrent = self.maxConcurrentTransfers
         let mts = self.multiThreadStreams
@@ -403,22 +409,23 @@ final class PanelViewModel {
                 let dstRemote = tab.path.isEmpty ? file.name : "\(tab.path)/\(file.name)"
                 let dstFs = tab.remote
                 let c = self.client
-                let tvm = self.transferVM
 
                 group.addTask { @MainActor in
+                    tvm?.dequeue(name: file.name)
                     do {
+                        let jobId: Int
                         switch action {
                         case .cut:
                             if file.isDir {
-                                _ = try await RcloneAPI.moveDir(using: c, srcFs: sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, transfers: maxConcurrent, multiThreadStreams: mts)
+                                jobId = try await RcloneAPI.moveDir(using: c, srcFs: sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, transfers: maxConcurrent, multiThreadStreams: mts)
                             } else {
-                                _ = try await RcloneAPI.moveFileAsync(using: c, srcFs: sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, multiThreadStreams: mts)
+                                jobId = try await RcloneAPI.moveFileAsync(using: c, srcFs: sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, multiThreadStreams: mts)
                             }
                         case .copy:
                             if file.isDir {
-                                _ = try await RcloneAPI.copyDir(using: c, srcFs: sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, transfers: maxConcurrent, multiThreadStreams: mts)
+                                jobId = try await RcloneAPI.copyDir(using: c, srcFs: sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, transfers: maxConcurrent, multiThreadStreams: mts)
                             } else {
-                                _ = try await RcloneAPI.copyFileAsync(using: c, srcFs: sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, multiThreadStreams: mts)
+                                jobId = try await RcloneAPI.copyFileAsync(using: c, srcFs: sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, multiThreadStreams: mts)
                             }
                         case .none:
                             return
@@ -427,6 +434,8 @@ final class PanelViewModel {
                             srcFs: sourceFs, srcRemote: srcRemote,
                             dstFs: dstFs, dstRemote: dstRemote, isDir: file.isDir
                         ))
+                        // Wait for job to actually finish before releasing the slot
+                        try await RcloneAPI.waitForJob(using: c, jobid: jobId)
                     } catch {
                         print("[RcloneGUI] Paste failed for \(file.name): \(error.localizedDescription)")
                     }
@@ -447,6 +456,11 @@ final class PanelViewModel {
         let c = self.client
         let tvm = self.transferVM
 
+        // Enqueue all files first
+        for file in files {
+            tvm?.enqueue(QueuedTransfer(name: file.fileName, isDir: file.isDir))
+        }
+
         let maxConcurrent = self.maxConcurrentTransfers
         let mts = self.multiThreadStreams
         await withTaskGroup(of: Void.self) { group in
@@ -460,24 +474,27 @@ final class PanelViewModel {
                 let dstRemote = dstPath.isEmpty ? file.fileName : "\(dstPath)/\(file.fileName)"
 
                 group.addTask { @MainActor in
+                    tvm?.dequeue(name: file.fileName)
                     do {
+                        let jobId: Int
                         if isMove {
                             if file.isDir {
-                                _ = try await RcloneAPI.moveDir(using: c, srcFs: file.sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, transfers: maxConcurrent, multiThreadStreams: mts)
+                                jobId = try await RcloneAPI.moveDir(using: c, srcFs: file.sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, transfers: maxConcurrent, multiThreadStreams: mts)
                             } else {
-                                _ = try await RcloneAPI.moveFileAsync(using: c, srcFs: file.sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, multiThreadStreams: mts)
+                                jobId = try await RcloneAPI.moveFileAsync(using: c, srcFs: file.sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, multiThreadStreams: mts)
                             }
                         } else {
                             if file.isDir {
-                                _ = try await RcloneAPI.copyDir(using: c, srcFs: file.sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, transfers: maxConcurrent, multiThreadStreams: mts)
+                                jobId = try await RcloneAPI.copyDir(using: c, srcFs: file.sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, transfers: maxConcurrent, multiThreadStreams: mts)
                             } else {
-                                _ = try await RcloneAPI.copyFileAsync(using: c, srcFs: file.sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, multiThreadStreams: mts)
+                                jobId = try await RcloneAPI.copyFileAsync(using: c, srcFs: file.sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, multiThreadStreams: mts)
                             }
                         }
                         tvm?.addCopyOrigin(group: file.fileName, origin: CopyOrigin(
                             srcFs: file.sourceFs, srcRemote: srcRemote,
                             dstFs: dstFs, dstRemote: dstRemote, isDir: file.isDir
                         ))
+                        try await RcloneAPI.waitForJob(using: c, jobid: jobId)
                     } catch {
                         print("[RcloneGUI] Drop failed for \(file.fileName): \(error.localizedDescription)")
                     }

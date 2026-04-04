@@ -13,6 +13,12 @@ struct StoppedTransfer: Identifiable {
     let isDir: Bool
 }
 
+struct QueuedTransfer: Identifiable {
+    let id = UUID()
+    let name: String
+    let isDir: Bool
+}
+
 struct CopyOrigin {
     let srcFs: String
     let srcRemote: String
@@ -33,6 +39,8 @@ final class TransferViewModel {
     var copyOrigins: [String: CopyOrigin] = [:]
     // Active job IDs
     var jobIds: [Int] = []
+    // Queued transfers waiting for a slot
+    var queued: [QueuedTransfer] = []
     // Callback when transfer completes (dstFs to refresh)
     var onTransferComplete: ((String) -> Void)?
 
@@ -343,6 +351,16 @@ final class TransferViewModel {
 
     // MARK: - Stopped Management
 
+    // MARK: - Queue Management
+
+    func enqueue(_ item: QueuedTransfer) {
+        queued.append(item)
+    }
+
+    func dequeue(name: String) {
+        queued.removeAll { $0.name == name }
+    }
+
     func addStopped(_ item: StoppedTransfer) {
         stopped.insert(item, at: 0)
     }
@@ -377,6 +395,16 @@ final class TransferViewModel {
         stopped.removeAll()
     }
 
+    /// Clear non-active items (completed, stopped, errors) — keeps active transfers and queued
+    func clearInactive() {
+        completed.removeAll()
+        stopped.removeAll()
+        lastErrors.removeAll()
+        completedKeys.removeAll()
+        checkpoints.removeAll()
+        saveCheckpoints()
+    }
+
     func clearAll() {
         completed.removeAll()
         stopped.removeAll()
@@ -384,7 +412,14 @@ final class TransferViewModel {
         completedKeys.removeAll()
         copyOrigins.removeAll()
         previousTransferNames.removeAll()
+        queued.removeAll()
+        checkpoints.removeAll()
+        saveCheckpoints()
         let c = client
         Task { try? await RcloneAPI.resetStats(using: c) }
+    }
+
+    var hasInactiveItems: Bool {
+        !completed.isEmpty || !stopped.isEmpty || !checkpoints.isEmpty
     }
 }

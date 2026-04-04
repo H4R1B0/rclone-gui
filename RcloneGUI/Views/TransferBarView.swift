@@ -251,14 +251,14 @@ struct TransferBarView: View {
                 .controlSize(.mini)
                 .quickTooltip(L10n.t("report.title"))
 
-                if !appState.transfers.completed.isEmpty || !appState.transfers.checkpoints.isEmpty {
-                    Button(action: { appState.transfers.clearAll() }) {
-                        Label(L10n.t("transfer.clear"), systemImage: "trash")
+                if appState.transfers.hasInactiveItems {
+                    Button(action: { appState.transfers.clearInactive() }) {
+                        Label(L10n.t("transfer.clearInactive"), systemImage: "xmark.bin")
                             .font(.system(size: 10))
                     }
                     .transferLabelStyle(mode: appState.settings.transferDisplayMode)
                     .controlSize(.mini)
-                    .quickTooltip(L10n.t("transfer.clear"))
+                    .quickTooltip(L10n.t("transfer.clearInactive"))
                 }
             }
             .padding(.horizontal, 14)
@@ -287,6 +287,14 @@ struct TransferBarView: View {
                     // Active transfers (count already shown in header badge)
                     ForEach(appState.transfers.transfers) { t in
                         activeTransferRow(t)
+                    }
+
+                    // Section: Queued (waiting for slot)
+                    if !appState.transfers.queued.isEmpty {
+                        sectionHeader(L10n.t("transfer.section.queued"), count: appState.transfers.queued.count)
+                        ForEach(appState.transfers.queued) { q in
+                            queuedTransferRow(q)
+                        }
                     }
 
                     // Section: Completed (successful)
@@ -322,6 +330,7 @@ struct TransferBarView: View {
                     }
 
                     if appState.transfers.transfers.isEmpty
+                        && appState.transfers.queued.isEmpty
                         && appState.transfers.completed.isEmpty
                         && appState.transfers.stopped.isEmpty
                         && appState.transfers.checkpoints.isEmpty {
@@ -357,6 +366,34 @@ struct TransferBarView: View {
     }
 
     // MARK: - Row Views
+
+    private func queuedTransferRow(_ q: QueuedTransfer) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "clock.fill")
+                .font(.system(size: 10))
+                .foregroundColor(.secondary.opacity(0.6))
+
+            Image(systemName: q.isDir ? "folder.fill" : "doc.fill")
+                .font(.system(size: 9))
+                .foregroundColor(.secondary.opacity(0.5))
+
+            Text(q.name)
+                .font(.system(size: 11))
+                .lineLimit(1)
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Text(L10n.t("transfer.queued"))
+                .font(.system(size: 9, weight: .medium))
+                .foregroundColor(.orange)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Color.orange.opacity(0.1))
+                .cornerRadius(3)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 4)
+    }
 
     private func sectionHeader(_ title: String, count: Int) -> some View {
         HStack {
