@@ -44,18 +44,7 @@ struct SidebarView: View {
             if !appState.bookmarks.bookmarks.isEmpty {
                 Section(L10n.t("bookmark.title")) {
                     ForEach(appState.bookmarks.bookmarks) { bookmark in
-                        Label {
-                            VStack(alignment: .leading, spacing: 1) {
-                                Text(bookmark.name)
-                                Text(bookmark.fs == "/" ? L10n.t("panel.local") : bookmark.fs.replacingOccurrences(of: ":", with: ""))
-                                    .font(.system(size: 9))
-                                    .foregroundColor(.secondary)
-                            }
-                        } icon: {
-                            Image(systemName: bookmark.fs == "/" ? "folder" : "cloud")
-                        }
-                        .tag(SidebarItem.bookmark(bookmark))
-                        .contextMenu {
+                        Menu {
                             Button(L10n.t("bookmark.openNewTabLeft")) {
                                 appState.panels.left.addTab(mode: bookmark.fs == "/" ? .local : .cloud, remote: bookmark.fs, path: bookmark.path, label: bookmark.name)
                                 Task { await appState.panels.loadFiles(side: .left) }
@@ -68,7 +57,20 @@ struct SidebarView: View {
                             Button(L10n.t("delete"), role: .destructive) {
                                 appState.bookmarks.remove(id: bookmark.id)
                             }
+                        } label: {
+                            Label {
+                                VStack(alignment: .leading, spacing: 1) {
+                                    Text(bookmark.name)
+                                    Text(bookmark.fs == "/" ? L10n.t("panel.local") : bookmark.fs.replacingOccurrences(of: ":", with: ""))
+                                        .font(.system(size: 9))
+                                        .foregroundColor(.secondary)
+                                }
+                            } icon: {
+                                Image(systemName: bookmark.fs == "/" ? "folder" : "cloud")
+                            }
                         }
+                        .menuStyle(.borderlessButton)
+                        .menuIndicator(.hidden)
                     }
                 }
             }

@@ -380,31 +380,63 @@ struct TransferBarView: View {
     // MARK: - Row Views
 
     private func queuedTransferRow(_ q: QueuedTransfer) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: "clock.fill")
-                .font(.system(size: 10))
-                .foregroundColor(.secondary.opacity(0.6))
+        VStack(spacing: 0) {
+            HStack(spacing: 8) {
+                Image(systemName: "clock.fill")
+                    .font(.system(size: 10))
+                    .foregroundColor(.secondary.opacity(0.6))
 
-            Image(systemName: q.isDir ? "folder.fill" : "doc.fill")
-                .font(.system(size: 9))
-                .foregroundColor(.secondary.opacity(0.5))
+                Image(systemName: q.isDir ? "folder.fill" : "doc.fill")
+                    .font(.system(size: 9))
+                    .foregroundColor(.secondary.opacity(0.5))
 
-            Text(q.name)
-                .font(.system(size: 12))
-                .lineLimit(1)
-                .foregroundColor(.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                Text(q.name)
+                    .font(.system(size: 12))
+                    .lineLimit(1)
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
-            Text(L10n.t("transfer.queued"))
-                .font(.system(size: 9, weight: .medium))
-                .foregroundColor(.orange)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 2)
-                .background(Color.orange.opacity(0.1))
-                .cornerRadius(3)
+                if q.isDir && !q.children.isEmpty {
+                    Text("\(q.children.count)")
+                        .font(.system(size: 9))
+                        .foregroundColor(.secondary)
+                }
+
+                Text(L10n.t("transfer.queued"))
+                    .font(.system(size: 9, weight: .medium))
+                    .foregroundColor(.orange)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.orange.opacity(0.1))
+                    .cornerRadius(3)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 4)
+
+            if q.isDir && !q.children.isEmpty {
+                ForEach(q.children) { child in
+                    HStack(spacing: 8) {
+                        Image(systemName: "doc.fill")
+                            .font(.system(size: 8))
+                            .foregroundColor(.secondary.opacity(0.3))
+
+                        Text(child.path)
+                            .font(.system(size: 11))
+                            .lineLimit(1)
+                            .foregroundColor(.secondary.opacity(0.7))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                        Text(FormatUtils.formatBytes(child.size))
+                            .font(.system(size: 10))
+                            .monospacedDigit()
+                            .foregroundColor(.secondary.opacity(0.5))
+                    }
+                    .padding(.leading, 42)
+                    .padding(.trailing, 12)
+                    .padding(.vertical, 1)
+                }
+            }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 4)
     }
 
     private func sectionHeader(_ title: String, count: Int) -> some View {

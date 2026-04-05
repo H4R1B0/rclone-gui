@@ -186,12 +186,32 @@ struct MiddleClickView: NSViewRepresentable {
 
 final class MiddleClickNSView: NSView {
     var action: (() -> Void)?
+    private var monitor: Any?
 
-    override func otherMouseDown(with event: NSEvent) {
-        if event.buttonNumber == 2 {
-            action?()
-        } else {
-            super.otherMouseDown(with: event)
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        return nil
+    }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        if window != nil && monitor == nil {
+            monitor = NSEvent.addLocalMonitorForEvents(matching: .otherMouseDown) { [weak self] event in
+                guard let self = self, event.buttonNumber == 2,
+                      self.window != nil else { return event }
+                let locationInView = self.convert(event.locationInWindow, from: nil)
+                if self.bounds.contains(locationInView) {
+                    self.action?()
+                }
+                return event
+            }
         }
+    }
+
+    override func removeFromSuperview() {
+        if let monitor = monitor {
+            NSEvent.removeMonitor(monitor)
+            self.monitor = nil
+        }
+        super.removeFromSuperview()
     }
 }

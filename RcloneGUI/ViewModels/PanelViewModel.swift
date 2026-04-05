@@ -423,6 +423,10 @@ final class PanelViewModel {
         let tvm = self.transferVM
         for file in filesToPaste {
             tvm?.enqueue(QueuedTransfer(name: file.name, isDir: file.isDir))
+            if file.isDir {
+                let srcRemote = sourcePath.isEmpty ? file.name : "\(sourcePath)/\(file.name)"
+                Task { await tvm?.loadQueuedChildren(name: file.name, fs: sourceFs, path: srcRemote) }
+            }
         }
 
         // Launch transfers with concurrency limit — runs OFF main thread
@@ -507,6 +511,10 @@ final class PanelViewModel {
         // Enqueue all files first
         for file in files {
             tvm?.enqueue(QueuedTransfer(name: file.fileName, isDir: file.isDir))
+            if file.isDir {
+                let srcRemote = file.sourcePath.isEmpty ? file.fileName : "\(file.sourcePath)/\(file.fileName)"
+                Task { await tvm?.loadQueuedChildren(name: file.fileName, fs: file.sourceFs, path: srcRemote) }
+            }
         }
 
         let maxConcurrent = self.maxConcurrentTransfers

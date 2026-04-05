@@ -59,7 +59,7 @@ final class TrashViewModel {
             // Cloud remote: use .trash directory at remote root
             let trashPath = AppConstants.trashDirName + "/" + path
             if isDir {
-                _ = try await RcloneAPI.moveDir(using: client, srcFs: fs, srcRemote: path, dstFs: fs, dstRemote: trashPath)
+                _ = try await RcloneAPI.moveDir(using: client, srcFs: fs, srcRemote: path, dstFs: fs, dstRemote: trashPath, async: false)
             } else {
                 try await RcloneAPI.moveFile(using: client, srcFs: fs, srcRemote: path, dstFs: fs, dstRemote: trashPath)
             }

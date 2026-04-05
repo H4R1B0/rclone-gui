@@ -180,12 +180,13 @@ public enum RcloneAPI {
         srcFs: String, srcRemote: String,
         dstFs: String, dstRemote: String,
         transfers: Int = 0,
-        multiThreadStreams: Int = 0
+        multiThreadStreams: Int = 0,
+        async: Bool = true
     ) async throws -> Int {
         var params: [String: Any] = [
             "srcFs": "\(srcFs)\(srcRemote)",
             "dstFs": "\(dstFs)\(dstRemote)",
-            "_async": true
+            "_async": async
         ]
         var config: [String: Any] = [:]
         if transfers > 0 { config["Transfers"] = transfers }

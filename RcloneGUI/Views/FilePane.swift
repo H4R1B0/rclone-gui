@@ -97,6 +97,6 @@ struct FilePane: View {
                 return true
             }
         }
-        .onTapGesture { appState.panels.activePanel = side }
+        .simultaneousGesture(TapGesture().onEnded { appState.panels.activePanel = side })
     }
 }

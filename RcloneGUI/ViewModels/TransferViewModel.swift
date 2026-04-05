@@ -5,6 +5,16 @@ struct QueuedTransfer: Identifiable {
     let id = UUID()
     let name: String
     let isDir: Bool
+    var children: [QueuedChild] = []
+    var childrenLoaded: Bool = false
+}
+
+struct QueuedChild: Identifiable {
+    let id = UUID()
+    let name: String
+    let path: String
+    let size: Int64
+    let isDir: Bool
 }
 
 struct CopyOrigin {
@@ -403,6 +413,34 @@ final class TransferViewModel {
 
     func enqueue(_ item: QueuedTransfer) {
         queued.append(item)
+    }
+
+    /// Load children for a queued folder transfer
+    @MainActor
+    func loadQueuedChildren(name: String, fs: String, path: String) async {
+        guard let idx = queued.firstIndex(where: { $0.name == name && $0.isDir && !$0.childrenLoaded }) else { return }
+        do {
+            let result = try await client.call("operations/list", params: [
+                "fs": fs, "remote": path, "opt": ["recurse": true]
+            ])
+            guard let list = result["list"] as? [[String: Any]] else { return }
+            let children: [QueuedChild] = list.compactMap { item in
+                guard let itemName = item["Name"] as? String,
+                      let itemPath = item["Path"] as? String,
+                      let isDir = item["IsDir"] as? Bool,
+                      !isDir else { return nil }
+                let size = item["Size"] as? Int64 ?? 0
+                return QueuedChild(name: itemName, path: itemPath, size: size, isDir: false)
+            }
+            if queued.indices.contains(idx) {
+                queued[idx].children = children
+                queued[idx].childrenLoaded = true
+            }
+        } catch {
+            #if DEBUG
+            print("[RcloneGUI] loadQueuedChildren error: \(error.localizedDescription)")
+            #endif
+        }
     }
 
     func dequeue(name: String) {
