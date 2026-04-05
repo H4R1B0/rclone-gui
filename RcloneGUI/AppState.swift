@@ -81,13 +81,12 @@ final class AppState {
         let p = panels
         transfers.onTransferComplete = { dstFs in
             Task { @MainActor in
-                // Refresh any tab matching the destination remote
-                for tab in p.left.tabs + p.right.tabs {
-                    if tab.remote == dstFs {
-                        let side: PanelSide = p.left.tabs.contains(where: { $0.id == tab.id }) ? .left : .right
-                        await p.loadFiles(side: side)
-                        break
-                    }
+                // Refresh active tab on each side if it matches the destination remote
+                if p.left.activeTab.remote == dstFs {
+                    await p.loadFiles(side: .left)
+                }
+                if p.right.activeTab.remote == dstFs {
+                    await p.loadFiles(side: .right)
                 }
             }
         }

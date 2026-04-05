@@ -4,29 +4,32 @@ import Foundation
 
 @Suite("Onboarding Tests")
 struct OnboardingTests {
-    @Test("onboardingComplete defaults to false") @MainActor
-    func defaultFalse() {
-        // Clean up any previous test state
-        UserDefaults.standard.removeObject(forKey: "onboardingComplete")
-        let appState = AppState()
-        #expect(appState.onboardingComplete == false)
+    private static let testKey = "onboardingComplete"
+
+    private func makeTestDefaults() -> UserDefaults {
+        let suiteName = "com.test.RcloneGUI.\(UUID().uuidString)"
+        return UserDefaults(suiteName: suiteName)!
     }
 
-    @Test("onboardingComplete saved to UserDefaults") @MainActor
+    @Test("onboardingComplete defaults to false")
+    func defaultFalse() {
+        let defaults = makeTestDefaults()
+        #expect(defaults.bool(forKey: Self.testKey) == false)
+    }
+
+    @Test("onboardingComplete saved to UserDefaults")
     func savedToDefaults() {
-        UserDefaults.standard.set(true, forKey: "onboardingComplete")
-        let value = UserDefaults.standard.bool(forKey: "onboardingComplete")
-        #expect(value == true)
-        // Cleanup
-        UserDefaults.standard.removeObject(forKey: "onboardingComplete")
+        let defaults = makeTestDefaults()
+        defaults.set(true, forKey: Self.testKey)
+        #expect(defaults.bool(forKey: Self.testKey) == true)
     }
 
     @Test("onboardingComplete toggle")
     func toggle() {
-        UserDefaults.standard.set(false, forKey: "onboardingComplete")
-        #expect(UserDefaults.standard.bool(forKey: "onboardingComplete") == false)
-        UserDefaults.standard.set(true, forKey: "onboardingComplete")
-        #expect(UserDefaults.standard.bool(forKey: "onboardingComplete") == true)
-        UserDefaults.standard.removeObject(forKey: "onboardingComplete")
+        let defaults = makeTestDefaults()
+        defaults.set(false, forKey: Self.testKey)
+        #expect(defaults.bool(forKey: Self.testKey) == false)
+        defaults.set(true, forKey: Self.testKey)
+        #expect(defaults.bool(forKey: Self.testKey) == true)
     }
 }

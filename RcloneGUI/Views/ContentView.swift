@@ -55,12 +55,10 @@ struct ContentView: View {
                             RemoteDetailsView(remoteName: name)
                         case .bookmark(let bookmark):
                             ExplorerView()
-                                .onAppear {
-                                    Task {
-                                        await appState.panels.navigateTo(side: .left, remote: bookmark.fs, path: bookmark.path)
-                                    }
+                                .task(id: bookmark.id) {
+                                    let targetSide = appState.panels.activePanel
+                                    await appState.panels.navigateTo(side: targetSide, remote: bookmark.fs, path: bookmark.path)
                                 }
-                                .id("bookmark-\(bookmark.id)")
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -70,7 +68,7 @@ struct ContentView: View {
             }
             .navigationSplitViewStyle(.balanced)
             .animation(.easeInOut(duration: 0.25), value: selectedSidebar)
-            .frame(minWidth: 1000, minHeight: 600)
+            .frame(minWidth: 1024, minHeight: 640)
             .overlay {
                 if appState.appLock.isLocked == true {
                     LockScreenView()

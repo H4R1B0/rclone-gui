@@ -3,6 +3,10 @@ import Foundation
 @testable import RcloneGUI
 import RcloneKit
 
+func makeSyncTempURL() -> URL {
+    FileManager.default.temporaryDirectory.appendingPathComponent("sync_test_\(UUID().uuidString).json")
+}
+
 @Suite("SyncMode Tests")
 struct SyncModeTests {
     @Test("Mirror mode")
@@ -97,7 +101,7 @@ struct SyncViewModelMockTests {
     @Test("addProfile appends")
     func addProfile() {
         let mock = MockRcloneClient()
-        let vm = SyncViewModel(client: mock)
+        let vm = SyncViewModel(client: mock, profilesURL: makeSyncTempURL())
         vm.profiles = []
         let p = SyncProfile(name: "Test", mode: .mirror, sourceFs: "/", sourcePath: "", destFs: "/", destPath: "/backup")
         vm.addProfile(p)
@@ -108,7 +112,7 @@ struct SyncViewModelMockTests {
     @Test("deleteProfile removes correct one")
     func deleteProfile() {
         let mock = MockRcloneClient()
-        let vm = SyncViewModel(client: mock)
+        let vm = SyncViewModel(client: mock, profilesURL: makeSyncTempURL())
         vm.profiles = []
         let p1 = SyncProfile(name: "A", mode: .mirror, sourceFs: "/", sourcePath: "", destFs: "/", destPath: "/a")
         let p2 = SyncProfile(name: "B", mode: .bisync, sourceFs: "/", sourcePath: "", destFs: "/", destPath: "/b")
@@ -123,7 +127,7 @@ struct SyncViewModelMockTests {
     func runSyncMirror() async {
         let mock = MockRcloneClient()
         mock.responses["sync/sync"] = ["jobid": 42]
-        let vm = SyncViewModel(client: mock)
+        let vm = SyncViewModel(client: mock, profilesURL: makeSyncTempURL())
         let p = SyncProfile(name: "M", mode: .mirror, sourceFs: "/", sourcePath: "/src", destFs: "/", destPath: "/dst")
         await vm.runSync(profile: p)
         #expect(mock.callLog.contains { $0.method == "sync/sync" })
@@ -133,7 +137,7 @@ struct SyncViewModelMockTests {
     func runSyncMirrorUpdate() async {
         let mock = MockRcloneClient()
         mock.responses["sync/copy"] = ["jobid": 43]
-        let vm = SyncViewModel(client: mock)
+        let vm = SyncViewModel(client: mock, profilesURL: makeSyncTempURL())
         let p = SyncProfile(name: "MU", mode: .mirrorUpdate, sourceFs: "/", sourcePath: "/src", destFs: "/", destPath: "/dst")
         await vm.runSync(profile: p)
         #expect(mock.callLog.contains { $0.method == "sync/copy" })
@@ -143,7 +147,7 @@ struct SyncViewModelMockTests {
     func runSyncBisync() async {
         let mock = MockRcloneClient()
         mock.responses["sync/bisync"] = ["jobid": 44]
-        let vm = SyncViewModel(client: mock)
+        let vm = SyncViewModel(client: mock, profilesURL: makeSyncTempURL())
         let p = SyncProfile(name: "B", mode: .bisync, sourceFs: "/", sourcePath: "/a", destFs: "/", destPath: "/b")
         await vm.runSync(profile: p)
         #expect(mock.callLog.contains { $0.method == "sync/bisync" })
@@ -153,7 +157,7 @@ struct SyncViewModelMockTests {
     func runSyncError() async {
         let mock = MockRcloneClient()
         mock.errorForMethod["sync/sync"] = RcloneError.rpcFailed(method: "sync/sync", status: 500, message: "fail")
-        let vm = SyncViewModel(client: mock)
+        let vm = SyncViewModel(client: mock, profilesURL: makeSyncTempURL())
         let p = SyncProfile(name: "E", mode: .mirror, sourceFs: "/", sourcePath: "", destFs: "/", destPath: "")
         await vm.runSync(profile: p)
         #expect(vm.error != nil)
@@ -164,7 +168,7 @@ struct SyncViewModelMockTests {
     func stopSync() async {
         let mock = MockRcloneClient()
         mock.responses["job/stop"] = [:]
-        let vm = SyncViewModel(client: mock)
+        let vm = SyncViewModel(client: mock, profilesURL: makeSyncTempURL())
         vm.currentJobId = 42
         await vm.stopSync()
         #expect(vm.currentJobId == nil)
@@ -174,7 +178,7 @@ struct SyncViewModelMockTests {
     @Test("updateProfile replaces in place")
     func updateProfile() {
         let mock = MockRcloneClient()
-        let vm = SyncViewModel(client: mock)
+        let vm = SyncViewModel(client: mock, profilesURL: makeSyncTempURL())
         vm.profiles = []
         var p = SyncProfile(name: "Original", mode: .mirror, sourceFs: "/", sourcePath: "", destFs: "/", destPath: "")
         vm.addProfile(p)

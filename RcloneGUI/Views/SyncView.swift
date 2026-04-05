@@ -34,17 +34,15 @@ struct SyncView: View {
             Divider()
 
             if sync.profiles.isEmpty {
-                VStack(spacing: 8) {
-                    Image(systemName: "arrow.triangle.2.circlepath")
-                        .font(.system(size: 32))
-                        .foregroundColor(.secondary)
-                    Text(L10n.t("sync.noProfiles"))
-                        .foregroundColor(.secondary)
+                ContentUnavailableView {
+                    Label(L10n.t("sync.noProfiles"), systemImage: "arrow.triangle.2.circlepath")
+                } description: {
+                    EmptyView()
+                } actions: {
                     Button(L10n.t("sync.createProfile")) {
                         showCreateProfile = true
                     }
                 }
-                .frame(maxHeight: .infinity)
             } else {
                 List {
                     ForEach(sync.profiles) { profile in

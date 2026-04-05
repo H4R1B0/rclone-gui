@@ -58,6 +58,7 @@ final class SettingsViewModel {
 
     // UI
     var transferDisplayMode: TransferDisplayMode = .iconAndText
+    var confirmTabClose: Bool = true
 
     // Language — 한국어 기본
     var locale: String = AppConstants.defaultLocale
@@ -67,9 +68,9 @@ final class SettingsViewModel {
     private var saveTask: Task<Void, Never>?
     private var bwScheduleTask: Task<Void, Never>?
 
-    init(client: RcloneClientProtocol) {
+    init(client: RcloneClientProtocol, settingsURL: URL? = nil) {
         self.client = client
-        self.settingsURL = AppConstants.appSupportDir.appendingPathComponent(AppConstants.settingsFile)
+        self.settingsURL = settingsURL ?? AppConstants.appSupportDir.appendingPathComponent(AppConstants.settingsFile)
         loadFromDisk()
     }
 
@@ -172,6 +173,7 @@ final class SettingsViewModel {
             "bwSchedule": scheduleArray,
             "bwScheduleEnabled": bwScheduleEnabled,
             "transferDisplayMode": transferDisplayMode.rawValue,
+            "confirmTabClose": confirmTabClose,
         ]
         if let data = try? JSONSerialization.data(withJSONObject: dict, options: .prettyPrinted) {
             try? data.write(to: settingsURL)
@@ -200,6 +202,7 @@ final class SettingsViewModel {
         noUpdateModTime = dict["noUpdateModTime"] as? Bool ?? false
         locale = dict["locale"] as? String ?? "ko"
         bwScheduleEnabled = dict["bwScheduleEnabled"] as? Bool ?? false
+        confirmTabClose = dict["confirmTabClose"] as? Bool ?? true
         if let modeStr = dict["transferDisplayMode"] as? String,
            let mode = TransferDisplayMode(rawValue: modeStr) {
             transferDisplayMode = mode

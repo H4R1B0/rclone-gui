@@ -21,3 +21,24 @@ final class MockRcloneClient: RcloneClientProtocol, @unchecked Sendable {
         errorForMethod.removeAll()
     }
 }
+
+// MARK: - Test Helpers
+
+/// Create a FileItem for testing via JSON decoding
+func makeFileItem(name: String, path: String? = nil, size: Int64 = 0, isDir: Bool = false) -> FileItem {
+    let p = path ?? name
+    let json: [String: Any] = [
+        "Name": name, "Path": p, "Size": size, "IsDir": isDir,
+        "ModTime": "2024-01-01T00:00:00.000000000Z", "MimeType": ""
+    ]
+    let data = try! JSONSerialization.data(withJSONObject: json)
+    let decoder = JSONDecoder()
+    decoder.dateDecodingStrategy = .custom { decoder in
+        let container = try decoder.singleValueContainer()
+        let str = try container.decode(String.self)
+        let fmt = ISO8601DateFormatter()
+        fmt.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return fmt.date(from: str) ?? Date()
+    }
+    return try! decoder.decode(FileItem.self, from: data)
+}

@@ -74,10 +74,9 @@ struct DuplicateFinderView: View {
                 .listStyle(.inset)
             } else {
                 // Setup
-                VStack(spacing: 16) {
-                    Image(systemName: "doc.on.doc").font(.system(size: 32)).foregroundColor(.secondary)
-                    Text(L10n.t("duplicate.desc")).foregroundColor(.secondary).multilineTextAlignment(.center)
-
+                ContentUnavailableView {
+                    Label(L10n.t("duplicate.desc"), systemImage: "doc.on.doc")
+                } description: {
                     // Remote selection
                     VStack(alignment: .leading, spacing: 4) {
                         Text(L10n.t("duplicate.selectRemotes")).font(.caption.bold())
@@ -95,7 +94,7 @@ struct DuplicateFinderView: View {
                         .font(.system(size: 12))
                     }
                     .frame(width: 250)
-
+                } actions: {
                     Button(L10n.t("duplicate.scan")) {
                         let det = DuplicateDetector(client: appState.client)
                         detector = det
@@ -105,9 +104,9 @@ struct DuplicateFinderView: View {
                     .buttonStyle(.borderedProminent)
                     .disabled(selectedRemotes.isEmpty)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
     private func remoteType(_ remote: String) -> String {

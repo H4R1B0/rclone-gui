@@ -55,9 +55,47 @@ struct FilePaneTabBar: View {
             .frame(width: 26)
             .help(L10n.t("panel.newTab"))
         }
-        .padding(.horizontal, 6)
-        .padding(.vertical, 3)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
         .background(.ultraThinMaterial)
+    }
+
+    private func requestCloseTab(id: UUID) {
+        if appState.settings.confirmTabClose {
+            let settings = appState.settings
+            let alert = NSAlert()
+            alert.messageText = L10n.t("tab.closeConfirm.title")
+            alert.informativeText = L10n.t("tab.closeConfirm.message")
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: L10n.t("tab.closeConfirm.close"))
+            alert.addButton(withTitle: L10n.t("cancel"))
+            alert.showsSuppressionButton = true
+            alert.suppressionButton?.title = L10n.t("tab.closeConfirm.dontAsk")
+
+            guard let window = NSApp.keyWindow else {
+                performCloseTab(id: id)
+                return
+            }
+            alert.beginSheetModal(for: window) { response in
+                if response == .alertFirstButtonReturn {
+                    if alert.suppressionButton?.state == .on {
+                        settings.confirmTabClose = false
+                        settings.scheduleSave()
+                    }
+                    self.performCloseTab(id: id)
+                }
+            }
+        } else {
+            performCloseTab(id: id)
+        }
+    }
+
+    private func performCloseTab(id: UUID) {
+        if sideState.tabs.count > 1 {
+            sideState.closeTab(id: id)
+        } else {
+            sideState.resetTab(sideState.tabs[0])
+        }
     }
 
     private func tabItem(_ tab: TabState) -> some View {
@@ -72,18 +110,12 @@ struct FilePaneTabBar: View {
             }
 
             Text(tab.label)
-                .font(.system(size: 11))
+                .font(.system(size: 12))
                 .lineLimit(1)
 
-            Button(action: {
-                if sideState.tabs.count > 1 {
-                    sideState.closeTab(id: tab.id)
-                } else {
-                    sideState.resetTab(tab)
-                }
-            }) {
+            Button(action: { requestCloseTab(id: tab.id) }) {
                 Image(systemName: "xmark")
-                    .font(.system(size: 9, weight: .bold))
+                    .font(.system(size: 10, weight: .bold))
                     .foregroundColor(.secondary.opacity(0.6))
             }
             .buttonStyle(.plain)
@@ -91,14 +123,17 @@ struct FilePaneTabBar: View {
             .opacity(sideState.activeTabId == tab.id ? 1 : 0)
         }
         .padding(.horizontal, 10)
-        .padding(.vertical, 5)
+        .padding(.vertical, 6)
         .frame(maxWidth: .infinity)
         .background(
-            RoundedRectangle(cornerRadius: 6)
+            RoundedRectangle(cornerRadius: 5)
                 .fill(sideState.activeTabId == tab.id ? Color.accentColor.opacity(0.1) : Color.clear)
         )
         .contentShape(Rectangle())
         .onTapGesture { sideState.switchTab(id: tab.id) }
+        .overlay {
+            MiddleClickView { requestCloseTab(id: tab.id) }
+        }
     }
 
     private func tabRemoteType(_ tab: TabState) -> String {
@@ -131,4 +166,32 @@ struct TabDropDelegate: DropDelegate {
     }
 
     func dropExited(info: DropInfo) {}
+}
+
+// MARK: - Middle Click Support
+
+struct MiddleClickView: NSViewRepresentable {
+    let action: () -> Void
+
+    func makeNSView(context: Context) -> MiddleClickNSView {
+        let view = MiddleClickNSView()
+        view.action = action
+        return view
+    }
+
+    func updateNSView(_ nsView: MiddleClickNSView, context: Context) {
+        nsView.action = action
+    }
+}
+
+final class MiddleClickNSView: NSView {
+    var action: (() -> Void)?
+
+    override func otherMouseDown(with event: NSEvent) {
+        if event.buttonNumber == 2 {
+            action?()
+        } else {
+            super.otherMouseDown(with: event)
+        }
+    }
 }

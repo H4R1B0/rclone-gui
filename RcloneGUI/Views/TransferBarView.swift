@@ -95,13 +95,13 @@ struct TransferBarView: View {
                     .frame(width: 6, height: 6)
 
                 ProgressView(value: overallProgress)
-                    .frame(width: 100)
+                    .frame(width: 120)
 
                 Text("\(appState.transfers.transfers.count) \(L10n.t("menubar.activeTransfers"))")
                     .font(.system(size: 11))
                     .foregroundColor(.secondary)
 
-                Text(FormatUtils.formatSpeed(appState.transfers.totalSpeed))
+                Text(FormatUtils.formatSpeed(appState.transfers.paused ? 0 : appState.transfers.totalSpeed))
                     .font(.system(size: 11, weight: .medium, design: .monospaced))
                     .foregroundColor(.accentColor)
 
@@ -150,7 +150,7 @@ struct TransferBarView: View {
                         } else {
                             ScrollView {
                                 VStack(alignment: .leading, spacing: 4) {
-                                    ForEach(appState.transfers.lastErrors, id: \.self) { err in
+                                    ForEach(Array(appState.transfers.lastErrors.enumerated()), id: \.offset) { _, err in
                                         Text(err)
                                             .font(.system(size: 11, design: .monospaced))
                                             .textSelection(.enabled)
@@ -164,6 +164,13 @@ struct TransferBarView: View {
                     .padding(12)
                     .frame(minWidth: 300)
                 }
+            }
+
+            // Queued count (when collapsed)
+            if !appState.transfers.queued.isEmpty && !isExpanded {
+                Text("\(appState.transfers.queued.count) \(L10n.t("transfer.queued"))")
+                    .font(.system(size: 10))
+                    .foregroundColor(.orange)
             }
 
             // Completed count (when collapsed)
@@ -183,8 +190,8 @@ struct TransferBarView: View {
             .buttonStyle(.plain)
             .help(L10n.t("toolbar.transfers"))
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 6)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
         .background(.bar)
     }
 
@@ -208,60 +215,50 @@ struct TransferBarView: View {
 
                 Spacer()
 
-                if appState.transfers.hasActiveTransfers {
-                    HStack(spacing: 4) {
-                        // Merged pause/resume toggle button
-                        Button(action: {
-                            Task {
-                                if appState.transfers.paused {
-                                    await appState.transfers.resumeAll()
-                                } else {
-                                    await appState.transfers.pauseAll()
-                                }
+                HStack(spacing: 4) {
+                    // Pause/resume toggle button
+                    Button(action: {
+                        Task {
+                            if appState.transfers.paused {
+                                await appState.transfers.resumeAll()
+                            } else {
+                                await appState.transfers.pauseAll()
                             }
-                        }) {
-                            Label(
-                                appState.transfers.paused ? L10n.t("transfer.resume") : L10n.t("transfer.pause"),
-                                systemImage: appState.transfers.paused ? "play.fill" : "pause.fill"
-                            )
-                            .font(.system(size: 10))
                         }
-                        .transferLabelStyle(mode: appState.settings.transferDisplayMode)
-                        .controlSize(.small)
-                        .buttonStyle(.bordered)
-                        .quickTooltip(appState.transfers.paused ? L10n.t("transfer.resume") : L10n.t("transfer.pause"))
-
-                        // Stop all button
-                        Button(action: { Task { await appState.transfers.stopAllJobs() } }) {
-                            Label(L10n.t("transfer.stopAll"), systemImage: "stop.fill")
-                                .font(.system(size: 10))
-                        }
-                        .transferLabelStyle(mode: appState.settings.transferDisplayMode)
-                        .controlSize(.small)
-                        .buttonStyle(.bordered)
-                        .quickTooltip(L10n.t("transfer.stopAll"))
+                    }) {
+                        Label(
+                            appState.transfers.paused ? L10n.t("transfer.resume") : L10n.t("transfer.pause"),
+                            systemImage: appState.transfers.paused ? "play.fill" : "pause.fill"
+                        )
+                        .font(.system(size: 10))
                     }
+                    .transferLabelStyle(mode: appState.settings.transferDisplayMode)
+                    .controlSize(.small)
+                    .buttonStyle(.bordered)
+                    .disabled(!appState.transfers.hasActiveTransfers)
+                    .quickTooltip(appState.transfers.paused ? L10n.t("transfer.resume") : L10n.t("transfer.pause"))
+
+                    // Cancel all button — stops active + clears queue + resumes bandwidth
+                    Button(action: { Task { await appState.transfers.cancelAll() } }) {
+                        Label(L10n.t("transfer.cancelAll"), systemImage: "xmark.circle.fill")
+                            .font(.system(size: 10))
+                    }
+                    .transferLabelStyle(mode: appState.settings.transferDisplayMode)
+                    .controlSize(.small)
+                    .buttonStyle(.bordered)
+                    .disabled(!appState.transfers.hasActiveTransfers && appState.transfers.queued.isEmpty)
+                    .quickTooltip(L10n.t("transfer.cancelAll"))
                 }
 
-                Button(action: { showReport = true }) {
-                    Label(L10n.t("report.title"), systemImage: "doc.text")
+                Button(action: { appState.transfers.clearInactive() }) {
+                    Label(L10n.t("transfer.clearInactive"), systemImage: "xmark.bin")
                         .font(.system(size: 10))
                 }
                 .transferLabelStyle(mode: appState.settings.transferDisplayMode)
                 .controlSize(.mini)
-                .quickTooltip(L10n.t("report.title"))
-
-                if appState.transfers.hasInactiveItems {
-                    Button(action: { appState.transfers.clearInactive() }) {
-                        Label(L10n.t("transfer.clearInactive"), systemImage: "xmark.bin")
-                            .font(.system(size: 10))
-                    }
-                    .transferLabelStyle(mode: appState.settings.transferDisplayMode)
-                    .controlSize(.mini)
-                    .quickTooltip(L10n.t("transfer.clearInactive"))
-                }
+                .quickTooltip(L10n.t("transfer.clearInactive"))
             }
-            .padding(.horizontal, 14)
+            .padding(.horizontal, 12)
             .padding(.vertical, 8)
             .contextMenu {
                 ForEach(TransferDisplayMode.allCases, id: \.self) { mode in
@@ -283,7 +280,7 @@ struct TransferBarView: View {
 
             // Transfer list
             ScrollView {
-                LazyVStack(spacing: 2) {
+                LazyVStack(spacing: 4) {
                     // Active transfers (count already shown in header badge)
                     ForEach(appState.transfers.transfers) { t in
                         activeTransferRow(t)
@@ -305,19 +302,19 @@ struct TransferBarView: View {
                         }
                     }
 
-                    // Section: Failed
-                    if !appState.transfers.errorCompleted.isEmpty {
-                        sectionHeader(L10n.t("transfer.section.failed"), count: appState.transfers.errorCompleted.count)
-                        ForEach(appState.transfers.errorCompleted.prefix(30)) { t in
-                            completedTransferRow(t)
+                    // Section: Cancelled (user-cancelled, restartable)
+                    if !appState.transfers.cancelledCompleted.isEmpty {
+                        sectionHeader(L10n.t("transfer.section.cancelled"), count: appState.transfers.cancelledCompleted.count)
+                        ForEach(appState.transfers.cancelledCompleted.prefix(30)) { t in
+                            failedTransferRow(t)
                         }
                     }
 
-                    // Section: Stopped transfers
-                    if !appState.transfers.stopped.isEmpty {
-                        sectionHeader(L10n.t("transfer.section.stopped"), count: appState.transfers.stopped.count)
-                        ForEach(appState.transfers.stopped) { t in
-                            stoppedTransferRow(t)
+                    // Section: Failed (real errors)
+                    if !appState.transfers.errorCompleted.isEmpty {
+                        sectionHeader(L10n.t("transfer.section.failed"), count: appState.transfers.errorCompleted.count)
+                        ForEach(appState.transfers.errorCompleted.prefix(30)) { t in
+                            failedTransferRow(t)
                         }
                     }
 
@@ -332,7 +329,6 @@ struct TransferBarView: View {
                     if appState.transfers.transfers.isEmpty
                         && appState.transfers.queued.isEmpty
                         && appState.transfers.completed.isEmpty
-                        && appState.transfers.stopped.isEmpty
                         && appState.transfers.checkpoints.isEmpty {
                         VStack(spacing: 6) {
                             Image(systemName: "arrow.up.arrow.down.circle")
@@ -346,18 +342,34 @@ struct TransferBarView: View {
                         .padding(.vertical, 30)
                     }
                 }
-                .padding(.horizontal, 6)
+                .padding(.horizontal, 8)
                 .padding(.vertical, 6)
             }
+
+            Divider().padding(.horizontal, 8)
+
+            // Report button at bottom
+            HStack {
+                Spacer()
+                Button(action: { showReport = true }) {
+                    Label(L10n.t("report.title"), systemImage: "doc.text")
+                        .font(.system(size: 10))
+                }
+                .transferLabelStyle(mode: appState.settings.transferDisplayMode)
+                .controlSize(.mini)
+                .quickTooltip(L10n.t("report.title"))
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 4)
         }
-        .frame(height: 250)
+        .frame(height: 280)
         .background(
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: 8)
                 .fill(.ultraThinMaterial)
                 .shadow(color: .black.opacity(0.12), radius: 8, x: 0, y: 2)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: 8)
                 .strokeBorder(Color(nsColor: .separatorColor).opacity(0.5), lineWidth: 0.5)
         )
         .sheet(isPresented: $showReport) {
@@ -378,7 +390,7 @@ struct TransferBarView: View {
                 .foregroundColor(.secondary.opacity(0.5))
 
             Text(q.name)
-                .font(.system(size: 11))
+                .font(.system(size: 12))
                 .lineLimit(1)
                 .foregroundColor(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -391,7 +403,7 @@ struct TransferBarView: View {
                 .background(Color.orange.opacity(0.1))
                 .cornerRadius(3)
         }
-        .padding(.horizontal, 10)
+        .padding(.horizontal, 12)
         .padding(.vertical, 4)
     }
 
@@ -402,54 +414,36 @@ struct TransferBarView: View {
                 .foregroundColor(.secondary)
             Spacer()
         }
-        .padding(.horizontal, 10)
-        .padding(.top, 6)
+        .padding(.horizontal, 12)
+        .padding(.top, 8)
         .padding(.bottom, 2)
     }
 
     private func activeTransferRow(_ t: RcloneTransferring) -> some View {
         VStack(spacing: 4) {
-            // Row 1: file name + speed + stop button
+            // Row 1: file name + size + speed
             HStack(spacing: 6) {
                 Image(systemName: "doc.fill")
                     .font(.system(size: 9))
                     .foregroundColor(.accentColor.opacity(0.7))
 
                 Text(t.name)
-                    .font(.system(size: 11))
+                    .font(.system(size: 12))
                     .lineLimit(1)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 if t.size > 0 {
                     Text("\(FormatUtils.formatBytes(t.bytes))/\(FormatUtils.formatBytes(t.size))")
-                        .font(.system(size: 9, design: .monospaced))
+                        .font(.system(size: 10, design: .monospaced))
                         .foregroundColor(.secondary)
                 }
 
-                Text(FormatUtils.formatSpeed(t.speed))
-                    .font(.system(size: 9, weight: .medium, design: .monospaced))
+                Text(FormatUtils.formatSpeed(appState.transfers.paused ? 0 : t.speed))
+                    .font(.system(size: 10, weight: .medium, design: .monospaced))
                     .foregroundColor(.secondary)
-
-                Button(action: {
-                    Task {
-                        let group = t.group
-                        let transfers = appState.transfers
-                        if let jobId = transfers.jobIds.first(where: { "\($0)" == group || group == "job/\($0)" }) {
-                            await transfers.stopJob(id: jobId)
-                        } else {
-                            await transfers.stopAllJobs()
-                        }
-                    }
-                }) {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 11))
-                        .foregroundColor(.secondary.opacity(0.6))
-                }
-                .buttonStyle(.plain)
-                .quickTooltip(L10n.t("transfer.stop"))
             }
 
-            // Row 2: progress bar + percentage
+            // Row 2: progress bar + percentage + stop button
             HStack(spacing: 6) {
                 ProgressView(value: Double(t.percentage), total: 100)
                     .tint(.accentColor)
@@ -458,9 +452,19 @@ struct TransferBarView: View {
                     .font(.system(size: 9, weight: .semibold, design: .monospaced))
                     .foregroundColor(.accentColor)
                     .frame(width: 32, alignment: .trailing)
+
+                Button(action: {
+                    Task { await appState.transfers.cancelTransfer(t) }
+                }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary.opacity(0.6))
+                }
+                .buttonStyle(.plain)
+                .quickTooltip(L10n.t("transfer.cancel"))
             }
         }
-        .padding(.horizontal, 10)
+        .padding(.horizontal, 12)
         .padding(.vertical, 6)
         .background(
             RoundedRectangle(cornerRadius: 6)
@@ -468,17 +472,9 @@ struct TransferBarView: View {
         )
         .contextMenu {
             Button(role: .destructive, action: {
-                Task {
-                    let group = t.group
-                    let transfers = appState.transfers
-                    if let jobId = transfers.jobIds.first(where: { "\($0)" == group || group == "job/\($0)" }) {
-                        await transfers.stopJob(id: jobId)
-                    } else {
-                        await transfers.stopAllJobs()
-                    }
-                }
+                Task { await appState.transfers.cancelTransfer(t) }
             }) {
-                Label(L10n.t("transfer.stopThis"), systemImage: "stop.circle")
+                Label(L10n.t("transfer.cancel"), systemImage: "xmark.circle")
             }
         }
     }
@@ -490,7 +486,7 @@ struct TransferBarView: View {
                 .font(.system(size: 11))
 
             Text(t.name)
-                .font(.system(size: 11))
+                .font(.system(size: 12))
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -499,7 +495,7 @@ struct TransferBarView: View {
                 .foregroundColor(.secondary)
                 .frame(width: 70, alignment: .trailing)
         }
-        .padding(.horizontal, 10)
+        .padding(.horizontal, 12)
         .padding(.vertical, 4)
         .contextMenu {
             if !t.ok {
@@ -527,37 +523,57 @@ struct TransferBarView: View {
         }
     }
 
-    private func stoppedTransferRow(_ t: StoppedTransfer) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: "stop.circle.fill")
-                .foregroundColor(.orange)
+    private func failedTransferRow(_ t: RcloneCompletedTransfer) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: t.isCancelled ? "xmark.circle.fill" : "exclamationmark.circle.fill")
+                .foregroundColor(t.isCancelled ? .orange : .red)
                 .font(.system(size: 11))
 
-            Text(t.name)
-                .font(.system(size: 11))
-                .lineLimit(1)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(t.name)
+                    .font(.system(size: 12))
+                    .lineLimit(1)
+                if !t.isCancelled {
+                    Text(t.error)
+                        .font(.system(size: 9))
+                        .foregroundColor(.red)
+                        .lineLimit(1)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             if t.size > 0 {
                 Text(FormatUtils.formatBytes(t.size))
                     .font(.system(size: 10, design: .monospaced))
                     .foregroundColor(.secondary)
-                    .frame(width: 70, alignment: .trailing)
+            }
+
+            // Restart button (visible, not just context menu)
+            if appState.transfers.hasRestartInfo(for: t) {
+                Button(action: { Task { await appState.transfers.restartFailed(t) } }) {
+                    Image(systemName: "arrow.clockwise")
+                        .font(.system(size: 11))
+                        .foregroundColor(.accentColor)
+                }
+                .buttonStyle(.plain)
+                .quickTooltip(L10n.t("transfer.restart"))
             }
         }
-        .padding(.horizontal, 10)
+        .padding(.horizontal, 12)
         .padding(.vertical, 4)
         .background(
             RoundedRectangle(cornerRadius: 6)
-                .fill(Color.orange.opacity(0.04))
+                .fill(t.isCancelled ? Color.orange.opacity(0.04) : Color.red.opacity(0.04))
         )
         .contextMenu {
-            if t.srcFs != nil {
-                Button(action: { Task { await appState.transfers.restartTransfer(t) } }) {
+            if appState.transfers.hasRestartInfo(for: t) {
+                Button(action: { Task { await appState.transfers.restartFailed(t) } }) {
                     Label(L10n.t("transfer.restart"), systemImage: "arrow.clockwise")
                 }
             }
-            Button(role: .destructive, action: { appState.transfers.removeStopped(id: t.id) }) {
+            Button(role: .destructive, action: {
+                appState.transfers.removeCompleted(name: t.name, completedAt: t.completed_at)
+            }) {
                 Label(L10n.t("transfer.remove"), systemImage: "trash")
             }
         }
@@ -571,7 +587,7 @@ struct TransferBarView: View {
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(cp.fileName)
-                    .font(.system(size: 11))
+                    .font(.system(size: 12))
                     .lineLimit(1)
                 if let error = cp.lastError {
                     Text(error)
@@ -599,7 +615,7 @@ struct TransferBarView: View {
             }
             .buttonStyle(.plain)
         }
-        .padding(.horizontal, 10)
+        .padding(.horizontal, 12)
         .padding(.vertical, 4)
         .background(
             RoundedRectangle(cornerRadius: 6)

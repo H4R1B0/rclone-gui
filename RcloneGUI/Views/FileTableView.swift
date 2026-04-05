@@ -16,106 +16,115 @@ struct FileTableView: View {
     @State private var showCompress = false
     @State private var mediaFile: FileItem?
     @State private var versionFile: FileItem?
-    @FocusState private var isFocused: Bool
+    @FocusState private var listFocused: Bool
 
     private var tab: TabState {
         appState.panels.side(side).activeTab
     }
 
+    private var viewMode: ViewMode { appState.panels.side(side).viewMode }
+
+    private let gridColumns = [GridItem(.adaptive(minimum: 90, maximum: 120), spacing: 8)]
+
     var body: some View {
         VStack(spacing: 0) {
-            // Column headers
-            columnHeaders
-
-            Divider()
+            // Column headers (list mode only)
+            if viewMode == .list {
+                columnHeaders
+                Divider()
+            }
 
             // File list
             if tab.sortedFiles.isEmpty && !tab.loading {
-                VStack(spacing: 8) {
-                    Image(systemName: "folder")
-                        .font(.system(size: 32))
-                        .foregroundColor(.secondary)
-                    Text(L10n.t("panel.noFiles"))
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .contentShape(Rectangle())
-                .contextMenu { emptyAreaMenu }
+                ContentUnavailableView(L10n.t("panel.noFiles"), systemImage: "folder")
+                    .contentShape(Rectangle())
+                    .contextMenu { emptyAreaMenu }
             } else {
                 // File count bar
                 HStack {
                     Text(String(format: L10n.t("performance.fileCount"), tab.sortedFiles.count))
-                        .font(.system(size: 10))
+                        .font(.system(size: 11))
                         .foregroundColor(.secondary)
                     Spacer()
                     if tab.sortedFiles.count > 1000 {
                         Text(L10n.t("performance.largeDir"))
-                            .font(.system(size: 10))
+                            .font(.system(size: 11))
                             .foregroundColor(.orange)
                     }
                 }
                 .padding(.horizontal, 12)
-                .padding(.vertical, 2)
+                .padding(.vertical, 3)
 
-                ScrollView {
-                    LazyVStack(spacing: 0) {
-                        ForEach(tab.sortedFiles) { file in
-                            fileRow(file)
+                Group {
+                    if viewMode == .grid {
+                        ScrollView {
+                            LazyVGrid(columns: gridColumns, spacing: 8) {
+                                ForEach(tab.sortedFiles) { file in
+                                    gridCell(file)
+                                }
+                            }
+                            .padding(8)
+                        }
+                    } else {
+                        ScrollView {
+                            LazyVStack(spacing: 0) {
+                                ForEach(tab.sortedFiles) { file in
+                                    fileRow(file)
+                                }
+                            }
                         }
                     }
-                    .drawingGroup()
+                }
+                .focusable()
+                .focused($listFocused)
+                .onKeyPress(.return) {
+                    if let fileName = tab.selectedFiles.first,
+                       let file = tab.files.first(where: { $0.name == fileName }) {
+                        if file.isDir {
+                            Task { await appState.panels.navigate(side: side, dirName: file.name) }
+                        } else {
+                            renamingFile = file.name
+                            renameText = file.name
+                        }
+                    }
+                    return .handled
+                }
+                .onKeyPress(.delete) {
+                    if !tab.selectedFiles.isEmpty {
+                        showDeleteConfirm = true
+                    }
+                    return .handled
+                }
+                .onKeyPress(.upArrow) {
+                    selectAdjacentFile(direction: -1)
+                    return .handled
+                }
+                .onKeyPress(.downArrow) {
+                    selectAdjacentFile(direction: 1)
+                    return .handled
+                }
+                .onKeyPress(.leftArrow) {
+                    Task { await appState.panels.goUp(side: side) }
+                    return .handled
+                }
+                .onKeyPress(.rightArrow) {
+                    if let fileName = tab.selectedFiles.first,
+                       let file = tab.files.first(where: { $0.name == fileName }),
+                       file.isDir {
+                        Task { await appState.panels.navigate(side: side, dirName: file.name) }
+                    }
+                    return .handled
+                }
+                .onKeyPress(.space) {
+                    handleQuickLook()
+                    return .handled
+                }
+                .onKeyPress(.tab) {
+                    appState.panels.activePanel = (side == .left) ? .right : .left
+                    return .handled
                 }
                 .contextMenu { emptyAreaMenu }
             }
-        }
-        .focusable()
-        .focused($isFocused)
-        .onAppear { isFocused = true }
-        .onKeyPress(.return) {
-            if let fileName = tab.selectedFiles.first,
-               let file = tab.files.first(where: { $0.name == fileName }) {
-                if file.isDir {
-                    Task { await appState.panels.navigate(side: side, dirName: file.name) }
-                } else {
-                    renamingFile = file.name
-                    renameText = file.name
-                }
-            }
-            return .handled
-        }
-        .onKeyPress(.delete) {
-            if !tab.selectedFiles.isEmpty {
-                showDeleteConfirm = true
-            }
-            return .handled
-        }
-        .onKeyPress(.upArrow) {
-            selectAdjacentFile(direction: -1)
-            return .handled
-        }
-        .onKeyPress(.downArrow) {
-            selectAdjacentFile(direction: 1)
-            return .handled
-        }
-        .onKeyPress(.leftArrow) {
-            Task { await appState.panels.goUp(side: side) }
-            return .handled
-        }
-        .onKeyPress(.rightArrow) {
-            if let fileName = tab.selectedFiles.first,
-               let file = tab.files.first(where: { $0.name == fileName }),
-               file.isDir {
-                Task { await appState.panels.navigate(side: side, dirName: file.name) }
-            }
-            return .handled
-        }
-        .onKeyPress(.space) {
-            handleQuickLook()
-            return .handled
-        }
-        .onKeyPress(.tab) {
-            appState.panels.activePanel = (side == .left) ? .right : .left
-            return .handled
         }
         .sheet(isPresented: $showNewFolder) {
             NewFolderSheet(side: side)
@@ -207,13 +216,13 @@ struct FileTableView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             sortButton(L10n.t("column.size"), field: .size)
-                .frame(width: 100, alignment: .trailing)
+                .frame(width: 90, alignment: .trailing)
 
             sortButton(L10n.t("column.modified"), field: .date)
-                .frame(width: 150, alignment: .trailing)
+                .frame(width: 140, alignment: .trailing)
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 4)
+        .padding(.vertical, 6)
         .background(Color(nsColor: .controlBackgroundColor))
         .font(.system(size: 11, weight: .medium))
     }
@@ -246,32 +255,32 @@ struct FileTableView: View {
                         case .success(let image):
                             image.resizable()
                                 .aspectRatio(contentMode: .fill)
-                                .frame(width: 18, height: 18)
+                                .frame(width: 16, height: 16)
                                 .clipShape(RoundedRectangle(cornerRadius: 2))
                         default:
                             Image(systemName: FormatUtils.fileIcon(name: file.name, isDir: file.isDir))
-                                .font(.system(size: 14))
+                                .font(.system(size: 13))
                                 .foregroundColor(.secondary)
-                                .frame(width: 18)
+                                .frame(width: 16)
                         }
                     }
-                    .frame(width: 18, height: 18)
+                    .frame(width: 16, height: 16)
                 } else {
                     Image(systemName: FormatUtils.fileIcon(name: file.name, isDir: file.isDir))
-                        .font(.system(size: 14))
+                        .font(.system(size: 13))
                         .foregroundColor(file.isDir ? .accentColor : .secondary)
-                        .frame(width: 18)
+                        .frame(width: 16)
                 }
 
                 if renamingFile == file.name {
                     TextField("Name", text: $renameText)
                         .textFieldStyle(.roundedBorder)
-                        .font(.system(size: 12))
+                        .font(.system(size: 13))
                         .onSubmit { commitRename(file) }
                         .onExitCommand { renamingFile = nil }
                 } else {
                     Text(file.name)
-                        .font(.system(size: 12))
+                        .font(.system(size: 13))
                         .lineLimit(1)
                         .truncationMode(.middle)
                 }
@@ -283,16 +292,16 @@ struct FileTableView: View {
                 .font(.system(size: 11))
                 .monospacedDigit()
                 .foregroundColor(.secondary)
-                .frame(width: 100, alignment: .trailing)
+                .frame(width: 90, alignment: .trailing)
 
             // Date
             Text(FormatUtils.formatDate(file.modTime))
                 .font(.system(size: 11))
                 .foregroundColor(.secondary)
-                .frame(width: 150, alignment: .trailing)
+                .frame(width: 140, alignment: .trailing)
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 4)
+        .padding(.vertical, 5)
         .background(isSelected ? Color.accentColor.opacity(0.2) : Color.clear)
         .contentShape(Rectangle())
         .draggable(dragData(for: file)) {
@@ -313,6 +322,69 @@ struct FileTableView: View {
                 appState.panels.singleSelect(side: side, name: file.name)
             }
             appState.panels.activePanel = side
+            listFocused = true
+        }
+        .simultaneousGesture(
+            TapGesture(count: 2).onEnded {
+                if file.isDir {
+                    Task { await appState.panels.navigate(side: side, dirName: file.name) }
+                } else if isImageFile(file.name) || isMediaFile(file.name) {
+                    openWithDefaultApp(file)
+                }
+            }
+        )
+        .contextMenu { fileContextMenu(file) }
+    }
+
+    // MARK: - Grid Cell
+
+    private func gridCell(_ file: FileItem) -> some View {
+        let isSelected = tab.selectedFiles.contains(file.name)
+
+        return VStack(spacing: 4) {
+            if tab.remote == "/" && isImageFile(file.name) && !file.isDir {
+                AsyncImage(url: URL(fileURLWithPath: fullLocalPath(file))) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image.resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 56, height: 56)
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                    default:
+                        Image(systemName: FormatUtils.fileIcon(name: file.name, isDir: file.isDir))
+                            .font(.system(size: 28))
+                            .foregroundColor(.secondary)
+                            .frame(width: 56, height: 56)
+                    }
+                }
+                .frame(width: 56, height: 56)
+            } else {
+                Image(systemName: FormatUtils.fileIcon(name: file.name, isDir: file.isDir))
+                    .font(.system(size: 28))
+                    .foregroundColor(file.isDir ? .accentColor : .secondary)
+                    .frame(width: 56, height: 56)
+            }
+
+            Text(file.name)
+                .font(.system(size: 10))
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
+                .frame(width: 80)
+        }
+        .padding(6)
+        .background(isSelected ? Color.accentColor.opacity(0.2) : Color.clear)
+        .cornerRadius(6)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if NSEvent.modifierFlags.contains(.shift) {
+                appState.panels.rangeSelect(side: side, toName: file.name)
+            } else if NSEvent.modifierFlags.contains(.command) {
+                appState.panels.toggleSelect(side: side, name: file.name)
+            } else {
+                appState.panels.singleSelect(side: side, name: file.name)
+            }
+            appState.panels.activePanel = side
+            listFocused = true
         }
         .simultaneousGesture(
             TapGesture(count: 2).onEnded {

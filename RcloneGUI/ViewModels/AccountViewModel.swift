@@ -10,6 +10,7 @@ final class AccountViewModel {
     private(set) var remoteOrder: [String] = []
 
     private let client: RcloneClientProtocol
+    private let remoteOrderURL: URL
 
     /// remotes sorted by user-defined order
     var orderedRemotes: [Remote] {
@@ -22,15 +23,10 @@ final class AccountViewModel {
         }
     }
 
-    init(client: RcloneClientProtocol) {
+    init(client: RcloneClientProtocol, remoteOrderURL: URL? = nil) {
         self.client = client
+        self.remoteOrderURL = remoteOrderURL ?? AppConstants.appSupportDir.appendingPathComponent(AppConstants.remoteOrderFile)
         loadRemoteOrder()
-    }
-
-    // MARK: - Remote Order Persistence
-
-    private var remoteOrderURL: URL {
-        AppConstants.appSupportDir.appendingPathComponent(AppConstants.remoteOrderFile)
     }
 
     private func loadRemoteOrder() {

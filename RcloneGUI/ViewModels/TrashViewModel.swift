@@ -34,9 +34,9 @@ final class TrashViewModel {
     private let configURL: URL
     private let client: RcloneClientProtocol
 
-    init(client: RcloneClientProtocol) {
+    init(client: RcloneClientProtocol, configURL: URL? = nil) {
         self.client = client
-        configURL = AppConstants.appSupportDir.appendingPathComponent(AppConstants.trashFile)
+        self.configURL = configURL ?? AppConstants.appSupportDir.appendingPathComponent(AppConstants.trashFile)
         load()
     }
 

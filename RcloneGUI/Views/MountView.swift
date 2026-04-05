@@ -47,14 +47,7 @@ struct MountView: View {
                     onRetry: { Task { await mountVM.loadMounts() } }
                 )
             } else if mountVM.mounts.isEmpty {
-                VStack(spacing: 8) {
-                    Image(systemName: "externaldrive.connected.to.line.below")
-                        .font(.system(size: 32))
-                        .foregroundColor(.secondary)
-                    Text(L10n.t("mount.noMounts"))
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                ContentUnavailableView(L10n.t("mount.noMounts"), systemImage: "externaldrive.connected.to.line.below")
             } else {
                 List {
                     ForEach(mountVM.mounts) { mount in

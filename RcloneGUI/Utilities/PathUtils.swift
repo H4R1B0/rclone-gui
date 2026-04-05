@@ -29,7 +29,9 @@ enum PathUtils {
     }
 
     /// Build path from segments up to index (for breadcrumb navigation)
-    static func pathUpTo(segments: [String], index: Int) -> String {
-        Array(segments.prefix(index + 1)).joined(separator: "/")
+    /// If the original path started with "/", the result preserves the leading slash
+    static func pathUpTo(segments: [String], index: Int, absolute: Bool = false) -> String {
+        let joined = Array(segments.prefix(index + 1)).joined(separator: "/")
+        return absolute ? "/\(joined)" : joined
     }
 }

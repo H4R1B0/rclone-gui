@@ -16,7 +16,7 @@ struct ExplorerView: View {
                         .overlay(
                             Rectangle()
                                 .fill(isDraggingDivider ? Color.accentColor.opacity(0.5) : Color.clear)
-                                .frame(width: 8)
+                                .frame(width: 6)
                                 .contentShape(Rectangle())
                                 .onHover { inside in
                                     if inside { NSCursor.resizeLeftRight.push() }
@@ -26,7 +26,7 @@ struct ExplorerView: View {
                                     DragGesture(coordinateSpace: .named("explorer"))
                                         .onChanged { value in
                                             isDraggingDivider = true
-                                            splitFraction = min(max(value.location.x / geo.size.width, 0.2), 0.8)
+                                            splitFraction = min(max(value.location.x / geo.size.width, 0.25), 0.75)
                                         }
                                         .onEnded { _ in
                                             isDraggingDivider = false

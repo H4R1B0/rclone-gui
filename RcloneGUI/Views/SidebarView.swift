@@ -44,8 +44,31 @@ struct SidebarView: View {
             if !appState.bookmarks.bookmarks.isEmpty {
                 Section(L10n.t("bookmark.title")) {
                     ForEach(appState.bookmarks.bookmarks) { bookmark in
-                        Label(bookmark.name, systemImage: bookmark.fs == "/" ? "folder" : "cloud")
-                            .tag(SidebarItem.bookmark(bookmark))
+                        Label {
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(bookmark.name)
+                                Text(bookmark.fs == "/" ? L10n.t("panel.local") : bookmark.fs.replacingOccurrences(of: ":", with: ""))
+                                    .font(.system(size: 9))
+                                    .foregroundColor(.secondary)
+                            }
+                        } icon: {
+                            Image(systemName: bookmark.fs == "/" ? "folder" : "cloud")
+                        }
+                        .tag(SidebarItem.bookmark(bookmark))
+                        .contextMenu {
+                            Button(L10n.t("bookmark.openNewTabLeft")) {
+                                appState.panels.left.addTab(mode: bookmark.fs == "/" ? .local : .cloud, remote: bookmark.fs, path: bookmark.path, label: bookmark.name)
+                                Task { await appState.panels.loadFiles(side: .left) }
+                            }
+                            Button(L10n.t("bookmark.openNewTabRight")) {
+                                appState.panels.right.addTab(mode: bookmark.fs == "/" ? .local : .cloud, remote: bookmark.fs, path: bookmark.path, label: bookmark.name)
+                                Task { await appState.panels.loadFiles(side: .right) }
+                            }
+                            Divider()
+                            Button(L10n.t("delete"), role: .destructive) {
+                                appState.bookmarks.remove(id: bookmark.id)
+                            }
+                        }
                     }
                 }
             }
@@ -69,12 +92,11 @@ struct SidebarView: View {
             }
         }
         .listStyle(.sidebar)
-        .navigationSplitViewColumnWidth(min: 180, ideal: 220, max: 300)
-        .alert(L10n.t("confirm.delete.title"), isPresented: Binding(
+        .navigationSplitViewColumnWidth(min: 200, ideal: 220, max: 280)
+        .confirmationDialog(L10n.t("confirm.delete.title"), isPresented: Binding(
             get: { remoteToDelete != nil },
             set: { if !$0 { remoteToDelete = nil } }
         )) {
-            Button(L10n.t("cancel"), role: .cancel) { remoteToDelete = nil }
             Button(L10n.t("delete"), role: .destructive) {
                 if let r = remoteToDelete {
                     Task { try? await appState.accounts.deleteRemote(name: r.name) }

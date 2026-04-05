@@ -4,6 +4,10 @@ import Foundation
 
 @Suite("TransferCheckpoint Tests")
 struct TransferCheckpointTests {
+    private func makeTempURL() -> URL {
+        FileManager.default.temporaryDirectory.appendingPathComponent("cp_test_\(UUID().uuidString).json")
+    }
+
     @Test("Checkpoint creation")
     func creation() {
         let cp = TransferCheckpoint(fileName: "test.zip", srcFs: "gdrive:", srcRemote: "/test.zip", dstFs: "/", dstRemote: "/local/test.zip", isDir: false, totalSize: 1_000_000)
@@ -16,8 +20,7 @@ struct TransferCheckpointTests {
     @Test("Checkpoint add and remove")
     func addRemove() {
         let mock = MockRcloneClient()
-        let vm = TransferViewModel(client: mock)
-        vm.checkpoints = []
+        let vm = TransferViewModel(client: mock, checkpointURL: makeTempURL())
         let cp = TransferCheckpoint(fileName: "a.txt", srcFs: "/", srcRemote: "/a.txt", dstFs: "gdrive:", dstRemote: "/a.txt", isDir: false, totalSize: 100)
         vm.addCheckpoint(cp)
         #expect(vm.checkpoints.count == 1)
@@ -46,5 +49,35 @@ struct TransferCheckpointTests {
     func directoryFlag() {
         let cp = TransferCheckpoint(fileName: "photos", srcFs: "gdrive:", srcRemote: "/photos", dstFs: "/", dstRemote: "/local/photos", isDir: true, totalSize: 0)
         #expect(cp.isDir == true)
+    }
+
+    @Test("Checkpoint attempts increment")
+    func attemptsIncrement() {
+        var cp = TransferCheckpoint(fileName: "retry.bin", srcFs: "/", srcRemote: "/retry.bin", dstFs: "gdrive:", dstRemote: "/retry.bin", isDir: false, totalSize: 500)
+        #expect(cp.attempts == 0)
+        cp.attempts += 1
+        cp.lastError = "network timeout"
+        cp.lastAttempt = Date()
+        #expect(cp.attempts == 1)
+        #expect(cp.lastError == "network timeout")
+        #expect(cp.lastAttempt != nil)
+    }
+
+    @Test("Multiple checkpoints independent IDs")
+    func uniqueIds() {
+        let cp1 = TransferCheckpoint(fileName: "a", srcFs: "/", srcRemote: "/a", dstFs: "s3:", dstRemote: "/a", isDir: false, totalSize: 10)
+        let cp2 = TransferCheckpoint(fileName: "b", srcFs: "/", srcRemote: "/b", dstFs: "s3:", dstRemote: "/b", isDir: false, totalSize: 20)
+        #expect(cp1.id != cp2.id)
+    }
+
+    @Test("Codable preserves attempts and error")
+    func codableWithAttempts() throws {
+        var cp = TransferCheckpoint(fileName: "fail.dat", srcFs: "gdrive:", srcRemote: "/fail.dat", dstFs: "/", dstRemote: "/fail.dat", isDir: false, totalSize: 1024)
+        cp.attempts = 3
+        cp.lastError = "server error"
+        let data = try JSONEncoder().encode(cp)
+        let decoded = try JSONDecoder().decode(TransferCheckpoint.self, from: data)
+        #expect(decoded.attempts == 3)
+        #expect(decoded.lastError == "server error")
     }
 }

@@ -46,14 +46,10 @@ struct TrashView: View {
             Divider()
 
             if trash.items.isEmpty {
-                VStack(spacing: 8) {
-                    Image(systemName: "trash")
-                        .font(.system(size: 32))
-                        .foregroundColor(.secondary)
-                    Text(L10n.t("trash.emptyState"))
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                ContentUnavailableView(
+                    L10n.t("trash.emptyState"),
+                    systemImage: "trash"
+                )
             } else {
                 List {
                     // Local trash section
@@ -113,7 +109,8 @@ struct TrashView: View {
                 .listStyle(.inset)
             }
         }
-        .alert(L10n.t("trash.emptyAll"), isPresented: $showEmptyConfirm) {
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .confirmationDialog(L10n.t("trash.emptyAll"), isPresented: $showEmptyConfirm) {
             Button(L10n.t("trash.emptyAll"), role: .destructive) {
                 Task {
                     do {
@@ -123,7 +120,6 @@ struct TrashView: View {
                     }
                 }
             }
-            Button(L10n.t("cancel"), role: .cancel) {}
         } message: {
             Text(L10n.t("trash.confirmEmpty"))
         }
@@ -193,11 +189,10 @@ struct TrashItemRow: View {
             .buttonStyle(.plain)
             .help(L10n.t("trash.permanentDelete"))
         }
-        .alert(L10n.t("trash.permanentDelete"), isPresented: $showDeleteConfirm) {
+        .confirmationDialog(L10n.t("trash.permanentDelete"), isPresented: $showDeleteConfirm) {
             Button(L10n.t("trash.permanentDelete"), role: .destructive) {
                 onAction(.permanentDelete)
             }
-            Button(L10n.t("cancel"), role: .cancel) {}
         } message: {
             Text(L10n.t("confirm.delete.message", item.name))
         }

@@ -3,8 +3,13 @@ import Foundation
 @testable import RcloneGUI
 import RcloneKit
 
+private func makeSettingsTempURL() -> URL {
+    FileManager.default.temporaryDirectory.appendingPathComponent("settings_test_\(UUID().uuidString).json")
+}
+
 @Suite("SettingsViewModel Tests")
 struct SettingsViewModelTests {
+
     @Test("Default values")
     func defaultValues() {
         // Note: can't easily test without RcloneClient, test the defaults directly
@@ -53,7 +58,7 @@ struct SettingsViewModelMockTests {
     func applyCallsOptionsSet() async {
         let mock = MockRcloneClient()
         mock.responses["options/set"] = [:]
-        let vm = SettingsViewModel(client: mock)
+        let vm = SettingsViewModel(client: mock, settingsURL: makeSettingsTempURL())
         await vm.applyToRclone()
         #expect(mock.callLog.contains { $0.method == "options/set" })
     }
@@ -63,7 +68,7 @@ struct SettingsViewModelMockTests {
         let mock = MockRcloneClient()
         mock.responses["options/set"] = [:]
         mock.responses["core/bwlimit"] = [:]
-        let vm = SettingsViewModel(client: mock)
+        let vm = SettingsViewModel(client: mock, settingsURL: makeSettingsTempURL())
         vm.bwLimit = "10M"
         await vm.applyToRclone()
         #expect(mock.callLog.contains { $0.method == "core/bwlimit" })
@@ -73,7 +78,7 @@ struct SettingsViewModelMockTests {
     func applyEmptyBwLimit() async {
         let mock = MockRcloneClient()
         mock.responses["options/set"] = [:]
-        let vm = SettingsViewModel(client: mock)
+        let vm = SettingsViewModel(client: mock, settingsURL: makeSettingsTempURL())
         vm.bwLimit = ""
         await vm.applyToRclone()
         #expect(!mock.callLog.contains { $0.method == "core/bwlimit" })
@@ -82,7 +87,7 @@ struct SettingsViewModelMockTests {
     @Test("resetToDefaults restores all values")
     func resetToDefaults() {
         let mock = MockRcloneClient()
-        let vm = SettingsViewModel(client: mock)
+        let vm = SettingsViewModel(client: mock, settingsURL: makeSettingsTempURL())
         vm.transfers = 99
         vm.checkers = 99
         vm.bufferSize = "1G"
@@ -105,7 +110,7 @@ struct SettingsViewModelMockTests {
     @Test("scheduleSave does not crash")
     func scheduleSave() {
         let mock = MockRcloneClient()
-        let vm = SettingsViewModel(client: mock)
+        let vm = SettingsViewModel(client: mock, settingsURL: makeSettingsTempURL())
         vm.scheduleSave()
         // Just verify it doesn't crash
         #expect(true)
@@ -114,23 +119,38 @@ struct SettingsViewModelMockTests {
     @Test("default locale is Korean")
     func defaultLocaleKo() {
         let mock = MockRcloneClient()
-        let vm = SettingsViewModel(client: mock)
+        let vm = SettingsViewModel(client: mock, settingsURL: makeSettingsTempURL())
         #expect(vm.locale == "ko")
     }
 
     @Test("saveToDisk and loadFromDisk round-trip")
     func saveLoadRoundTrip() {
         let mock = MockRcloneClient()
-        let vm = SettingsViewModel(client: mock)
+        let sharedURL = makeSettingsTempURL()
+        let vm = SettingsViewModel(client: mock, settingsURL: sharedURL)
         vm.transfers = 16
         vm.checkers = 32
         vm.saveToDisk()
-        let vm2 = SettingsViewModel(client: mock)
-        // vm2 loads from same path
+        let vm2 = SettingsViewModel(client: mock, settingsURL: sharedURL)
         #expect(vm2.transfers == 16)
         #expect(vm2.checkers == 32)
-        // Reset for other tests
-        vm.resetToDefaults()
+    }
+
+    @Test("confirmTabClose defaults to true")
+    func confirmTabCloseDefault() {
+        let mock = MockRcloneClient()
+        let vm = SettingsViewModel(client: mock, settingsURL: makeSettingsTempURL())
+        #expect(vm.confirmTabClose == true)
+    }
+
+    @Test("confirmTabClose persists through save/load")
+    func confirmTabClosePersist() {
+        let mock = MockRcloneClient()
+        let sharedURL = makeSettingsTempURL()
+        let vm = SettingsViewModel(client: mock, settingsURL: sharedURL)
+        vm.confirmTabClose = false
         vm.saveToDisk()
+        let vm2 = SettingsViewModel(client: mock, settingsURL: sharedURL)
+        #expect(vm2.confirmTabClose == false)
     }
 }

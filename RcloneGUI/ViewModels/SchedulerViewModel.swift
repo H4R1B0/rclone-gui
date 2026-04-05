@@ -35,9 +35,9 @@ final class SchedulerViewModel {
     private let configURL: URL
     private let logsURL: URL
 
-    init() {
-        configURL = AppConstants.appSupportDir.appendingPathComponent(AppConstants.schedulerFile)
-        logsURL = AppConstants.appSupportDir.appendingPathComponent(AppConstants.schedulerLogsFile)
+    init(configURL: URL? = nil, logsURL: URL? = nil) {
+        self.configURL = configURL ?? AppConstants.appSupportDir.appendingPathComponent(AppConstants.schedulerFile)
+        self.logsURL = logsURL ?? AppConstants.appSupportDir.appendingPathComponent(AppConstants.schedulerLogsFile)
         loadTasks()
         loadLogs()
     }

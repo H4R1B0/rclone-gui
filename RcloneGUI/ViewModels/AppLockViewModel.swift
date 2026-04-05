@@ -15,8 +15,8 @@ final class AppLockViewModel {
     private let keychainAccount = AppConstants.keychainAccount
     private let configURL: URL
 
-    init() {
-        configURL = AppConstants.appSupportDir.appendingPathComponent(AppConstants.appLockConfigFile)
+    init(configURL: URL? = nil) {
+        self.configURL = configURL ?? AppConstants.appSupportDir.appendingPathComponent(AppConstants.appLockConfigFile)
         loadConfig()
         checkTouchIDAvailability()
     }

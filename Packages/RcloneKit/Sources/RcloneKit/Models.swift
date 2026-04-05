@@ -105,6 +105,7 @@ public struct RcloneCompletedTransfer: Identifiable, Sendable {
     public let completed_at: String
 
     public var ok: Bool { error.isEmpty }
+    public var isCancelled: Bool { error.contains("context canceled") }
 
     public init(from dict: [String: Any]) {
         self.name = dict["name"] as? String ?? ""

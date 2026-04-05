@@ -34,12 +34,6 @@ struct RemoteDetailsView: View {
                                     .foregroundColor(.secondary)
                             }
                             Spacer()
-
-                            Button(L10n.t("sidebar.openInExplorer")) {
-                                appState.panels.side(.left).addTab(mode: .cloud, remote: "\(remoteName):", label: remoteName)
-                                Task { await appState.panels.loadFiles(side: .left) }
-                            }
-                            .controlSize(.small)
                         }
                         .padding()
                         .background(.ultraThinMaterial)
@@ -69,12 +63,9 @@ struct RemoteDetailsView: View {
                             GroupBox(L10n.t("sidebar.config")) {
                                 VStack(alignment: .leading, spacing: 6) {
                                     ForEach(Array(config.keys.sorted()), id: \.self) { key in
-                                        HStack {
-                                            Text(key)
-                                                .font(.system(size: 11, weight: .medium))
-                                                .frame(width: 120, alignment: .trailing)
-                                            Text(key.lowercased().contains("password") || key.lowercased().contains("token") ? "------" : (config[key] ?? ""))
-                                                .font(.system(size: 11))
+                                        let maskedValue = key.lowercased().contains("password") || key.lowercased().contains("token") ? "------" : (config[key] ?? "")
+                                        LabeledContent(key) {
+                                            Text(maskedValue)
                                                 .foregroundColor(.secondary)
                                                 .lineLimit(1)
                                                 .textSelection(.enabled)
@@ -102,8 +93,7 @@ struct RemoteDetailsView: View {
         .task(id: remoteName) {
             await loadData()
         }
-        .alert(L10n.t("confirm.delete.title"), isPresented: $showDeleteConfirm) {
-            Button(L10n.t("cancel"), role: .cancel) {}
+        .confirmationDialog(L10n.t("confirm.delete.title"), isPresented: $showDeleteConfirm) {
             Button(L10n.t("delete"), role: .destructive) {
                 Task { try? await appState.accounts.deleteRemote(name: remoteName) }
             }

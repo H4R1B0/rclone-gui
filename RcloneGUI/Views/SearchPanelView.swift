@@ -56,14 +56,7 @@ struct SearchPanelView: View {
             } else if search.isSearching || search.hasSearched {
                 resultsTable
             } else {
-                VStack(spacing: 8) {
-                    Image(systemName: "magnifyingglass")
-                        .font(.system(size: 40))
-                        .foregroundColor(.secondary)
-                    Text(L10n.t("search.hint"))
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                ContentUnavailableView(L10n.t("search.hint"), systemImage: "magnifyingglass")
             }
 
             if search.hasSearched {
@@ -84,6 +77,7 @@ struct SearchPanelView: View {
                 .background(Color(nsColor: .controlBackgroundColor))
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
     // MARK: - Search Header
@@ -203,9 +197,7 @@ struct SearchPanelView: View {
             Divider()
 
             if filteredResults.isEmpty && !search.isSearching {
-                Text(L10n.t("search.noResults"))
-                    .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                ContentUnavailableView(L10n.t("search.noResults"), systemImage: "magnifyingglass")
             } else {
                 ScrollView {
                     LazyVStack(spacing: 0) {

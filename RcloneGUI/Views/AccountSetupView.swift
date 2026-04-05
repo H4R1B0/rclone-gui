@@ -48,12 +48,6 @@ struct AccountSetupView: View {
                 Text(L10n.t("account.title"))
                     .font(.title2.bold())
                 Spacer()
-                Button(action: { appState.showAccountSetup = false }) {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(.secondary)
-                }
-                .buttonStyle(.plain)
-                .help(L10n.t("close"))
                 Button(action: { showUnionSetup = true }) {
                     Label(L10n.t("union.title"), systemImage: "externaldrive.badge.plus")
                 }
@@ -74,6 +68,9 @@ struct AccountSetupView: View {
 
                 Button(action: { step = .pickProvider }) {
                     Label(L10n.t("account.add"), systemImage: "plus")
+                }
+                Button(action: { appState.showAccountSetup = false }) {
+                    Text(L10n.t("close"))
                 }
             }
             .padding()
@@ -138,11 +135,10 @@ struct AccountSetupView: View {
                 Image(systemName: "trash")
             }
             .buttonStyle(.borderless)
-            .alert(L10n.t("confirm.delete.title"), isPresented: Binding(
+            .confirmationDialog(L10n.t("confirm.delete.title"), isPresented: Binding(
                 get: { remoteToDelete?.id == remote.id },
                 set: { if !$0 { remoteToDelete = nil } }
             )) {
-                Button(L10n.t("cancel"), role: .cancel) { remoteToDelete = nil }
                 Button(L10n.t("delete"), role: .destructive) {
                     Task { try? await appState.accounts.deleteRemote(name: remote.name) }
                     remoteToDelete = nil

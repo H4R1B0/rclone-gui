@@ -60,9 +60,9 @@ final class SyncViewModel {
     private let client: RcloneClientProtocol
     private let profilesURL: URL
 
-    init(client: RcloneClientProtocol) {
+    init(client: RcloneClientProtocol, profilesURL: URL? = nil) {
         self.client = client
-        profilesURL = AppConstants.appSupportDir.appendingPathComponent(AppConstants.syncProfilesFile)
+        self.profilesURL = profilesURL ?? AppConstants.appSupportDir.appendingPathComponent(AppConstants.syncProfilesFile)
         loadProfiles()
     }
 

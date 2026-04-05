@@ -15,6 +15,11 @@ enum PanelSide {
     case right
 }
 
+enum ViewMode: String {
+    case list
+    case grid
+}
+
 enum SortField: String, CaseIterable {
     case name
     case size
@@ -86,6 +91,7 @@ final class TabState: Identifiable {
 final class PanelSideState {
     var tabs: [TabState]
     var activeTabId: UUID
+    var viewMode: ViewMode = .list
 
     init(defaultTab: TabState) {
         self.tabs = [defaultTab]
@@ -344,18 +350,33 @@ final class PanelViewModel {
     func deleteSelected(side panelSide: PanelSide) async throws {
         let tab = side(panelSide).activeTab
         let filesToDelete = tab.selectedFiles
+
+        // Remember position of first selected file for auto-select after delete (FTP behavior)
+        let sorted = tab.sortedFiles
+        let firstSelectedIndex = sorted.firstIndex { filesToDelete.contains($0.name) }
+
         tab.selectedFiles = []
         var lastError: Error?
         for fileName in filesToDelete {
             guard let file = tab.files.first(where: { $0.name == fileName }) else { continue }
             do {
                 if let trash = trashVM {
+                    // For local directories, calculate actual recursive size off main thread
+                    let actualSize: Int64
+                    if file.isDir && tab.remote == "/" {
+                        let dirPath = file.path.hasPrefix("/") ? file.path : "/\(file.path)"
+                        actualSize = await Task.detached {
+                            Self.calculateDirectorySize(path: dirPath)
+                        }.value
+                    } else {
+                        actualSize = file.size
+                    }
                     try await trash.deleteToTrash(
                         fs: tab.remote,
                         path: file.path,
                         name: file.name,
                         isDir: file.isDir,
-                        size: file.isDir ? 0 : file.size
+                        size: actualSize
                     )
                 } else {
                     if file.isDir {
@@ -369,6 +390,13 @@ final class PanelViewModel {
             }
         }
         await refresh(side: panelSide)
+
+        // Auto-select adjacent file after delete (FTP-like behavior)
+        if let idx = firstSelectedIndex, !tab.sortedFiles.isEmpty {
+            let newIdx = min(idx, tab.sortedFiles.count - 1)
+            tab.selectedFiles = [tab.sortedFiles[newIdx].name]
+        }
+
         if let lastError { throw lastError }
     }
 
@@ -378,6 +406,8 @@ final class PanelViewModel {
         let newPath = tab.path.isEmpty ? newName : "\(tab.path)/\(newName)"
         try await RcloneAPI.moveFile(using: client, srcFs: tab.remote, srcRemote: oldPath, dstFs: tab.remote, dstRemote: newPath)
         await refresh(side: panelSide)
+        // Auto-select renamed file (FTP-like behavior)
+        tab.selectedFiles = [newName]
     }
 
     // MARK: - Clipboard Operations
@@ -395,9 +425,12 @@ final class PanelViewModel {
             tvm?.enqueue(QueuedTransfer(name: file.name, isDir: file.isDir))
         }
 
-        // Launch transfers with concurrency limit from settings
+        // Launch transfers with concurrency limit — runs OFF main thread
         let maxConcurrent = self.maxConcurrentTransfers
         let mts = self.multiThreadStreams
+        let c = self.client
+        let dstFs = tab.remote
+        let dstPath = tab.path
         await withTaskGroup(of: Void.self) { group in
             var running = 0
             for file in filesToPaste {
@@ -406,45 +439,60 @@ final class PanelViewModel {
                     running -= 1
                 }
                 let srcRemote = sourcePath.isEmpty ? file.name : "\(sourcePath)/\(file.name)"
-                let dstRemote = tab.path.isEmpty ? file.name : "\(tab.path)/\(file.name)"
-                let dstFs = tab.remote
-                let c = self.client
+                let dstRemote = dstPath.isEmpty ? file.name : "\(dstPath)/\(file.name)"
 
-                group.addTask { @MainActor in
-                    tvm?.dequeue(name: file.name)
+                group.addTask {
                     do {
                         let jobId: Int
                         switch action {
                         case .cut:
                             if file.isDir {
-                                jobId = try await RcloneAPI.moveDir(using: c, srcFs: sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, transfers: maxConcurrent, multiThreadStreams: mts)
+                                jobId = try await RcloneAPI.moveDir(using: c, srcFs: sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, multiThreadStreams: mts)
                             } else {
                                 jobId = try await RcloneAPI.moveFileAsync(using: c, srcFs: sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, multiThreadStreams: mts)
                             }
                         case .copy:
                             if file.isDir {
-                                jobId = try await RcloneAPI.copyDir(using: c, srcFs: sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, transfers: maxConcurrent, multiThreadStreams: mts)
+                                jobId = try await RcloneAPI.copyDir(using: c, srcFs: sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, multiThreadStreams: mts)
                             } else {
                                 jobId = try await RcloneAPI.copyFileAsync(using: c, srcFs: sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, multiThreadStreams: mts)
                             }
                         case .none:
                             return
                         }
-                        tvm?.addCopyOrigin(group: file.name, origin: CopyOrigin(
+                        let origin = CopyOrigin(
                             srcFs: sourceFs, srcRemote: srcRemote,
                             dstFs: dstFs, dstRemote: dstRemote, isDir: file.isDir
-                        ))
-                        // Wait for job to actually finish before releasing the slot
+                        )
+                        await MainActor.run {
+                            tvm?.addCopyOrigin(group: "job/\(jobId)", origin: origin)
+                            tvm?.addCopyOrigin(group: srcRemote, origin: origin)
+                            tvm?.addCopyOrigin(group: file.name, origin: origin)
+                        }
+                        // Wait for job to finish before releasing the concurrency slot
                         try await RcloneAPI.waitForJob(using: c, jobid: jobId)
+                        // Dequeue after job completes — polling handles queued→active transition
+                        await MainActor.run { tvm?.dequeue(name: file.name) }
                     } catch {
+                        await MainActor.run { tvm?.dequeue(name: file.name) }
                         print("[RcloneGUI] Paste failed for \(file.name): \(error.localizedDescription)")
                     }
                 }
                 running += 1
             }
         }
-        clipboard.clear()
+        // Refresh destination panel
         await refresh(side: panelSide)
+        // Refresh source panel after move/cut so removed files disappear
+        if action == .cut {
+            for ps in [PanelSide.left, PanelSide.right] {
+                let t = side(ps).activeTab
+                if t.remote == sourceFs {
+                    await refresh(side: ps)
+                }
+            }
+        }
+        clipboard.clear()
     }
 
     // MARK: - Drag & Drop
@@ -473,29 +521,35 @@ final class PanelViewModel {
                 let srcRemote = file.sourcePath.isEmpty ? file.fileName : "\(file.sourcePath)/\(file.fileName)"
                 let dstRemote = dstPath.isEmpty ? file.fileName : "\(dstPath)/\(file.fileName)"
 
-                group.addTask { @MainActor in
-                    tvm?.dequeue(name: file.fileName)
+                group.addTask {
                     do {
                         let jobId: Int
                         if isMove {
                             if file.isDir {
-                                jobId = try await RcloneAPI.moveDir(using: c, srcFs: file.sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, transfers: maxConcurrent, multiThreadStreams: mts)
+                                jobId = try await RcloneAPI.moveDir(using: c, srcFs: file.sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, multiThreadStreams: mts)
                             } else {
                                 jobId = try await RcloneAPI.moveFileAsync(using: c, srcFs: file.sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, multiThreadStreams: mts)
                             }
                         } else {
                             if file.isDir {
-                                jobId = try await RcloneAPI.copyDir(using: c, srcFs: file.sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, transfers: maxConcurrent, multiThreadStreams: mts)
+                                jobId = try await RcloneAPI.copyDir(using: c, srcFs: file.sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, multiThreadStreams: mts)
                             } else {
                                 jobId = try await RcloneAPI.copyFileAsync(using: c, srcFs: file.sourceFs, srcRemote: srcRemote, dstFs: dstFs, dstRemote: dstRemote, multiThreadStreams: mts)
                             }
                         }
-                        tvm?.addCopyOrigin(group: file.fileName, origin: CopyOrigin(
+                        let origin = CopyOrigin(
                             srcFs: file.sourceFs, srcRemote: srcRemote,
                             dstFs: dstFs, dstRemote: dstRemote, isDir: file.isDir
-                        ))
+                        )
+                        await MainActor.run {
+                            tvm?.addCopyOrigin(group: "job/\(jobId)", origin: origin)
+                            tvm?.addCopyOrigin(group: srcRemote, origin: origin)
+                            tvm?.addCopyOrigin(group: file.fileName, origin: origin)
+                        }
                         try await RcloneAPI.waitForJob(using: c, jobid: jobId)
+                        await MainActor.run { tvm?.dequeue(name: file.fileName) }
                     } catch {
+                        await MainActor.run { tvm?.dequeue(name: file.fileName) }
                         print("[RcloneGUI] Drop failed for \(file.fileName): \(error.localizedDescription)")
                     }
                 }
@@ -503,5 +557,27 @@ final class PanelViewModel {
             }
         }
         await refresh(side: targetSide)
+        // Refresh source panel after move so removed files disappear
+        if isMove {
+            let sourceSide: PanelSide = targetSide == .left ? .right : .left
+            await refresh(side: sourceSide)
+        }
+    }
+
+    // MARK: - Helpers
+
+    /// Calculate total size of a local directory recursively
+    nonisolated static func calculateDirectorySize(path: String) -> Int64 {
+        let fm = FileManager.default
+        guard let enumerator = fm.enumerator(atPath: path) else { return 0 }
+        var total: Int64 = 0
+        while let file = enumerator.nextObject() as? String {
+            let fullPath = (path as NSString).appendingPathComponent(file)
+            if let attrs = try? fm.attributesOfItem(atPath: fullPath),
+               let size = attrs[.size] as? Int64 {
+                total += size
+            }
+        }
+        return total
     }
 }

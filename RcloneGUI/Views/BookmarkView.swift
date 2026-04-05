@@ -4,56 +4,23 @@ struct BookmarkPopover: View {
     @Environment(AppState.self) private var appState
     let side: PanelSide
     @Binding var isPresented: Bool
-    @State private var newName = ""
-    @State private var showAdd = false
-
-    private var tab: TabState { appState.panels.side(side).activeTab }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text(L10n.t("bookmark.title")).font(.caption.bold())
-                Spacer()
-                Button(action: {
-                    newName = PathUtils.fileName(tab.path).isEmpty ? tab.remote : PathUtils.fileName(tab.path)
-                    showAdd = true
-                }) {
-                    Image(systemName: "plus").font(.caption)
-                }
-                .buttonStyle(.borderless)
-                .help(L10n.t("bookmark.add"))
-            }
-
-            if showAdd {
-                HStack {
-                    TextField(L10n.t("properties.name"), text: $newName)
-                        .textFieldStyle(.roundedBorder)
-                        .font(.caption)
-                    Button(L10n.t("save")) {
-                        appState.bookmarks.add(name: newName, fs: tab.remote, path: tab.path)
-                        showAdd = false
-                    }
-                    .controlSize(.mini)
-                    .disabled(newName.isEmpty)
-                }
-            }
+            Text(L10n.t("bookmark.title")).font(.caption.bold())
 
             Divider()
 
             if appState.bookmarks.bookmarks.isEmpty {
-                VStack(spacing: 6) {
-                    Image(systemName: "bookmark")
-                        .font(.system(size: 16))
-                        .foregroundColor(.secondary)
-                    Text(L10n.t("bookmark.empty"))
+                HStack(spacing: 6) {
+                    Image(systemName: "star")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     Text(L10n.t("bookmark.emptyHint"))
-                        .font(.system(size: 10))
-                        .foregroundColor(.secondary.opacity(0.7))
-                        .multilineTextAlignment(.center)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
-                .padding(.vertical, 8)
+                .padding(.vertical, 4)
             } else {
                 ForEach(appState.bookmarks.bookmarks) { bookmark in
                     HStack {
@@ -88,6 +55,6 @@ struct BookmarkPopover: View {
             }
         }
         .padding(12)
-        .frame(width: 280)
+        .frame(width: 260)
     }
 }

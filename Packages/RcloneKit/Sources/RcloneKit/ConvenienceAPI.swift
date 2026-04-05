@@ -230,11 +230,19 @@ public enum RcloneAPI {
     }
 
     /// Wait for an async job to finish by polling job/status
-    public static func waitForJob(using client: RcloneClientProtocol, jobid: Int, pollInterval: TimeInterval = 0.5) async throws {
+    /// - Parameters:
+    ///   - timeout: Maximum seconds to wait before giving up (default: 3600 = 1 hour)
+    public static func waitForJob(using client: RcloneClientProtocol, jobid: Int, pollInterval: TimeInterval = 0.5, timeout: TimeInterval = 3600) async throws {
         guard jobid > 0 else { return }
+        let deadline = Date().addingTimeInterval(timeout)
         while true {
             let status = try await getJobStatus(using: client, jobid: jobid)
             if status.finished { return }
+            if Date() > deadline {
+                // Timeout — stop the stuck job and return
+                try? await stopJob(using: client, jobid: jobid)
+                return
+            }
             try await Task.sleep(for: .seconds(pollInterval))
         }
     }

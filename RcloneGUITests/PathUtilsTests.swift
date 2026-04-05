@@ -41,4 +41,34 @@ struct PathUtilsTests {
         let segs = ["a", "b", "c"]
         #expect(PathUtils.pathUpTo(segments: segs, index: 1) == "a/b")
     }
+
+    @Test("pathUpTo — absolute path preserves leading slash")
+    func pathUpToAbsolute() {
+        let segs = ["Volumes", "SSD", "Project"]
+        #expect(PathUtils.pathUpTo(segments: segs, index: 0, absolute: true) == "/Volumes")
+        #expect(PathUtils.pathUpTo(segments: segs, index: 1, absolute: true) == "/Volumes/SSD")
+        #expect(PathUtils.pathUpTo(segments: segs, index: 2, absolute: true) == "/Volumes/SSD/Project")
+    }
+
+    @Test("pathUpTo — non-absolute (cloud) path has no leading slash")
+    func pathUpToRelative() {
+        let segs = ["Documents", "Photos"]
+        #expect(PathUtils.pathUpTo(segments: segs, index: 0, absolute: false) == "Documents")
+        #expect(PathUtils.pathUpTo(segments: segs, index: 1, absolute: false) == "Documents/Photos")
+    }
+
+    @Test("segments — absolute path strips leading slash")
+    func segmentsAbsolute() {
+        #expect(PathUtils.segments("/Volumes/SSD") == ["Volumes", "SSD"])
+    }
+
+    @Test("fileName — absolute path")
+    func fileNameAbsolute() {
+        #expect(PathUtils.fileName("/Volumes/SSD/Project") == "Project")
+    }
+
+    @Test("parent — absolute path")
+    func parentAbsolute() {
+        #expect(PathUtils.parent("/Volumes/SSD/Project") == "Volumes/SSD")
+    }
 }

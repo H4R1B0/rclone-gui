@@ -22,14 +22,7 @@ struct SchedulerView: View {
             Divider()
 
             if scheduler.tasks.isEmpty {
-                VStack(spacing: 8) {
-                    Image(systemName: "clock")
-                        .font(.system(size: 32))
-                        .foregroundColor(.secondary)
-                    Text(L10n.t("scheduler.noTasks"))
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                ContentUnavailableView(L10n.t("scheduler.noTasks"), systemImage: "clock")
             } else {
                 List {
                     ForEach(scheduler.tasks) { task in
@@ -112,6 +105,7 @@ struct SchedulerView: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .sheet(isPresented: $showAddTask) {
             AddScheduleSheet()
         }

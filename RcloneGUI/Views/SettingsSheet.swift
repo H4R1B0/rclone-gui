@@ -45,6 +45,13 @@ struct SettingsSheet: View {
                         .padding(.vertical, 4)
                     }
 
+                    // UI
+                    GroupBox(L10n.t("settings.ui")) {
+                        Toggle(L10n.t("settings.confirmTabClose"), isOn: Bindable(settings).confirmTabClose)
+                            .font(.system(size: 12))
+                            .onChange(of: settings.confirmTabClose) { settings.scheduleSave() }
+                    }
+
                     // 보안
                     GroupBox(L10n.t("lock.security")) {
                         VStack(alignment: .leading, spacing: 8) {

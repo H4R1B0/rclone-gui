@@ -4,6 +4,10 @@ import Foundation
 
 @Suite("SchedulerViewModel Tests")
 struct SchedulerViewModelTests {
+    private func makeTempURL() -> URL {
+        FileManager.default.temporaryDirectory.appendingPathComponent("sched_test_\(UUID().uuidString).json")
+    }
+
     @Test("ScheduledTask — default init")
     func taskDefaultInit() {
         let task = ScheduledTask(profileId: UUID(), profileName: "Test", interval: 3600)
@@ -37,7 +41,7 @@ struct SchedulerViewModelTests {
 
     @Test("Add and remove task")
     func addRemoveTask() {
-        let vm = SchedulerViewModel()
+        let vm = SchedulerViewModel(configURL: makeTempURL(), logsURL: makeTempURL())
         vm.tasks = []
         let task = ScheduledTask(profileId: UUID(), profileName: "Backup", interval: 3600)
         vm.addTask(task)
@@ -48,7 +52,7 @@ struct SchedulerViewModelTests {
 
     @Test("Toggle task enabled")
     func toggleTask() {
-        let vm = SchedulerViewModel()
+        let vm = SchedulerViewModel(configURL: makeTempURL(), logsURL: makeTempURL())
         vm.tasks = []
         let task = ScheduledTask(profileId: UUID(), profileName: "Sync", interval: 600)
         vm.addTask(task)

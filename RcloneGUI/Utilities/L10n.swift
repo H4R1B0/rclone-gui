@@ -67,6 +67,12 @@ enum L10n {
         "panel.goUp":           ["ko": "상위 폴더", "en": "Go Up"],
         "panel.newTab":         ["ko": "새 탭", "en": "New Tab"],
         "panel.closeTab":       ["ko": "탭 닫기", "en": "Close Tab"],
+        "tab.closeConfirm.title":   ["ko": "탭 닫기", "en": "Close Tab"],
+        "tab.closeConfirm.message": ["ko": "이 탭을 닫으시겠습니까?", "en": "Are you sure you want to close this tab?"],
+        "tab.closeConfirm.close":   ["ko": "닫기", "en": "Close"],
+        "tab.closeConfirm.dontAsk": ["ko": "다시 묻지 않기", "en": "Don't ask again"],
+        "viewMode.list":        ["ko": "목록형", "en": "List View"],
+        "viewMode.grid":        ["ko": "썸네일형", "en": "Grid View"],
 
         // Address bar
         "addressbar.path":      ["ko": "경로", "en": "Path"],
@@ -115,7 +121,9 @@ enum L10n {
         "transfer.resume":      ["ko": "재개", "en": "Resume"],
         "transfer.pauseAll":    ["ko": "모두 일시정지", "en": "Pause All"],
         "transfer.stopAll":     ["ko": "모두 중지", "en": "Stop All"],
+        "transfer.cancelAll":   ["ko": "모두 취소", "en": "Cancel All"],
         "transfer.stop":        ["ko": "중지", "en": "Stop"],
+        "transfer.cancel":      ["ko": "취소", "en": "Cancel"],
         "transfer.restart":     ["ko": "재시작", "en": "Restart"],
         "transfer.clear":       ["ko": "지우기", "en": "Clear"],
         "transfer.clearInactive": ["ko": "목록 비우기", "en": "Clear List"],
@@ -124,7 +132,7 @@ enum L10n {
         "transfer.section.queued": ["ko": "대기", "en": "Queued"],
         "transfer.section.completed": ["ko": "완료", "en": "Completed"],
         "transfer.section.failed": ["ko": "실패", "en": "Failed"],
-        "transfer.section.stopped": ["ko": "중지됨", "en": "Stopped"],
+        "transfer.section.cancelled": ["ko": "취소됨", "en": "Cancelled"],
         "transfer.section.retryWaiting": ["ko": "재시도 대기", "en": "Retry Waiting"],
 
         // Account
@@ -153,6 +161,8 @@ enum L10n {
         "settings.displayIconOnly": ["ko": "아이콘만", "en": "Icon Only"],
         "settings.displayTextOnly": ["ko": "텍스트만", "en": "Text Only"],
         "settings.appLanguage": ["ko": "앱 언어", "en": "App Language"],
+        "settings.ui":         ["ko": "인터페이스", "en": "Interface"],
+        "settings.confirmTabClose": ["ko": "탭 닫기 시 확인", "en": "Confirm before closing tab"],
         "settings.performance": ["ko": "성능", "en": "Performance"],
         "settings.transfers":   ["ko": "동시 전송 수 (Transfers)", "en": "Concurrent Transfers"],
         "settings.checkers":    ["ko": "동시 체크 수 (Checkers)", "en": "Concurrent Checkers"],
@@ -199,9 +209,14 @@ enum L10n {
 
         // Bookmarks
         "bookmark.title":  ["ko": "북마크", "en": "Bookmarks"],
-        "bookmark.add":    ["ko": "현재 경로 북마크", "en": "Bookmark Current Path"],
+        "bookmark.add":    ["ko": "북마크 추가", "en": "Add Bookmark"],
+        "bookmark.remove": ["ko": "북마크 해제", "en": "Remove Bookmark"],
         "bookmark.empty":  ["ko": "북마크가 없습니다", "en": "No bookmarks"],
-        "bookmark.emptyHint": ["ko": "주소 바의 ☆ 버튼으로 현재 경로를 북마크하세요.", "en": "Use the ☆ button in the address bar to bookmark the current path."],
+        "bookmark.emptyHint": ["ko": "주소 바의 ★ 버튼으로 현재 경로를 북마크하세요.", "en": "Use the ★ button in the address bar to bookmark the current path."],
+        "bookmark.openLeft":  ["ko": "왼쪽 패널에서 열기", "en": "Open in Left Panel"],
+        "bookmark.openRight": ["ko": "오른쪽 패널에서 열기", "en": "Open in Right Panel"],
+        "bookmark.openNewTabLeft":  ["ko": "왼쪽 새 탭으로 열기", "en": "Open in New Tab (Left)"],
+        "bookmark.openNewTabRight": ["ko": "오른쪽 새 탭으로 열기", "en": "Open in New Tab (Right)"],
 
         // Scheduler
         "toolbar.scheduler":     ["ko": "스케줄러", "en": "Scheduler"],

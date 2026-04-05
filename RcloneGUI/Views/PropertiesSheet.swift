@@ -82,13 +82,8 @@ struct PropertiesSheet: View {
     }
 
     private func infoRow(_ label: String, _ value: String) -> some View {
-        HStack(alignment: .top) {
-            Text(label)
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .frame(width: 70, alignment: .trailing)
+        LabeledContent(label) {
             Text(value)
-                .font(.caption)
                 .textSelection(.enabled)
         }
     }
