@@ -96,15 +96,15 @@ struct SettingsSheet: View {
                     // 성능
                     GroupBox(L10n.t("settings.performance")) {
                         VStack(spacing: 12) {
-                            numberField(L10n.t("settings.transfers"), value: Bindable(appState.settings).transfers)
-                            numberField(L10n.t("settings.checkers"), value: Bindable(appState.settings).checkers)
-                            numberField(L10n.t("settings.multiThread"), value: Bindable(appState.settings).multiThreadStreams)
+                            numberField(L10n.t("settings.transfers"), value: Bindable(appState.settings).transfers, help: L10n.t("settings.transfers.help"))
+                            numberField(L10n.t("settings.checkers"), value: Bindable(appState.settings).checkers, help: L10n.t("settings.checkers.help"))
+                            numberField(L10n.t("settings.multiThread"), value: Bindable(appState.settings).multiThreadStreams, help: L10n.t("settings.multiThread.help"))
                             Text(L10n.t("settings.multiThreadHelp"))
                                 .font(.system(size: 10))
                                 .foregroundColor(.secondary)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                            stringField(L10n.t("settings.bufferSize"), value: Bindable(appState.settings).bufferSize, placeholder: "16M")
-                            stringField(L10n.t("settings.bwLimit"), value: Bindable(appState.settings).bwLimit, placeholder: L10n.t("settings.disabled"))
+                            stringField(L10n.t("settings.bufferSize"), value: Bindable(appState.settings).bufferSize, placeholder: "16M", help: L10n.t("settings.bufferSize.help"))
+                            stringField(L10n.t("settings.bwLimit"), value: Bindable(appState.settings).bwLimit, placeholder: L10n.t("settings.disabled"), help: L10n.t("settings.bwLimit.help"))
 
                             // Bandwidth schedule
                             Toggle(L10n.t("settings.bwSchedule"), isOn: Bindable(appState.settings).bwScheduleEnabled)
@@ -235,9 +235,12 @@ struct SettingsSheet: View {
         }
     }
 
-    private func numberField(_ label: String, value: Binding<Int>) -> some View {
+    private func numberField(_ label: String, value: Binding<Int>, help: String? = nil) -> some View {
         HStack {
             Text(label).font(.system(size: 12))
+            if let help {
+                helpBadge(help)
+            }
             Spacer()
             TextField("", value: value, format: .number)
                 .textFieldStyle(.roundedBorder)
@@ -246,14 +249,24 @@ struct SettingsSheet: View {
         }
     }
 
-    private func stringField(_ label: String, value: Binding<String>, placeholder: String) -> some View {
+    private func stringField(_ label: String, value: Binding<String>, placeholder: String, help: String? = nil) -> some View {
         HStack {
             Text(label).font(.system(size: 12))
+            if let help {
+                helpBadge(help)
+            }
             Spacer()
             TextField(placeholder, text: value)
                 .textFieldStyle(.roundedBorder)
                 .frame(width: 120)
                 .multilineTextAlignment(.trailing)
         }
+    }
+
+    private func helpBadge(_ text: String) -> some View {
+        Image(systemName: "questionmark.circle")
+            .font(.system(size: 11))
+            .foregroundColor(.secondary)
+            .help(text)
     }
 }
