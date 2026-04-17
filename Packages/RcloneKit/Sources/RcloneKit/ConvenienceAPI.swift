@@ -47,6 +47,33 @@ public enum RcloneAPI {
         _ = try await client.call("operations/purge", params: ["fs": fs, "remote": remote])
     }
 
+    /// Delete all files in a directory (respects provider trash, e.g. drive use_trash).
+    /// Unlike purge, this sends individual files to the provider's recycle bin.
+    public static func deleteDir(
+        using client: RcloneClientProtocol,
+        fs: String,
+        remote: String
+    ) async throws {
+        _ = try await client.call("operations/delete", params: ["fs": "\(fs)\(remote)"])
+    }
+
+    /// Empty the provider's native trash/recycle bin (e.g. Google Drive trash, OneDrive recycle bin).
+    public static func cleanup(
+        using client: RcloneClientProtocol,
+        fs: String
+    ) async throws {
+        _ = try await client.call("operations/cleanup", params: ["fs": fs])
+    }
+
+    /// Remove empty directories under the given path.
+    public static func rmdirs(
+        using client: RcloneClientProtocol,
+        fs: String,
+        remote: String
+    ) async throws {
+        _ = try await client.call("operations/rmdirs", params: ["fs": fs, "remote": remote])
+    }
+
     public static func moveFile(
         using client: RcloneClientProtocol,
         srcFs: String,

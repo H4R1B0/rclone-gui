@@ -16,80 +16,73 @@ struct RemoteDetailsView: View {
     }
 
     var body: some View {
-        Group {
+        VStack(spacing: 0) {
+            // Header — consistent with other tool views
+            HStack(spacing: 10) {
+                ProviderIcon.icon(for: remote?.type ?? "cloud")
+                    .font(.system(size: 18))
+                Text(remoteName).font(.headline)
+                Text(remote?.type ?? "")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                Spacer()
+                Button(L10n.t("edit")) {
+                    if let r = remote { editingRemote = r }
+                }
+                .controlSize(.small)
+                Button(L10n.t("delete"), role: .destructive) {
+                    showDeleteConfirm = true
+                }
+                .controlSize(.small)
+            }
+            .padding()
+
+            Divider()
+
             if isLoading {
-                ScrollView { DetailSkeleton() }
+                DetailSkeleton()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        // Header
-                        HStack(spacing: 12) {
-                            ProviderIcon.icon(for: remote?.type ?? "cloud")
-                                .font(.system(size: 32))
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(remoteName)
-                                    .font(.title2.bold())
-                                Text(remote?.type ?? "")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            Spacer()
-                        }
-                        .padding()
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(10)
-
-                        // Quota
-                        if let quota = quota {
-                            GroupBox(L10n.t("quota.title")) {
-                                VStack(alignment: .leading, spacing: 8) {
-                                    let fraction = quota.total > 0 ? Double(quota.used) / Double(quota.total) : 0
-                                    ProgressView(value: fraction)
-                                        .tint(fraction > 0.9 ? .red : fraction > 0.7 ? .orange : .accentColor)
-                                    HStack {
-                                        Text("\(L10n.t("quota.used")): \(FormatUtils.formatBytes(quota.used))")
-                                            .font(.caption)
-                                        Spacer()
-                                        Text("\(L10n.t("quota.total")): \(FormatUtils.formatBytes(quota.total))")
-                                            .font(.caption)
-                                    }
-                                    .foregroundColor(.secondary)
+                List {
+                    // Quota section
+                    if let quota = quota {
+                        Section(L10n.t("quota.title")) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                let fraction = quota.total > 0 ? Double(quota.used) / Double(quota.total) : 0
+                                ProgressView(value: fraction)
+                                    .tint(fraction > 0.9 ? .red : fraction > 0.7 ? .orange : .accentColor)
+                                HStack {
+                                    Text("\(L10n.t("quota.used")): \(FormatUtils.formatBytes(quota.used))")
+                                        .font(.caption)
+                                    Spacer()
+                                    Text("\(L10n.t("quota.total")): \(FormatUtils.formatBytes(quota.total))")
+                                        .font(.caption)
                                 }
+                                .foregroundColor(.secondary)
                             }
+                            .padding(.vertical, 4)
                         }
+                    }
 
-                        // Config
-                        if !config.isEmpty {
-                            GroupBox(L10n.t("sidebar.config")) {
-                                VStack(alignment: .leading, spacing: 6) {
-                                    ForEach(Array(config.keys.sorted()), id: \.self) { key in
-                                        let maskedValue = key.lowercased().contains("password") || key.lowercased().contains("token") ? "------" : (config[key] ?? "")
-                                        LabeledContent(key) {
-                                            Text(maskedValue)
-                                                .foregroundColor(.secondary)
-                                                .lineLimit(1)
-                                                .textSelection(.enabled)
-                                        }
-                                    }
+                    // Config section
+                    if !config.isEmpty {
+                        Section(L10n.t("sidebar.config")) {
+                            ForEach(Array(config.keys.sorted()), id: \.self) { key in
+                                let maskedValue = key.lowercased().contains("password") || key.lowercased().contains("token") ? "------" : (config[key] ?? "")
+                                LabeledContent(key) {
+                                    Text(maskedValue)
+                                        .foregroundColor(.secondary)
+                                        .lineLimit(1)
+                                        .textSelection(.enabled)
                                 }
-                            }
-                        }
-
-                        // Actions
-                        HStack(spacing: 12) {
-                            Button(L10n.t("edit")) {
-                                if let r = remote { editingRemote = r }
-                            }
-
-                            Button(L10n.t("delete"), role: .destructive) {
-                                showDeleteConfirm = true
                             }
                         }
                     }
-                    .padding(20)
                 }
+                .listStyle(.inset)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .task(id: remoteName) {
             await loadData()
         }

@@ -355,6 +355,15 @@ final class PanelViewModel {
         let sorted = tab.sortedFiles
         let firstSelectedIndex = sorted.firstIndex { filesToDelete.contains($0.name) }
 
+        // Resolve remote type once for native trash detection
+        let remoteType: String
+        if tab.remote == "/" {
+            remoteType = ""
+        } else {
+            let remoteName = tab.remote.hasSuffix(":") ? String(tab.remote.dropLast()) : tab.remote
+            remoteType = (try? await RcloneAPI.getRemoteType(using: client, name: remoteName)) ?? ""
+        }
+
         tab.selectedFiles = []
         var lastError: Error?
         for fileName in filesToDelete {
@@ -376,7 +385,8 @@ final class PanelViewModel {
                         path: file.path,
                         name: file.name,
                         isDir: file.isDir,
-                        size: actualSize
+                        size: actualSize,
+                        remoteType: remoteType
                     )
                 } else {
                     if file.isDir {

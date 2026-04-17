@@ -590,16 +590,24 @@ struct FileTableView: View {
             let path = fullLocalPath(file)
             NSWorkspace.shared.open(URL(fileURLWithPath: path))
         } else {
-            // Cloud file — download to temp, then open with default app
+            // Cloud file — async download to temp with transfer bar progress, then open
             Task {
-                let tempDir = FileManager.default.temporaryDirectory
-                let tempFile = tempDir.appendingPathComponent(file.name)
+                let tempFile = AppConstants.tempDownloadDir.appendingPathComponent(file.name)
                 do {
-                    try await RcloneAPI.copyFile(
+                    let jobId = try await RcloneAPI.copyFileAsync(
                         using: appState.client,
                         srcFs: tab.remote, srcRemote: file.path,
                         dstFs: "/", dstRemote: tempFile.path
                     )
+                    let origin = CopyOrigin(
+                        srcFs: tab.remote, srcRemote: file.path,
+                        dstFs: "/", dstRemote: tempFile.path, isDir: false
+                    )
+                    appState.transfers.addCopyOrigin(group: "job/\(jobId)", origin: origin)
+                    appState.transfers.addCopyOrigin(group: file.path, origin: origin)
+                    appState.transfers.addCopyOrigin(group: file.name, origin: origin)
+
+                    try await RcloneAPI.waitForJob(using: appState.client, jobid: jobId)
                     _ = await MainActor.run {
                         NSWorkspace.shared.open(tempFile)
                     }

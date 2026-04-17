@@ -8,6 +8,7 @@ struct TrashView: View {
     @State private var showEmptyConfirm = false
     @State private var emptyTarget: String? // nil = all, "/" = local, "remote:" = specific cloud
     @State private var errorMessage: String?
+    @State private var isLoading = false
 
     private var localItems: [TrashedFile] {
         trash.items.filter { $0.originalFs == "/" }
@@ -110,14 +111,33 @@ struct TrashView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .overlay {
+            if isLoading {
+                ZStack {
+                    Color.black.opacity(0.2)
+                    VStack(spacing: 12) {
+                        ProgressView()
+                            .controlSize(.large)
+                        Text(L10n.t("trash.deleting"))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(24)
+                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+                }
+            }
+        }
+        .allowsHitTesting(!isLoading)
         .confirmationDialog(L10n.t("trash.emptyAll"), isPresented: $showEmptyConfirm) {
             Button(L10n.t("trash.emptyAll"), role: .destructive) {
                 Task {
+                    isLoading = true
                     do {
                         try await trash.emptyTrash(fs: emptyTarget)
                     } catch {
                         errorMessage = error.localizedDescription
                     }
+                    isLoading = false
                 }
             }
         } message: {
@@ -127,6 +147,7 @@ struct TrashView: View {
 
     private func handleAction(_ action: TrashItemAction, item: TrashedFile) {
         Task {
+            isLoading = true
             do {
                 switch action {
                 case .restore:
@@ -138,6 +159,7 @@ struct TrashView: View {
             } catch {
                 errorMessage = error.localizedDescription
             }
+            isLoading = false
         }
     }
 }
@@ -160,7 +182,18 @@ struct TrashItemRow: View {
                 .frame(width: 20)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(item.name).font(.body).lineLimit(1)
+                HStack(spacing: 4) {
+                    Text(item.name).font(.body).lineLimit(1)
+                    if item.nativeTrash {
+                        Text(L10n.t("trash.nativeTrashBadge"))
+                            .font(.system(size: 9))
+                            .padding(.horizontal, 4)
+                            .padding(.vertical, 1)
+                            .background(.blue.opacity(0.15))
+                            .foregroundColor(.blue)
+                            .clipShape(RoundedRectangle(cornerRadius: 3))
+                    }
+                }
                 Text(item.originalPath)
                     .font(.caption).foregroundColor(.secondary).lineLimit(1)
                 Text(FormatUtils.formatDate(item.trashedAt))
@@ -172,13 +205,15 @@ struct TrashItemRow: View {
             Text(FormatUtils.formatBytes(item.size))
                 .font(.caption).foregroundColor(.secondary)
 
-            Button {
-                onAction(.restore)
-            } label: {
-                Image(systemName: "arrow.uturn.backward")
+            if !item.nativeTrash {
+                Button {
+                    onAction(.restore)
+                } label: {
+                    Image(systemName: "arrow.uturn.backward")
+                }
+                .buttonStyle(.plain)
+                .help(L10n.t("trash.restore"))
             }
-            .buttonStyle(.plain)
-            .help(L10n.t("trash.restore"))
 
             Button(role: .destructive) {
                 showDeleteConfirm = true

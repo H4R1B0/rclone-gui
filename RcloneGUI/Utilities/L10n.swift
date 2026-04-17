@@ -389,6 +389,9 @@ enum L10n {
         "trash.itemCount":        ["ko": "항목 {0}개", "en": "{0} items"],
         "trash.local":            ["ko": "로컬 휴지통", "en": "Local Trash"],
         "trash.emptySection":     ["ko": "비우기", "en": "Empty"],
+        "trash.nativeRestoreUnavailable": ["ko": "클라우드 휴지통의 파일은 해당 서비스 웹에서 복원하세요", "en": "Restore from the cloud provider's web interface"],
+        "trash.nativeTrashBadge": ["ko": "클라우드 휴지통", "en": "Cloud Trash"],
+        "trash.deleting":         ["ko": "삭제 중...", "en": "Deleting..."],
 
         // Menu Bar
         "menubar.activeTransfers": ["ko": "개 전송 중", "en": "active transfers"],

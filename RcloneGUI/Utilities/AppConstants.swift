@@ -29,6 +29,13 @@ enum AppConstants {
     static let appLockConfigFile = "app-lock-config.json"
     static let remoteOrderFile = "remote-order.json"
 
+    /// 클라우드 파일 임시 다운로드 디렉토리 — 앱 종료 시 삭제
+    static let tempDownloadDir: URL = {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("RcloneGUI")
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir
+    }()
+
     /// Application Support/RcloneGUI 디렉토리 — 생성 보장
     static let appSupportDir: URL = {
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!

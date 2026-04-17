@@ -19,6 +19,7 @@ extension Notification.Name {
 
 @main
 struct RcloneGUIApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var appState = AppState()
 
     init() {
@@ -119,5 +120,13 @@ struct RcloneGUIApp: App {
                 ? "arrow.up.arrow.down.circle.fill"
                 : "arrow.up.arrow.down.circle")
         }
+    }
+}
+
+// MARK: - AppDelegate (앱 종료 시 임시 파일 정리)
+
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationWillTerminate(_ notification: Notification) {
+        try? FileManager.default.removeItem(at: AppConstants.tempDownloadDir)
     }
 }
