@@ -21,7 +21,14 @@ struct SidebarView: View {
             Section(L10n.t("sidebar.remotes")) {
                 ForEach(appState.accounts.orderedRemotes) { remote in
                     Label {
-                        Text(remote.displayName)
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(appState.accounts.displayName(for: remote.name))
+                            if appState.accounts.aliasStore.alias(for: remote.name) != nil {
+                                Text(remote.name)
+                                    .font(.system(size: 9))
+                                    .foregroundColor(.secondary)
+                            }
+                        }
                     } icon: {
                         ProviderIcon.icon(for: remote.type)
                     }
@@ -106,7 +113,7 @@ struct SidebarView: View {
                 }
             }
         } message: {
-            Text(L10n.t("confirm.delete.message", remoteToDelete?.displayName ?? ""))
+            Text(L10n.t("confirm.delete.message", remoteToDelete.map { appState.accounts.displayName(for: $0.name) } ?? ""))
         }
         .safeAreaInset(edge: .bottom) {
             VStack(spacing: 0) {

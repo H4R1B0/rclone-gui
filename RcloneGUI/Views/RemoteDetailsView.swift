@@ -10,6 +10,16 @@ struct RemoteDetailsView: View {
     @State private var isLoading = true
     @State private var showDeleteConfirm = false
     @State private var editingRemote: Remote?
+    @State private var aliasDraft: String = ""
+    @State private var isTesting: Bool = false
+    @State private var testResult: TestResult?
+
+    private struct TestResult: Identifiable {
+        let id = UUID()
+        let success: Bool
+        let detail: String
+        let latencyMs: Int?
+    }
 
     private var remote: Remote? {
         appState.accounts.remotes.first(where: { $0.name == remoteName })
@@ -21,11 +31,27 @@ struct RemoteDetailsView: View {
             HStack(spacing: 10) {
                 ProviderIcon.icon(for: remote?.type ?? "cloud")
                     .font(.system(size: 18))
-                Text(remoteName).font(.headline)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(appState.accounts.displayName(for: remoteName)).font(.headline)
+                    if appState.accounts.aliasStore.alias(for: remoteName) != nil {
+                        Text(remoteName)
+                            .font(.system(size: 10))
+                            .foregroundColor(.secondary)
+                    }
+                }
                 Text(remote?.type ?? "")
                     .font(.caption)
                     .foregroundColor(.secondary)
                 Spacer()
+                Button(action: { Task { await runConnectionTest() } }) {
+                    if isTesting {
+                        ProgressView().controlSize(.mini)
+                    } else {
+                        Text(L10n.t("remote.test"))
+                    }
+                }
+                .controlSize(.small)
+                .disabled(isTesting)
                 Button(L10n.t("edit")) {
                     if let r = remote { editingRemote = r }
                 }
@@ -37,6 +63,28 @@ struct RemoteDetailsView: View {
             }
             .padding()
 
+            if let result = testResult {
+                HStack(spacing: 8) {
+                    Image(systemName: result.success ? "checkmark.circle.fill" : "xmark.circle.fill")
+                        .foregroundColor(result.success ? .green : .red)
+                    Text(result.success
+                         ? (result.latencyMs.map { "\(L10n.t("remote.test.ok")) (\($0) ms)" } ?? L10n.t("remote.test.ok"))
+                         : "\(L10n.t("remote.test.fail")): \(result.detail)")
+                        .font(.system(size: 12))
+                        .foregroundColor(result.success ? .green : .red)
+                        .lineLimit(2)
+                    Spacer()
+                    Button(action: { testResult = nil }) {
+                        Image(systemName: "xmark").font(.system(size: 10))
+                            .foregroundColor(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background((result.success ? Color.green : Color.red).opacity(0.1))
+            }
+
             Divider()
 
             if isLoading {
@@ -44,6 +92,26 @@ struct RemoteDetailsView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 List {
+                    Section(L10n.t("remote.alias.section")) {
+                        HStack {
+                            TextField(L10n.t("remote.alias.placeholder"), text: $aliasDraft)
+                                .textFieldStyle(.roundedBorder)
+                                .onSubmit { commitAlias() }
+                            Button(L10n.t("save")) { commitAlias() }
+                                .controlSize(.small)
+                                .disabled(aliasDraft.trimmingCharacters(in: .whitespaces)
+                                          == (appState.accounts.aliasStore.alias(for: remoteName) ?? ""))
+                            if appState.accounts.aliasStore.alias(for: remoteName) != nil {
+                                Button(L10n.t("remote.alias.remove"), role: .destructive) {
+                                    appState.accounts.setAlias(for: remoteName, to: nil)
+                                    aliasDraft = ""
+                                }
+                                .controlSize(.small)
+                            }
+                        }
+                        .padding(.vertical, 2)
+                    }
+
                     // Quota section
                     if let quota = quota {
                         Section(L10n.t("quota.title")) {
@@ -103,6 +171,7 @@ struct RemoteDetailsView: View {
         isLoading = true
         config = [:]
         quota = nil
+        aliasDraft = appState.accounts.aliasStore.alias(for: remoteName) ?? ""
         if let cfg = try? await appState.accounts.getRemoteConfig(name: remoteName) {
             config = cfg
         }
@@ -112,6 +181,26 @@ struct RemoteDetailsView: View {
             }
         }
         isLoading = false
+    }
+
+    private func commitAlias() {
+        let trimmed = aliasDraft.trimmingCharacters(in: .whitespaces)
+        appState.accounts.setAlias(for: remoteName, to: trimmed.isEmpty ? nil : trimmed)
+    }
+
+    @MainActor
+    private func runConnectionTest() async {
+        isTesting = true
+        testResult = nil
+        let start = Date()
+        do {
+            _ = try await RcloneAPI.about(using: appState.client, fs: "\(remoteName):")
+            let ms = Int(Date().timeIntervalSince(start) * 1000)
+            testResult = TestResult(success: true, detail: "", latencyMs: ms)
+        } catch {
+            testResult = TestResult(success: false, detail: error.localizedDescription, latencyMs: nil)
+        }
+        isTesting = false
     }
 }
 
