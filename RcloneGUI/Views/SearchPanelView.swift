@@ -15,7 +15,7 @@ struct SearchPanelView: View {
     @State private var filterPath: String = ""
 
     private var filteredResults: [SearchResult] {
-        search.results.filter { result in
+        search.sortedResults(search.results.filter { result in
             if !filterType.isEmpty {
                 let icon = FormatUtils.fileIcon(name: result.name, isDir: result.isDir)
                 let typeMatch: Bool
@@ -42,7 +42,7 @@ struct SearchPanelView: View {
                 }
             }
             return true
-        }
+        })
     }
 
     var body: some View {
@@ -90,6 +90,28 @@ struct SearchPanelView: View {
                 TextField(L10n.t("search.placeholder"), text: Bindable(appState.search).query)
                     .textFieldStyle(.roundedBorder)
                     .onSubmit { Task { await search.performSearch() } }
+
+                if !search.history.recent.isEmpty {
+                    Menu {
+                        ForEach(search.history.recent, id: \.self) { item in
+                            Button(item) {
+                                search.query = item
+                                Task { await search.performSearch() }
+                            }
+                        }
+                        Divider()
+                        Button(L10n.t("search.history.clear"), role: .destructive) {
+                            search.history.clear()
+                        }
+                    } label: {
+                        Image(systemName: "clock.arrow.circlepath")
+                            .font(.system(size: 12))
+                    }
+                    .menuStyle(.borderlessButton)
+                    .fixedSize()
+                    .frame(width: 24)
+                    .help(L10n.t("search.history.tooltip"))
+                }
 
                 if search.isSearching {
                     Button(L10n.t("search.cancel")) { search.abortSearch() }
@@ -161,6 +183,20 @@ struct SearchPanelView: View {
         }
     }
 
+    private func sortHeader(_ label: String, field: SearchSortField) -> some View {
+        Button(action: { search.setSort(field) }) {
+            HStack(spacing: 2) {
+                Text(label)
+                if search.sortField == field {
+                    Image(systemName: search.sortAsc ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 8))
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .foregroundColor(search.sortField == field ? .primary : .secondary)
+    }
+
     private func cloudToggle(_ cloud: String, label: String) -> some View {
         Button(action: { search.toggleCloud(cloud) }) {
             HStack(spacing: 4) {
@@ -182,11 +218,16 @@ struct SearchPanelView: View {
     private var resultsTable: some View {
         VStack(spacing: 0) {
             HStack(spacing: 8) {
-                Text(L10n.t("column.name")).frame(maxWidth: .infinity, alignment: .leading)
-                Text(L10n.t("search.cloud")).frame(width: 100, alignment: .leading)
-                Text(L10n.t("column.size")).frame(width: 80, alignment: .trailing)
-                Text(L10n.t("column.modified")).frame(width: 140, alignment: .trailing)
-                Text(L10n.t("properties.path")).frame(width: 200, alignment: .leading)
+                sortHeader(L10n.t("column.name"), field: .name)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                sortHeader(L10n.t("search.cloud"), field: .remote)
+                    .frame(width: 100, alignment: .leading)
+                sortHeader(L10n.t("column.size"), field: .size)
+                    .frame(width: 80, alignment: .trailing)
+                sortHeader(L10n.t("column.modified"), field: .date)
+                    .frame(width: 140, alignment: .trailing)
+                Text(L10n.t("properties.path"))
+                    .frame(width: 200, alignment: .leading)
             }
             .font(.system(size: 11, weight: .medium))
             .foregroundColor(.secondary)

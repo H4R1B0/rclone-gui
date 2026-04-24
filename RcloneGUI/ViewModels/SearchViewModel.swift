@@ -12,6 +12,13 @@ struct SearchResult: Identifiable {
     let remoteFs: String
 }
 
+enum SearchSortField: String, CaseIterable {
+    case name
+    case size
+    case date
+    case remote
+}
+
 @Observable
 final class SearchViewModel {
     var query: String = ""
@@ -20,13 +27,44 @@ final class SearchViewModel {
     var results: [SearchResult] = []
     var error: String?
     var selectedClouds: Set<String> = []
+    var sortField: SearchSortField = .name
+    var sortAsc: Bool = true
+
+    let history: SearchHistoryStore
 
     private let client: RcloneClientProtocol
     private var searchTask: Task<Void, Never>?
     private let maxConcurrency = AppConstants.maxSearchConcurrency
 
-    init(client: RcloneClientProtocol) {
+    init(client: RcloneClientProtocol, history: SearchHistoryStore = SearchHistoryStore()) {
         self.client = client
+        self.history = history
+    }
+
+    func setSort(_ field: SearchSortField) {
+        if sortField == field {
+            sortAsc.toggle()
+        } else {
+            sortField = field
+            sortAsc = true
+        }
+    }
+
+    func sortedResults(_ input: [SearchResult]) -> [SearchResult] {
+        input.sorted { a, b in
+            let cmp: Bool
+            switch sortField {
+            case .name:
+                cmp = a.name.localizedStandardCompare(b.name) == .orderedAscending
+            case .size:
+                cmp = a.size < b.size
+            case .date:
+                cmp = a.modTime < b.modTime
+            case .remote:
+                cmp = a.remoteFs < b.remoteFs
+            }
+            return sortAsc ? cmp : !cmp
+        }
     }
 
     func initializeClouds(remotes: [String]) {
@@ -45,6 +83,8 @@ final class SearchViewModel {
     func performSearch() async {
         let trimmed = query.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
+
+        history.record(trimmed)
 
         abortSearch()
         isSearching = true

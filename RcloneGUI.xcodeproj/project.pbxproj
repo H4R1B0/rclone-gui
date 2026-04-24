@@ -97,6 +97,7 @@
 		83C3017DFCE8E01FC33C1B03 /* FormatUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9A677D7F57716D008D17B43 /* FormatUtils.swift */; };
 		8585D96A6063CC692E40BB2F /* QuickLookBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F55FCB05C4CE60DF12120CE /* QuickLookBridge.swift */; };
 		88E772ABF499FA4AC20391DC /* FinderUploadSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A388AAB43F3E2C01CDEAF23 /* FinderUploadSheet.swift */; };
+		8980708BE1B9D5624D4773FF /* SearchHistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4852C949710658197D409348 /* SearchHistoryStore.swift */; };
 		8E89A38CBC79D6F6BB079776 /* mega.png in Resources */ = {isa = PBXBuildFile; fileRef = D85A6E350C33178707844083 /* mega.png */; };
 		8EA6667F07C90BEDDEECDF85 /* ProviderIcons in Resources */ = {isa = PBXBuildFile; fileRef = D65F23BE1817DF2A5757207A /* ProviderIcons */; };
 		909B9642CD5641144D3C4CBD /* SearchPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2FFDECC974E2109E8B74D79 /* SearchPanelView.swift */; };
@@ -207,6 +208,7 @@
 		41A2E7D0B29B9AC2668E20E2 /* koofr.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = koofr.png; sourceTree = "<group>"; };
 		420E8C2FB49CEBC1188BDCBF /* SkeletonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkeletonView.swift; sourceTree = "<group>"; };
 		44E56BF54E5FF690118EC8DC /* TransferReportSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferReportSheet.swift; sourceTree = "<group>"; };
+		4852C949710658197D409348 /* SearchHistoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchHistoryStore.swift; sourceTree = "<group>"; };
 		49E767503D6DA16E81118049 /* CompressUploadSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompressUploadSheet.swift; sourceTree = "<group>"; };
 		4A15CD8D70189A5B13D8FCDB /* SchedulerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchedulerView.swift; sourceTree = "<group>"; };
 		4BF77A4E04629202EE62380B /* ErrorClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorClassifier.swift; sourceTree = "<group>"; };
@@ -586,6 +588,7 @@
 				0C496CA1F53C69E0D536E256 /* MountViewModel.swift */,
 				0144915081E072ECFA22FEDF /* PanelViewModel.swift */,
 				D049D4A21803DCC4AB6CF6D3 /* SchedulerViewModel.swift */,
+				4852C949710658197D409348 /* SearchHistoryStore.swift */,
 				646DE6E8813FF584E2B95D5B /* SearchViewModel.swift */,
 				D8D14C998D5512918431EA71 /* SettingsViewModel.swift */,
 				409240D17EC1A7C4B0AEB92F /* SyncViewModel.swift */,
@@ -848,6 +851,7 @@
 				EE5262051872458647D6BEF8 /* RemoteSelectorView.swift in Sources */,
 				E72A48C49418D7029790D3BA /* SchedulerView.swift in Sources */,
 				5F19F557B79DD21E7404E931 /* SchedulerViewModel.swift in Sources */,
+				8980708BE1B9D5624D4773FF /* SearchHistoryStore.swift in Sources */,
 				909B9642CD5641144D3C4CBD /* SearchPanelView.swift in Sources */,
 				157CC405111B97E225993A86 /* SearchViewModel.swift in Sources */,
 				83436735E2F2C4A2419B726D /* SetPasswordSheet.swift in Sources */,

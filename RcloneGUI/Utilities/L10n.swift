@@ -73,6 +73,8 @@ enum L10n {
         "panel.quickFilter.clear":       ["ko": "필터 지우기", "en": "Clear filter"],
         "panel.quickFilter.noMatch":     ["ko": "필터와 일치하는 파일 없음", "en": "No files match filter"],
         "panel.quickFilter.count":       ["ko": "{0} / {1}개 (필터됨)", "en": "{0} / {1} (filtered)"],
+        "search.history.tooltip":        ["ko": "최근 검색", "en": "Recent searches"],
+        "search.history.clear":          ["ko": "최근 검색 지우기", "en": "Clear recent searches"],
         "panel.newTab":         ["ko": "새 탭", "en": "New Tab"],
         "panel.closeTab":       ["ko": "탭 닫기", "en": "Close Tab"],
         "tab.closeConfirm.title":   ["ko": "탭 닫기", "en": "Close Tab"],
