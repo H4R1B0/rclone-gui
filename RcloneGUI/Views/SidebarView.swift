@@ -5,6 +5,9 @@ struct SidebarView: View {
     @Environment(AppState.self) private var appState
     @Binding var selection: SidebarItem?
     @State private var remoteToDelete: Remote?
+    @State private var renamingBookmarkId: UUID?
+    @State private var renameText: String = ""
+    @FocusState private var renameFocused: Bool
 
     var body: some View {
         List(selection: $selection) {
@@ -50,34 +53,11 @@ struct SidebarView: View {
             // Bookmarks
             if !appState.bookmarks.bookmarks.isEmpty {
                 Section(L10n.t("bookmark.title")) {
-                    ForEach(appState.bookmarks.bookmarks) { bookmark in
-                        Menu {
-                            Button(L10n.t("bookmark.openNewTabLeft")) {
-                                appState.panels.left.addTab(mode: bookmark.fs == "/" ? .local : .cloud, remote: bookmark.fs, path: bookmark.path, label: bookmark.name)
-                                Task { await appState.panels.loadFiles(side: .left) }
-                            }
-                            Button(L10n.t("bookmark.openNewTabRight")) {
-                                appState.panels.right.addTab(mode: bookmark.fs == "/" ? .local : .cloud, remote: bookmark.fs, path: bookmark.path, label: bookmark.name)
-                                Task { await appState.panels.loadFiles(side: .right) }
-                            }
-                            Divider()
-                            Button(L10n.t("delete"), role: .destructive) {
-                                appState.bookmarks.remove(id: bookmark.id)
-                            }
-                        } label: {
-                            Label {
-                                VStack(alignment: .leading, spacing: 1) {
-                                    Text(bookmark.name)
-                                    Text(bookmark.fs == "/" ? L10n.t("panel.local") : bookmark.fs.replacingOccurrences(of: ":", with: ""))
-                                        .font(.system(size: 9))
-                                        .foregroundColor(.secondary)
-                                }
-                            } icon: {
-                                Image(systemName: bookmark.fs == "/" ? "folder" : "cloud")
-                            }
-                        }
-                        .menuStyle(.borderlessButton)
-                        .menuIndicator(.hidden)
+                    ForEach(Array(appState.bookmarks.bookmarks.enumerated()), id: \.element.id) { index, bookmark in
+                        bookmarkRow(bookmark: bookmark, index: index)
+                    }
+                    .onMove { offsets, destination in
+                        appState.bookmarks.moveFromOffsets(offsets, to: destination)
                     }
                 }
             }
@@ -154,6 +134,64 @@ struct SidebarView: View {
                 .padding(.vertical, 8)
             }
         }
+    }
+}
+
+extension SidebarView {
+    @ViewBuilder
+    fileprivate func bookmarkRow(bookmark: Bookmark, index: Int) -> some View {
+        let isRenaming = renamingBookmarkId == bookmark.id
+        Menu {
+            Button(L10n.t("bookmark.openNewTabLeft")) {
+                appState.panels.left.addTab(mode: bookmark.fs == "/" ? .local : .cloud, remote: bookmark.fs, path: bookmark.path, label: bookmark.name)
+                Task { await appState.panels.loadFiles(side: .left) }
+            }
+            Button(L10n.t("bookmark.openNewTabRight")) {
+                appState.panels.right.addTab(mode: bookmark.fs == "/" ? .local : .cloud, remote: bookmark.fs, path: bookmark.path, label: bookmark.name)
+                Task { await appState.panels.loadFiles(side: .right) }
+            }
+            Divider()
+            Button(L10n.t("bookmark.rename")) {
+                renameText = bookmark.name
+                renamingBookmarkId = bookmark.id
+                renameFocused = true
+            }
+            Button(L10n.t("delete"), role: .destructive) {
+                appState.bookmarks.remove(id: bookmark.id)
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: bookmark.fs == "/" ? "folder" : "cloud")
+                    .foregroundColor(.secondary)
+                if isRenaming {
+                    TextField("", text: $renameText)
+                        .textFieldStyle(.roundedBorder)
+                        .font(.system(size: 12))
+                        .focused($renameFocused)
+                        .onSubmit {
+                            appState.bookmarks.rename(id: bookmark.id, newName: renameText)
+                            renamingBookmarkId = nil
+                        }
+                        .onExitCommand { renamingBookmarkId = nil }
+                } else {
+                    VStack(alignment: .leading, spacing: 1) {
+                        HStack(spacing: 4) {
+                            Text(bookmark.name)
+                            if index < 9 {
+                                Text("⌘\(index + 1)")
+                                    .font(.system(size: 9))
+                                    .foregroundColor(.secondary.opacity(0.6))
+                            }
+                        }
+                        Text(bookmark.fs == "/" ? L10n.t("panel.local") : bookmark.fs.replacingOccurrences(of: ":", with: ""))
+                            .font(.system(size: 9))
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
     }
 }
 

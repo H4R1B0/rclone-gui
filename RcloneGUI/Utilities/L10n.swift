@@ -81,6 +81,7 @@ enum L10n {
         "remote.alias.section":          ["ko": "표시 별칭", "en": "Display Alias"],
         "remote.alias.placeholder":      ["ko": "예: 회사 드라이브", "en": "e.g. Work Drive"],
         "remote.alias.remove":           ["ko": "별칭 제거", "en": "Remove"],
+        "bookmark.rename":               ["ko": "이름 변경", "en": "Rename"],
         "panel.newTab":         ["ko": "새 탭", "en": "New Tab"],
         "panel.closeTab":       ["ko": "탭 닫기", "en": "Close Tab"],
         "tab.closeConfirm.title":   ["ko": "탭 닫기", "en": "Close Tab"],
