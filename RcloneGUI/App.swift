@@ -15,6 +15,10 @@ extension Notification.Name {
     static let requestQuickLook = Notification.Name("requestQuickLook")
     static let requestBookmark = Notification.Name("requestBookmark")
     static let requestExplorer = Notification.Name("requestExplorer")
+    static let requestBack = Notification.Name("requestBack")
+    static let requestForward = Notification.Name("requestForward")
+    static let requestToggleHidden = Notification.Name("requestToggleHidden")
+    static let requestQuickFilter = Notification.Name("requestQuickFilter")
 }
 
 @main
@@ -81,10 +85,34 @@ struct RcloneGUIApp: App {
             }
 
             CommandGroup(after: .toolbar) {
+                Button("Back") {
+                    NotificationCenter.default.post(name: .requestBack, object: nil)
+                }
+                .keyboardShortcut("[", modifiers: .command)
+
+                Button("Forward") {
+                    NotificationCenter.default.post(name: .requestForward, object: nil)
+                }
+                .keyboardShortcut("]", modifiers: .command)
+
+                Divider()
+
+                Button("Quick Filter") {
+                    NotificationCenter.default.post(name: .requestQuickFilter, object: nil)
+                }
+                .keyboardShortcut("f", modifiers: .command)
+
                 Button("Search") {
                     NotificationCenter.default.post(name: .requestSearch, object: nil)
                 }
-                .keyboardShortcut("f", modifiers: .command)
+                .keyboardShortcut("f", modifiers: [.command, .shift])
+
+                Button("Toggle Hidden Files") {
+                    NotificationCenter.default.post(name: .requestToggleHidden, object: nil)
+                }
+                .keyboardShortcut(".", modifiers: .command)
+
+                Divider()
 
                 Button("Quick Look") {
                     NotificationCenter.default.post(name: .requestQuickLook, object: nil)

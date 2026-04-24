@@ -27,7 +27,11 @@ struct FileTableView: View {
     private let gridColumns = [GridItem(.adaptive(minimum: 90, maximum: 120), spacing: 8)]
 
     var body: some View {
-        VStack(spacing: 0) {
+        let showHidden = appState.panels.side(side).showHidden
+        let visibleFiles = tab.visibleFiles(showHidden: showHidden)
+        let hasFilter = !tab.filterQuery.isEmpty
+
+        return VStack(spacing: 0) {
             // Column headers (list mode only)
             if viewMode == .list {
                 columnHeaders
@@ -35,18 +39,37 @@ struct FileTableView: View {
             }
 
             // File list
-            if tab.sortedFiles.isEmpty && !tab.loading {
-                ContentUnavailableView(L10n.t("panel.noFiles"), systemImage: "folder")
+            if visibleFiles.isEmpty && !tab.loading {
+                if hasFilter {
+                    VStack(spacing: 8) {
+                        ContentUnavailableView(
+                            L10n.t("panel.quickFilter.noMatch"),
+                            systemImage: "line.3.horizontal.decrease.circle"
+                        )
+                        Button(L10n.t("panel.quickFilter.clear")) {
+                            tab.filterQuery = ""
+                        }
+                        .controlSize(.small)
+                    }
                     .contentShape(Rectangle())
                     .contextMenu { emptyAreaMenu }
+                } else {
+                    ContentUnavailableView(L10n.t("panel.noFiles"), systemImage: "folder")
+                        .contentShape(Rectangle())
+                        .contextMenu { emptyAreaMenu }
+                }
             } else {
                 // File count bar
                 HStack {
-                    Text(String(format: L10n.t("performance.fileCount"), tab.sortedFiles.count))
+                    Text(hasFilter
+                         ? L10n.t("panel.quickFilter.count",
+                                  String(visibleFiles.count),
+                                  String(tab.files.count))
+                         : String(format: L10n.t("performance.fileCount"), visibleFiles.count))
                         .font(.system(size: 11))
                         .foregroundColor(.secondary)
                     Spacer()
-                    if tab.sortedFiles.count > 1000 {
+                    if visibleFiles.count > 1000 {
                         Text(L10n.t("performance.largeDir"))
                             .font(.system(size: 11))
                             .foregroundColor(.orange)
@@ -59,7 +82,7 @@ struct FileTableView: View {
                     if viewMode == .grid {
                         ScrollView {
                             LazyVGrid(columns: gridColumns, spacing: 8) {
-                                ForEach(tab.sortedFiles) { file in
+                                ForEach(visibleFiles) { file in
                                     gridCell(file)
                                 }
                             }
@@ -68,7 +91,7 @@ struct FileTableView: View {
                     } else {
                         ScrollView {
                             LazyVStack(spacing: 0) {
-                                ForEach(tab.sortedFiles) { file in
+                                ForEach(visibleFiles) { file in
                                     fileRow(file)
                                 }
                             }
@@ -500,16 +523,17 @@ struct FileTableView: View {
     // MARK: - Actions
 
     private func selectAdjacentFile(direction: Int) {
-        let sorted = tab.sortedFiles
-        guard !sorted.isEmpty else { return }
+        let showHidden = appState.panels.side(side).showHidden
+        let visible = tab.visibleFiles(showHidden: showHidden)
+        guard !visible.isEmpty else { return }
 
         if let currentName = tab.selectedFiles.first,
-           let currentIndex = sorted.firstIndex(where: { $0.name == currentName }) {
-            let newIndex = max(0, min(sorted.count - 1, currentIndex + direction))
+           let currentIndex = visible.firstIndex(where: { $0.name == currentName }) {
+            let newIndex = max(0, min(visible.count - 1, currentIndex + direction))
             appState.panels.clearSelection(side: side)
-            appState.panels.toggleSelect(side: side, name: sorted[newIndex].name)
+            appState.panels.toggleSelect(side: side, name: visible[newIndex].name)
         } else {
-            appState.panels.toggleSelect(side: side, name: sorted[0].name)
+            appState.panels.toggleSelect(side: side, name: visible[0].name)
         }
     }
 

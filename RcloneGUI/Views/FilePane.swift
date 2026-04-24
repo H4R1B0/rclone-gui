@@ -10,6 +10,9 @@ struct FilePane: View {
     private var sideState: PanelSideState { appState.panels.side(side) }
     private var tab: TabState { sideState.activeTab }
 
+    @State private var showQuickFilter: Bool = false
+    @FocusState private var quickFilterFocused: Bool
+
     var body: some View {
         VStack(spacing: 0) {
             // Tab bar
@@ -17,6 +20,10 @@ struct FilePane: View {
 
             // Path bar
             FilePanePathBar(side: side)
+
+            if showQuickFilter {
+                quickFilterBar
+            }
 
             Divider()
 
@@ -97,6 +104,75 @@ struct FilePane: View {
                 return true
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .requestBack)) { _ in
+            guard appState.panels.activePanel == side else { return }
+            Task { await appState.panels.goBack(side: side) }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .requestForward)) { _ in
+            guard appState.panels.activePanel == side else { return }
+            Task { await appState.panels.goForward(side: side) }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .requestToggleHidden)) { _ in
+            guard appState.panels.activePanel == side else { return }
+            appState.panels.side(side).showHidden.toggle()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .requestQuickFilter)) { _ in
+            guard appState.panels.activePanel == side else { return }
+            showQuickFilter = true
+            quickFilterFocused = true
+        }
         .simultaneousGesture(TapGesture().onEnded { appState.panels.activePanel = side })
+    }
+
+    private var quickFilterBar: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "line.3.horizontal.decrease.circle")
+                .font(.system(size: 11))
+                .foregroundColor(.secondary)
+            TextField(
+                L10n.t("panel.quickFilter.placeholder"),
+                text: Binding(
+                    get: { appState.panels.side(side).activeTab.filterQuery },
+                    set: { appState.panels.side(side).activeTab.filterQuery = $0 }
+                )
+            )
+            .textFieldStyle(.plain)
+            .font(.system(size: 12))
+            .focused($quickFilterFocused)
+            .onSubmit { quickFilterFocused = false }
+            .onExitCommand {
+                if appState.panels.side(side).activeTab.filterQuery.isEmpty {
+                    showQuickFilter = false
+                } else {
+                    appState.panels.side(side).activeTab.filterQuery = ""
+                }
+            }
+
+            if !appState.panels.side(side).activeTab.filterQuery.isEmpty {
+                Button(action: {
+                    appState.panels.side(side).activeTab.filterQuery = ""
+                }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                }
+                .buttonStyle(.plain)
+                .help(L10n.t("panel.quickFilter.clear"))
+            }
+
+            Button(action: {
+                appState.panels.side(side).activeTab.filterQuery = ""
+                showQuickFilter = false
+            }) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 10))
+                    .foregroundColor(.secondary)
+            }
+            .buttonStyle(.plain)
+            .help(L10n.t("close"))
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(Color(nsColor: .controlBackgroundColor))
     }
 }
