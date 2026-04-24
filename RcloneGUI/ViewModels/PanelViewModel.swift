@@ -34,6 +34,13 @@ struct DraggedFile: Codable {
     let sourcePath: String
 }
 
+struct NavEntry: Equatable, Codable {
+    let remote: String
+    let path: String
+
+    var isEmpty: Bool { remote.isEmpty && path.isEmpty }
+}
+
 @Observable
 @MainActor
 final class TabState: Identifiable {
@@ -42,14 +49,29 @@ final class TabState: Identifiable {
     var mode: PanelMode
     var remote: String          // "gdrive:" or "/"
     var path: String            // current directory
-    var files: [FileItem] = [] { didSet { _cachedSortedFiles = nil } }
+    var files: [FileItem] = [] {
+        didSet { _cachedSortedFiles = nil; _cachedVisibleFiles = nil }
+    }
     var loading: Bool = false
     var error: String?
     var selectedFiles: Set<String> = []  // file NAMES (not paths) — matches TypeScript
-    var sortBy: SortField = .name { didSet { _cachedSortedFiles = nil } }
-    var sortAsc: Bool = true { didSet { _cachedSortedFiles = nil } }
+    var sortBy: SortField = .name {
+        didSet { _cachedSortedFiles = nil; _cachedVisibleFiles = nil }
+    }
+    var sortAsc: Bool = true {
+        didSet { _cachedSortedFiles = nil; _cachedVisibleFiles = nil }
+    }
+
+    // Quick filter (per-tab) and navigation history (per-tab)
+    var filterQuery: String = "" { didSet { _cachedVisibleFiles = nil } }
+    var backStack: [NavEntry] = []
+    var forwardStack: [NavEntry] = []
+
+    static let maxHistory = 50
 
     private var _cachedSortedFiles: [FileItem]?
+    private var _cachedVisibleFiles: [FileItem]?
+    private var _cachedVisibleShowHidden: Bool?
 
     init(id: UUID = UUID(), label: String, mode: PanelMode, remote: String, path: String = "") {
         self.id = id
@@ -64,6 +86,61 @@ final class TabState: Identifiable {
         let sorted = computeSortedFiles()
         _cachedSortedFiles = sorted
         return sorted
+    }
+
+    // MARK: - Visible Files (sorted + hidden filter + name filter)
+
+    func visibleFiles(showHidden: Bool) -> [FileItem] {
+        if let cached = _cachedVisibleFiles, _cachedVisibleShowHidden == showHidden {
+            return cached
+        }
+        var result = sortedFiles
+        if !showHidden {
+            result = result.filter { !$0.name.hasPrefix(".") }
+        }
+        let q = filterQuery.trimmingCharacters(in: .whitespaces)
+        if !q.isEmpty {
+            result = result.filter { $0.name.localizedCaseInsensitiveContains(q) }
+        }
+        _cachedVisibleFiles = result
+        _cachedVisibleShowHidden = showHidden
+        return result
+    }
+
+    // MARK: - History
+
+    func pushHistory(_ entry: NavEntry) {
+        guard !entry.isEmpty else { return }
+        backStack.append(entry)
+        if backStack.count > Self.maxHistory {
+            backStack.removeFirst(backStack.count - Self.maxHistory)
+        }
+    }
+
+    func popBack(current: NavEntry) -> NavEntry? {
+        guard let entry = backStack.popLast() else { return nil }
+        if !current.isEmpty {
+            forwardStack.append(current)
+            if forwardStack.count > Self.maxHistory {
+                forwardStack.removeFirst(forwardStack.count - Self.maxHistory)
+            }
+        }
+        return entry
+    }
+
+    func popForward(current: NavEntry) -> NavEntry? {
+        guard let entry = forwardStack.popLast() else { return nil }
+        if !current.isEmpty {
+            backStack.append(current)
+            if backStack.count > Self.maxHistory {
+                backStack.removeFirst(backStack.count - Self.maxHistory)
+            }
+        }
+        return entry
+    }
+
+    func clearForward() {
+        forwardStack.removeAll()
     }
 
     private func computeSortedFiles() -> [FileItem] {
@@ -92,6 +169,7 @@ final class PanelSideState {
     var tabs: [TabState]
     var activeTabId: UUID
     var viewMode: ViewMode = .list
+    var showHidden: Bool = false
 
     init(defaultTab: TabState) {
         self.tabs = [defaultTab]
@@ -215,10 +293,22 @@ final class PanelViewModel {
         tab.error = nil
     }
 
-    func loadFiles(side panelSide: PanelSide, remote: String? = nil, path: String? = nil) async {
+    func loadFiles(side panelSide: PanelSide, remote: String? = nil, path: String? = nil,
+                   recordHistory: Bool = true, skipLinkedSync: Bool = false) async {
         let tab = side(panelSide).activeTab
         let fs = remote ?? tab.remote
         let dir = path ?? tab.path
+        let prev = NavEntry(remote: tab.remote, path: tab.path)
+        let next = NavEntry(remote: fs, path: dir)
+
+        if prev != next {
+            if recordHistory && !prev.isEmpty {
+                tab.pushHistory(prev)
+                tab.clearForward()
+            }
+            // Clear quick filter on path/remote change
+            tab.filterQuery = ""
+        }
 
         tab.loading = true
         tab.error = nil
@@ -239,7 +329,7 @@ final class PanelViewModel {
         tab.loading = false
 
         // Linked browsing: sync other panel to same path
-        if linkedBrowsing && !isSyncingLinked {
+        if linkedBrowsing && !isSyncingLinked && !skipLinkedSync {
             isSyncingLinked = true
             let otherSide: PanelSide = panelSide == .left ? .right : .left
             let targetPath = path ?? tab.path
@@ -249,6 +339,24 @@ final class PanelViewModel {
             }
             isSyncingLinked = false
         }
+    }
+
+    func goBack(side panelSide: PanelSide) async {
+        let tab = side(panelSide).activeTab
+        let current = NavEntry(remote: tab.remote, path: tab.path)
+        guard let target = tab.popBack(current: current) else { return }
+        tab.selectedFiles = []
+        await loadFiles(side: panelSide, remote: target.remote, path: target.path,
+                        recordHistory: false, skipLinkedSync: true)
+    }
+
+    func goForward(side panelSide: PanelSide) async {
+        let tab = side(panelSide).activeTab
+        let current = NavEntry(remote: tab.remote, path: tab.path)
+        guard let target = tab.popForward(current: current) else { return }
+        tab.selectedFiles = []
+        await loadFiles(side: panelSide, remote: target.remote, path: target.path,
+                        recordHistory: false, skipLinkedSync: true)
     }
 
     func navigate(side panelSide: PanelSide, dirName: String) async {

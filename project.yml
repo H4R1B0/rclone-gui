@@ -24,6 +24,7 @@ targets:
           - "**/.DS_Store"
           - "**/.build"
           - "**/.swiftpm"
+          - "**/.omc/**"
           - Info.plist
       - path: RcloneGUI/Resources/ProviderIcons
         type: folder
