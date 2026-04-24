@@ -1066,7 +1066,7 @@
 					"$(PROJECT_DIR)/Resources/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.4.73;
+				MARKETING_VERSION = 1.5.0;
 				OTHER_LDFLAGS = (
 					"-lrclone",
 				);
@@ -1091,7 +1091,7 @@
 					"$(PROJECT_DIR)/Resources/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.4.73;
+				MARKETING_VERSION = 1.5.0;
 				OTHER_LDFLAGS = (
 					"-lrclone",
 				);
