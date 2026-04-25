@@ -73,6 +73,9 @@ final class TabState: Identifiable {
     private var _cachedVisibleFiles: [FileItem]?
     private var _cachedVisibleShowHidden: Bool?
 
+    /// 동시 다발 로딩에서 마지막 호출만 결과 적용하기 위한 세대 카운터
+    fileprivate var loadGeneration: Int = 0
+
     init(id: UUID = UUID(), label: String, mode: PanelMode, remote: String, path: String = "") {
         self.id = id
         self.label = label
@@ -301,11 +304,17 @@ final class PanelViewModel {
         let prev = NavEntry(remote: tab.remote, path: tab.path)
         let next = NavEntry(remote: fs, path: dir)
 
+        // 같은 탭에 동시 로드 호출이 들어와도 마지막 호출만 화면에 반영
+        tab.loadGeneration += 1
+        let myGen = tab.loadGeneration
+
         tab.loading = true
         tab.error = nil
 
         do {
             let items = try await RcloneAPI.listFiles(using: client, fs: fs, remote: dir)
+            // 더 새로운 로드가 시작됐다면 결과 폐기 (stale write 방지)
+            guard tab.loadGeneration == myGen else { return }
             tab.files = items
             if let r = remote { tab.remote = r }
             if let p = path { tab.path = p }
@@ -322,9 +331,11 @@ final class PanelViewModel {
                 SpotlightIndexer.shared.indexFiles(remote: fs, path: dir, files: items)
             }
         } catch {
+            guard tab.loadGeneration == myGen else { return }
             tab.error = error.localizedDescription
         }
 
+        guard tab.loadGeneration == myGen else { return }
         tab.loading = false
 
         // Linked browsing: sync other panel to same path
