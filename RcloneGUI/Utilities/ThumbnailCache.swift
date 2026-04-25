@@ -116,7 +116,12 @@ final class ThumbnailCache {
             return await Self.generateThumbnail(url: URL(fileURLWithPath: path), size: size)
         }
 
-        // 클라우드 파일: 미디어 종류별 크기 제한 검사 후 임시 다운로드
+        // 클라우드 네이티브 썸네일 API 우선 — 다운로드 없이 직접 URL 가져오는 백엔드(PikPak 등)는 여기서 처리
+        if let img = await tryCloudNativeThumbnail(file: file, fs: fs, client: client, size: size) {
+            return img
+        }
+
+        // 폴백: 미디어 종류별 크기 제한 검사 후 임시 다운로드 → QL
         let cap = Self.maxSourceBytes(for: file.name)
         guard file.size > 0, file.size <= cap else {
             return nil
@@ -146,6 +151,36 @@ final class ThumbnailCache {
         } catch {
             return nil
         }
+    }
+
+    /// 백엔드별 네이티브 썸네일 프로바이더가 등록돼 있으면 우선 시도.
+    /// fs 형태는 "remoteName:" — config/get으로 type 조회 후 Registry에 위임.
+    private func tryCloudNativeThumbnail(
+        file: FileItem,
+        fs: String,
+        client: RcloneClient,
+        size: CGFloat
+    ) async -> NSImage? {
+        let remoteName = fs.hasSuffix(":") ? String(fs.dropLast()) : fs
+        guard !remoteName.isEmpty else { return nil }
+
+        // 백엔드 type 조회 (캐싱은 추후 ThumbnailCache에 추가 가능 — config/get 자체가 빠르므로 우선 직접 호출)
+        let remoteType: String
+        do {
+            remoteType = try await RcloneAPI.getRemoteType(using: client, name: remoteName)
+        } catch {
+            return nil
+        }
+
+        guard let provider = CloudThumbnailRegistry.provider(for: remoteType) else {
+            return nil
+        }
+        return await provider.thumbnailImage(
+            for: file,
+            remoteName: remoteName,
+            size: size,
+            client: client
+        )
     }
 
     /// 확장자 기반으로 다운로드 허용 크기 결정 — 영상은 첫 프레임 추출 위해 더 큰 캡 적용
