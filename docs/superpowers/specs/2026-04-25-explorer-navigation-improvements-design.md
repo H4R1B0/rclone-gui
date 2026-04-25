@@ -45,7 +45,7 @@
 - **저장 위치**: `PanelSideState.showHidden`. 탭 전환해도 유지. 양쪽 패널 독립.
 - **기본값**: `false` (숨김).
 - **UI 위치**: `FilePanePathBar` 별 아이콘 옆에 `eye`/`eye.slash` 토글.
-- **단축키**: 활성 패널에 ⌘. (macOS Finder 관례와 동일).
+- **단축키**: 활성 패널에 ⇧⌘. (macOS Finder 관례). ⌘.는 시스템 Cancel로 예약되어 있으므로 회피.
 - **설정 영속화**: `SettingsViewModel`이 아닌 세션 한정(Finder와 달리 앱 재시작 시 기본값으로 리셋). 추후 `AppConstants`/설정에 기본값 옵션 추가는 후속 작업. → **범위 외**.
 
 ### (c) 빠른 필터

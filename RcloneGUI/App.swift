@@ -110,7 +110,7 @@ struct RcloneGUIApp: App {
                 Button("Toggle Hidden Files") {
                     NotificationCenter.default.post(name: .requestToggleHidden, object: nil)
                 }
-                .keyboardShortcut(".", modifiers: .command)
+                .keyboardShortcut(".", modifiers: [.command, .shift])
 
                 Divider()
 

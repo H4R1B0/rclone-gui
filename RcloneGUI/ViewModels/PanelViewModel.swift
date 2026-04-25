@@ -301,15 +301,6 @@ final class PanelViewModel {
         let prev = NavEntry(remote: tab.remote, path: tab.path)
         let next = NavEntry(remote: fs, path: dir)
 
-        if prev != next {
-            if recordHistory && !prev.isEmpty {
-                tab.pushHistory(prev)
-                tab.clearForward()
-            }
-            // Clear quick filter on path/remote change
-            tab.filterQuery = ""
-        }
-
         tab.loading = true
         tab.error = nil
 
@@ -318,6 +309,14 @@ final class PanelViewModel {
             tab.files = items
             if let r = remote { tab.remote = r }
             if let p = path { tab.path = p }
+            // Record navigation side-effects only after successful load
+            if prev != next {
+                if recordHistory && !prev.isEmpty {
+                    tab.pushHistory(prev)
+                    tab.clearForward()
+                }
+                tab.filterQuery = ""
+            }
             // Index for Spotlight (background, non-blocking)
             Task.detached(priority: .background) {
                 SpotlightIndexer.shared.indexFiles(remote: fs, path: dir, files: items)
@@ -382,9 +381,8 @@ final class PanelViewModel {
 
     func navigateTo(side panelSide: PanelSide, remote: String, path: String) async {
         let tab = side(panelSide).activeTab
-        tab.remote = remote
         tab.selectedFiles = []
-        await loadFiles(side: panelSide, path: path)
+        await loadFiles(side: panelSide, remote: remote, path: path)
     }
 
     // MARK: - Selection
@@ -404,8 +402,9 @@ final class PanelViewModel {
     }
 
     func selectAll(side panelSide: PanelSide) {
-        let tab = side(panelSide).activeTab
-        tab.selectedFiles = Set(tab.files.map(\.name))
+        let sideState = side(panelSide)
+        let tab = sideState.activeTab
+        tab.selectedFiles = Set(tab.visibleFiles(showHidden: sideState.showHidden).map(\.name))
     }
 
     func clearSelection(side panelSide: PanelSide) {
@@ -413,14 +412,15 @@ final class PanelViewModel {
     }
 
     func rangeSelect(side panelSide: PanelSide, toName: String) {
-        let tab = side(panelSide).activeTab
-        let sorted = tab.sortedFiles
-        let names = sorted.map(\.name)
+        let sideState = side(panelSide)
+        let tab = sideState.activeTab
+        let visible = tab.visibleFiles(showHidden: sideState.showHidden)
+        let names = visible.map(\.name)
 
         // Find anchor (last selected item) and target
         guard let toIndex = names.firstIndex(of: toName) else { return }
 
-        // Find the anchor: the first currently-selected item in sorted order
+        // Find the anchor: the first currently-selected item in visible order
         let anchorIndex: Int
         if let first = names.firstIndex(where: { tab.selectedFiles.contains($0) }) {
             anchorIndex = first

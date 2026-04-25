@@ -171,6 +171,9 @@ struct RemoteDetailsView: View {
         isLoading = true
         config = [:]
         quota = nil
+        // Reset connection-test state when switching remotes
+        testResult = nil
+        isTesting = false
         aliasDraft = appState.accounts.aliasStore.alias(for: remoteName) ?? ""
         if let cfg = try? await appState.accounts.getRemoteConfig(name: remoteName) {
             config = cfg
@@ -190,16 +193,30 @@ struct RemoteDetailsView: View {
 
     @MainActor
     private func runConnectionTest() async {
+        let target = remoteName  // capture for post-await boundary check
         isTesting = true
         testResult = nil
         let start = Date()
+        let fs = "\(target):"
         do {
-            _ = try await RcloneAPI.about(using: appState.client, fs: "\(remoteName):")
+            _ = try await RcloneAPI.about(using: appState.client, fs: fs)
+            guard target == remoteName else { isTesting = false; return }
             let ms = Int(Date().timeIntervalSince(start) * 1000)
             testResult = TestResult(success: true, detail: "", latencyMs: ms)
         } catch {
-            testResult = TestResult(success: false, detail: error.localizedDescription, latencyMs: nil)
+            // About is optional on some backends (SFTP/FTP/HTTP/alias/crypt/...).
+            // Fall back to a root list to verify connectivity.
+            do {
+                _ = try await RcloneAPI.listFiles(using: appState.client, fs: fs, remote: "")
+                guard target == remoteName else { isTesting = false; return }
+                let ms = Int(Date().timeIntervalSince(start) * 1000)
+                testResult = TestResult(success: true, detail: "", latencyMs: ms)
+            } catch let listError {
+                guard target == remoteName else { isTesting = false; return }
+                testResult = TestResult(success: false, detail: listError.localizedDescription, latencyMs: nil)
+            }
         }
+        guard target == remoteName else { return }
         isTesting = false
     }
 }

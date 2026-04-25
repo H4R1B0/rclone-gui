@@ -53,8 +53,8 @@ struct SidebarView: View {
             // Bookmarks
             if !appState.bookmarks.bookmarks.isEmpty {
                 Section(L10n.t("bookmark.title")) {
-                    ForEach(Array(appState.bookmarks.bookmarks.enumerated()), id: \.element.id) { index, bookmark in
-                        bookmarkRow(bookmark: bookmark, index: index)
+                    ForEach(appState.bookmarks.bookmarks) { bookmark in
+                        bookmarkRow(bookmark: bookmark)
                     }
                     .onMove { offsets, destination in
                         appState.bookmarks.moveFromOffsets(offsets, to: destination)
@@ -139,7 +139,7 @@ struct SidebarView: View {
 
 extension SidebarView {
     @ViewBuilder
-    fileprivate func bookmarkRow(bookmark: Bookmark, index: Int) -> some View {
+    fileprivate func bookmarkRow(bookmark: Bookmark) -> some View {
         if renamingBookmarkId == bookmark.id {
             HStack(spacing: 6) {
                 Image(systemName: bookmark.fs == "/" ? "folder" : "cloud")

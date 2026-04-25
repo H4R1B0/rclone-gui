@@ -737,4 +737,92 @@ struct PanelHistoryTests {
         await vm.loadFiles(side: .left, path: "C")
         #expect(vm.left.activeTab.forwardStack.isEmpty)
     }
+
+    @Test("loadFiles failure preserves history/forward/filter state") @MainActor
+    func failurePreservesState() async {
+        let (vm, client) = makeVM()
+        // Establish a baseline state
+        await vm.loadFiles(side: .left, path: "A")
+        vm.left.activeTab.forwardStack.append(NavEntry(remote: "/", path: "Saved"))
+        vm.left.activeTab.filterQuery = "important"
+        let backBefore = vm.left.activeTab.backStack
+        let forwardBefore = vm.left.activeTab.forwardStack
+        let filterBefore = vm.left.activeTab.filterQuery
+        let pathBefore = vm.left.activeTab.path
+
+        // Make next call fail
+        client.errorForMethod["operations/list"] = RcloneError.rpcFailed(method: "operations/list", status: 503, message: "boom")
+
+        await vm.loadFiles(side: .left, path: "B")
+
+        #expect(vm.left.activeTab.path == pathBefore)
+        #expect(vm.left.activeTab.backStack == backBefore)
+        #expect(vm.left.activeTab.forwardStack == forwardBefore)
+        #expect(vm.left.activeTab.filterQuery == filterBefore)
+        #expect(vm.left.activeTab.error != nil)
+    }
+
+    @Test("navigateTo across remotes records correct prev entry") @MainActor
+    func navigateToCrossRemote() async {
+        let (vm, _) = makeVM()
+        // Start in local "/Users/foo"
+        await vm.loadFiles(side: .left, path: "Users/foo")
+        // Cross-remote jump to gdrive:/Documents
+        await vm.navigateTo(side: .left, remote: "gdrive:", path: "Documents")
+        #expect(vm.left.activeTab.remote == "gdrive:")
+        #expect(vm.left.activeTab.path == "Documents")
+        // Back should return to ("/", "Users/foo"), not phantom ("gdrive:", "Users/foo")
+        await vm.goBack(side: .left)
+        #expect(vm.left.activeTab.remote == "/")
+        #expect(vm.left.activeTab.path == "Users/foo")
+    }
+}
+
+@Suite("PanelViewModel Selection × Visibility")
+struct PanelSelectionVisibilityTests {
+    @MainActor
+    private func makeVM() -> PanelViewModel {
+        let vm = PanelViewModel(client: MockRcloneClient())
+        let tab = vm.left.activeTab
+        tab.mode = .local
+        tab.remote = "/"
+        tab.files = [
+            makeFileItem(name: ".hidden", path: ".hidden"),
+            makeFileItem(name: "a.txt", path: "a.txt"),
+            makeFileItem(name: "b.txt", path: "b.txt"),
+            makeFileItem(name: "c.txt", path: "c.txt"),
+        ]
+        return vm
+    }
+
+    @Test("selectAll skips hidden when showHidden=false") @MainActor
+    func selectAllSkipsHidden() {
+        let vm = makeVM()
+        vm.left.showHidden = false
+        vm.selectAll(side: .left)
+        #expect(!vm.left.activeTab.selectedFiles.contains(".hidden"))
+        #expect(vm.left.activeTab.selectedFiles.count == 3)
+    }
+
+    @Test("selectAll respects active filter") @MainActor
+    func selectAllRespectsFilter() {
+        let vm = makeVM()
+        vm.left.showHidden = true
+        vm.left.activeTab.filterQuery = "a"
+        vm.selectAll(side: .left)
+        #expect(vm.left.activeTab.selectedFiles == ["a.txt"])
+    }
+
+    @Test("rangeSelect operates on visible files only") @MainActor
+    func rangeSelectVisibleOnly() {
+        let vm = makeVM()
+        vm.left.showHidden = false
+        // First click a.txt
+        vm.singleSelect(side: .left, name: "a.txt")
+        // Then shift-click c.txt
+        vm.rangeSelect(side: .left, toName: "c.txt")
+        // Range should not contain .hidden, only visible files
+        #expect(!vm.left.activeTab.selectedFiles.contains(".hidden"))
+        #expect(vm.left.activeTab.selectedFiles == ["a.txt", "b.txt", "c.txt"])
+    }
 }

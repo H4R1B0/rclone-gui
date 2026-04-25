@@ -119,7 +119,9 @@ struct FilePane: View {
         .onReceive(NotificationCenter.default.publisher(for: .requestQuickFilter)) { _ in
             guard appState.panels.activePanel == side else { return }
             showQuickFilter = true
-            quickFilterFocused = true
+        }
+        .onChange(of: showQuickFilter) { _, isShown in
+            if isShown { quickFilterFocused = true }
         }
         .simultaneousGesture(TapGesture().onEnded { appState.panels.activePanel = side })
     }
