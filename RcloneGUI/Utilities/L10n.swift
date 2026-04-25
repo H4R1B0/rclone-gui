@@ -394,10 +394,6 @@ enum L10n {
         "compress.compressUpload": ["ko": "압축", "en": "Compress"],
         "compress.localOnly":      ["ko": "로컬 파일만 압축 가능합니다", "en": "Only local files can be compressed"],
 
-        // Media Playback
-        "media.play":            ["ko": "재생", "en": "Play"],
-        "media.loading":         ["ko": "미디어 로딩 중...", "en": "Loading media..."],
-
         // Trash
         "toolbar.trash":          ["ko": "휴지통", "en": "Trash"],
         "trash.title":            ["ko": "휴지통", "en": "Trash"],
