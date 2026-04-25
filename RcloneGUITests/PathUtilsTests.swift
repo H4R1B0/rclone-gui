@@ -67,8 +67,11 @@ struct PathUtilsTests {
         #expect(PathUtils.fileName("/Volumes/SSD/Project") == "Project")
     }
 
-    @Test("parent — absolute path")
+    @Test("parent — absolute path preserves leading slash")
     func parentAbsolute() {
-        #expect(PathUtils.parent("/Volumes/SSD/Project") == "Volumes/SSD")
+        #expect(PathUtils.parent("/Volumes/SSD/Project") == "/Volumes/SSD")
+        #expect(PathUtils.parent("/Volumes/SSD") == "/Volumes")
+        #expect(PathUtils.parent("/Volumes") == "/")
+        #expect(PathUtils.parent("/") == "/")
     }
 }
