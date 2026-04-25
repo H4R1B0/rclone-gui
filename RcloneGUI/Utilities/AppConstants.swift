@@ -61,6 +61,11 @@ enum AppConstants {
     static let maxErrorHistory = 100
     static let maxCompletedTransfers = 200
     static let maxSearchConcurrency = 5
+    static let maxSearchHistory = 10
+    static let searchHistoryKey = "com.rclone-gui.searchHistory"
+    static let remoteAliasesKey = "com.rclone-gui.remoteAliases"
+    static let maxNavigationHistory = 50
+    static let renameFocusDelay: Double = 0.05
     static let maxSpotlightItems = 1000
     static let defaultConcurrentTransfers = 4
     static let defaultMultiThreadStreams = 4

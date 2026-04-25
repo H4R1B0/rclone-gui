@@ -473,3 +473,356 @@ struct PanelViewModelClipboardTests {
         #expect(cb.action == .cut)
     }
 }
+
+// MARK: - Task 1: History
+
+@Suite("TabState History")
+struct TabStateHistoryTests {
+    @Test("pushHistory appends entry") @MainActor
+    func pushAppends() {
+        let tab = TabState(label: "t", mode: .cloud, remote: "gdrive:", path: "")
+        tab.pushHistory(NavEntry(remote: "gdrive:", path: "A"))
+        #expect(tab.backStack.count == 1)
+        #expect(tab.backStack.last == NavEntry(remote: "gdrive:", path: "A"))
+    }
+
+    @Test("pushHistory ignores empty entry") @MainActor
+    func pushIgnoresEmpty() {
+        let tab = TabState(label: "t", mode: .cloud, remote: "gdrive:", path: "")
+        tab.pushHistory(NavEntry(remote: "", path: ""))
+        #expect(tab.backStack.isEmpty)
+    }
+
+    @Test("pushHistory caps at maxHistory") @MainActor
+    func pushCaps() {
+        let tab = TabState(label: "t", mode: .cloud, remote: "gdrive:", path: "")
+        for i in 0..<(TabState.maxHistory + 5) {
+            tab.pushHistory(NavEntry(remote: "gdrive:", path: "\(i)"))
+        }
+        #expect(tab.backStack.count == TabState.maxHistory)
+        #expect(tab.backStack.first?.path == "5")
+    }
+
+    @Test("popBack returns last and pushes current to forward") @MainActor
+    func popBackFlow() {
+        let tab = TabState(label: "t", mode: .cloud, remote: "gdrive:", path: "B")
+        tab.pushHistory(NavEntry(remote: "gdrive:", path: "A"))
+        let current = NavEntry(remote: "gdrive:", path: "B")
+        let result = tab.popBack(current: current)
+        #expect(result == NavEntry(remote: "gdrive:", path: "A"))
+        #expect(tab.backStack.isEmpty)
+        #expect(tab.forwardStack.last == current)
+    }
+
+    @Test("popBack returns nil when empty") @MainActor
+    func popBackEmpty() {
+        let tab = TabState(label: "t", mode: .cloud, remote: "gdrive:", path: "")
+        #expect(tab.popBack(current: NavEntry(remote: "gdrive:", path: "")) == nil)
+    }
+
+    @Test("popForward returns last and pushes current to back") @MainActor
+    func popForwardFlow() {
+        let tab = TabState(label: "t", mode: .cloud, remote: "gdrive:", path: "A")
+        tab.forwardStack.append(NavEntry(remote: "gdrive:", path: "B"))
+        let current = NavEntry(remote: "gdrive:", path: "A")
+        let result = tab.popForward(current: current)
+        #expect(result == NavEntry(remote: "gdrive:", path: "B"))
+        #expect(tab.forwardStack.isEmpty)
+        #expect(tab.backStack.last == current)
+    }
+
+    @Test("clearForward empties forwardStack") @MainActor
+    func clearForwardEmpties() {
+        let tab = TabState(label: "t", mode: .cloud, remote: "gdrive:", path: "")
+        tab.forwardStack.append(NavEntry(remote: "gdrive:", path: "X"))
+        tab.clearForward()
+        #expect(tab.forwardStack.isEmpty)
+    }
+
+    @Test("NavEntry isEmpty true for empty strings") @MainActor
+    func navEntryEmpty() {
+        #expect(NavEntry(remote: "", path: "").isEmpty == true)
+        #expect(NavEntry(remote: "gdrive:", path: "").isEmpty == false)
+        #expect(NavEntry(remote: "", path: "A").isEmpty == false)
+    }
+}
+
+// MARK: - Task 2: Visible Files
+
+@Suite("TabState VisibleFiles")
+struct TabStateVisibleFilesTests {
+    @MainActor
+    private func makeTab() -> TabState {
+        let tab = TabState(label: "t", mode: .local, remote: "/", path: "")
+        tab.files = [
+            makeFileItem(name: "a.txt", path: "a.txt", size: 10),
+            makeFileItem(name: ".hidden", path: ".hidden", size: 0),
+            makeFileItem(name: "Report.PDF", path: "Report.PDF", size: 100),
+            makeFileItem(name: "folder", path: "folder", isDir: true)
+        ]
+        return tab
+    }
+
+    @Test("visibleFiles hides dot-prefixed when showHidden=false") @MainActor
+    func hidesDotFiles() {
+        let tab = makeTab()
+        let visible = tab.visibleFiles(showHidden: false)
+        #expect(visible.count == 3)
+        #expect(!visible.contains { $0.name == ".hidden" })
+    }
+
+    @Test("visibleFiles keeps dot-prefixed when showHidden=true") @MainActor
+    func showsDotFiles() {
+        let tab = makeTab()
+        let visible = tab.visibleFiles(showHidden: true)
+        #expect(visible.count == 4)
+        #expect(visible.contains { $0.name == ".hidden" })
+    }
+
+    @Test("visibleFiles applies filterQuery case-insensitive") @MainActor
+    func filterCaseInsensitive() {
+        let tab = makeTab()
+        tab.filterQuery = "report"
+        let visible = tab.visibleFiles(showHidden: true)
+        #expect(visible.count == 1)
+        #expect(visible.first?.name == "Report.PDF")
+    }
+
+    @Test("visibleFiles empty filterQuery returns all") @MainActor
+    func emptyFilterReturnsAll() {
+        let tab = makeTab()
+        tab.filterQuery = ""
+        let visible = tab.visibleFiles(showHidden: true)
+        #expect(visible.count == 4)
+    }
+
+    @Test("visibleFiles combines hidden + filter") @MainActor
+    func combinedFilters() {
+        let tab = makeTab()
+        tab.filterQuery = "."
+        let visible = tab.visibleFiles(showHidden: false)
+        // "." matches a.txt and Report.PDF; .hidden excluded by showHidden
+        #expect(visible.count == 2)
+    }
+
+    @Test("visibleFiles cache invalidates on files change") @MainActor
+    func cacheInvalidatesOnFiles() {
+        let tab = makeTab()
+        _ = tab.visibleFiles(showHidden: true)
+        tab.files = []
+        let visible = tab.visibleFiles(showHidden: true)
+        #expect(visible.isEmpty)
+    }
+
+    @Test("visibleFiles cache invalidates on filter change") @MainActor
+    func cacheInvalidatesOnFilter() {
+        let tab = makeTab()
+        _ = tab.visibleFiles(showHidden: true)
+        tab.filterQuery = "a"
+        let visible = tab.visibleFiles(showHidden: true)
+        // "a" matches a.txt (folder starts with f), Report.PDF has no 'a' — only a.txt
+        #expect(visible.count == 1)
+        #expect(visible.first?.name == "a.txt")
+    }
+
+    @Test("visibleFiles differs when showHidden toggles") @MainActor
+    func showHiddenBoundary() {
+        let tab = makeTab()
+        let hidden = tab.visibleFiles(showHidden: false).count
+        let shown = tab.visibleFiles(showHidden: true).count
+        #expect(shown > hidden)
+    }
+}
+
+@Suite("PanelSideState ShowHidden")
+struct PanelSideStateShowHiddenTests {
+    @Test("showHidden defaults to false") @MainActor
+    func defaultFalse() {
+        let vm = PanelViewModel(client: MockRcloneClient())
+        #expect(vm.left.showHidden == false)
+        #expect(vm.right.showHidden == false)
+    }
+
+    @Test("showHidden is independent per side") @MainActor
+    func independentPerSide() {
+        let vm = PanelViewModel(client: MockRcloneClient())
+        vm.left.showHidden = true
+        #expect(vm.left.showHidden == true)
+        #expect(vm.right.showHidden == false)
+    }
+}
+
+// MARK: - Task 3: History Navigation via PanelViewModel
+
+@Suite("PanelViewModel History Navigation")
+struct PanelHistoryTests {
+    @MainActor
+    private func makeVM() -> (PanelViewModel, MockRcloneClient) {
+        let client = MockRcloneClient()
+        let vm = PanelViewModel(client: client)
+        vm.left.activeTab.mode = .local
+        vm.left.activeTab.remote = "/"
+        vm.left.activeTab.path = ""
+        client.responses["operations/list"] = ["list": []]
+        return (vm, client)
+    }
+
+    @Test("loadFiles pushes previous entry to history") @MainActor
+    func loadPushesHistory() async {
+        let (vm, _) = makeVM()
+        vm.left.activeTab.path = "A"
+        await vm.loadFiles(side: .left, path: "A/B")
+        #expect(vm.left.activeTab.backStack.last == NavEntry(remote: "/", path: "A"))
+        #expect(vm.left.activeTab.path == "A/B")
+    }
+
+    @Test("loadFiles clears forwardStack") @MainActor
+    func loadClearsForward() async {
+        let (vm, _) = makeVM()
+        vm.left.activeTab.forwardStack.append(NavEntry(remote: "/", path: "X"))
+        await vm.loadFiles(side: .left, path: "A")
+        #expect(vm.left.activeTab.forwardStack.isEmpty)
+    }
+
+    @Test("loadFiles with recordHistory:false does not push") @MainActor
+    func loadSkipHistory() async {
+        let (vm, _) = makeVM()
+        vm.left.activeTab.path = "A"
+        await vm.loadFiles(side: .left, path: "B", recordHistory: false)
+        #expect(vm.left.activeTab.backStack.isEmpty)
+    }
+
+    @Test("loadFiles clears filter on path change") @MainActor
+    func loadClearsFilter() async {
+        let (vm, _) = makeVM()
+        vm.left.activeTab.filterQuery = "test"
+        await vm.loadFiles(side: .left, path: "A")
+        #expect(vm.left.activeTab.filterQuery == "")
+    }
+
+    @Test("goBack navigates to previous entry") @MainActor
+    func goBackPrevious() async {
+        let (vm, _) = makeVM()
+        await vm.loadFiles(side: .left, path: "A")
+        await vm.loadFiles(side: .left, path: "A/B")
+        await vm.goBack(side: .left)
+        #expect(vm.left.activeTab.path == "A")
+        #expect(vm.left.activeTab.forwardStack.last == NavEntry(remote: "/", path: "A/B"))
+    }
+
+    @Test("goForward restores forward entry") @MainActor
+    func goForwardRestores() async {
+        let (vm, _) = makeVM()
+        await vm.loadFiles(side: .left, path: "A")
+        await vm.loadFiles(side: .left, path: "A/B")
+        await vm.goBack(side: .left)
+        await vm.goForward(side: .left)
+        #expect(vm.left.activeTab.path == "A/B")
+    }
+
+    @Test("goBack is no-op when backStack empty") @MainActor
+    func goBackNoOp() async {
+        let (vm, _) = makeVM()
+        let initialPath = vm.left.activeTab.path
+        await vm.goBack(side: .left)
+        #expect(vm.left.activeTab.path == initialPath)
+    }
+
+    @Test("new navigation after goBack clears forwardStack") @MainActor
+    func newNavClearsForward() async {
+        let (vm, _) = makeVM()
+        await vm.loadFiles(side: .left, path: "A")
+        await vm.loadFiles(side: .left, path: "A/B")
+        await vm.goBack(side: .left)
+        await vm.loadFiles(side: .left, path: "C")
+        #expect(vm.left.activeTab.forwardStack.isEmpty)
+    }
+
+    @Test("loadFiles failure preserves history/forward/filter state") @MainActor
+    func failurePreservesState() async {
+        let (vm, client) = makeVM()
+        // Establish a baseline state
+        await vm.loadFiles(side: .left, path: "A")
+        vm.left.activeTab.forwardStack.append(NavEntry(remote: "/", path: "Saved"))
+        vm.left.activeTab.filterQuery = "important"
+        let backBefore = vm.left.activeTab.backStack
+        let forwardBefore = vm.left.activeTab.forwardStack
+        let filterBefore = vm.left.activeTab.filterQuery
+        let pathBefore = vm.left.activeTab.path
+
+        // Make next call fail
+        client.errorForMethod["operations/list"] = RcloneError.rpcFailed(method: "operations/list", status: 503, message: "boom")
+
+        await vm.loadFiles(side: .left, path: "B")
+
+        #expect(vm.left.activeTab.path == pathBefore)
+        #expect(vm.left.activeTab.backStack == backBefore)
+        #expect(vm.left.activeTab.forwardStack == forwardBefore)
+        #expect(vm.left.activeTab.filterQuery == filterBefore)
+        #expect(vm.left.activeTab.error != nil)
+    }
+
+    @Test("navigateTo across remotes records correct prev entry") @MainActor
+    func navigateToCrossRemote() async {
+        let (vm, _) = makeVM()
+        // Start in local "/Users/foo"
+        await vm.loadFiles(side: .left, path: "Users/foo")
+        // Cross-remote jump to gdrive:/Documents
+        await vm.navigateTo(side: .left, remote: "gdrive:", path: "Documents")
+        #expect(vm.left.activeTab.remote == "gdrive:")
+        #expect(vm.left.activeTab.path == "Documents")
+        // Back should return to ("/", "Users/foo"), not phantom ("gdrive:", "Users/foo")
+        await vm.goBack(side: .left)
+        #expect(vm.left.activeTab.remote == "/")
+        #expect(vm.left.activeTab.path == "Users/foo")
+    }
+}
+
+@Suite("PanelViewModel Selection × Visibility")
+struct PanelSelectionVisibilityTests {
+    @MainActor
+    private func makeVM() -> PanelViewModel {
+        let vm = PanelViewModel(client: MockRcloneClient())
+        let tab = vm.left.activeTab
+        tab.mode = .local
+        tab.remote = "/"
+        tab.files = [
+            makeFileItem(name: ".hidden", path: ".hidden"),
+            makeFileItem(name: "a.txt", path: "a.txt"),
+            makeFileItem(name: "b.txt", path: "b.txt"),
+            makeFileItem(name: "c.txt", path: "c.txt"),
+        ]
+        return vm
+    }
+
+    @Test("selectAll skips hidden when showHidden=false") @MainActor
+    func selectAllSkipsHidden() {
+        let vm = makeVM()
+        vm.left.showHidden = false
+        vm.selectAll(side: .left)
+        #expect(!vm.left.activeTab.selectedFiles.contains(".hidden"))
+        #expect(vm.left.activeTab.selectedFiles.count == 3)
+    }
+
+    @Test("selectAll respects active filter") @MainActor
+    func selectAllRespectsFilter() {
+        let vm = makeVM()
+        vm.left.showHidden = true
+        vm.left.activeTab.filterQuery = "a"
+        vm.selectAll(side: .left)
+        #expect(vm.left.activeTab.selectedFiles == ["a.txt"])
+    }
+
+    @Test("rangeSelect operates on visible files only") @MainActor
+    func rangeSelectVisibleOnly() {
+        let vm = makeVM()
+        vm.left.showHidden = false
+        // First click a.txt
+        vm.singleSelect(side: .left, name: "a.txt")
+        // Then shift-click c.txt
+        vm.rangeSelect(side: .left, toName: "c.txt")
+        // Range should not contain .hidden, only visible files
+        #expect(!vm.left.activeTab.selectedFiles.contains(".hidden"))
+        #expect(vm.left.activeTab.selectedFiles == ["a.txt", "b.txt", "c.txt"])
+    }
+}

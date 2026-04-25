@@ -11,9 +11,29 @@ struct FilePanePathBar: View {
 
     var body: some View {
         HStack(spacing: 6) {
+            // Back button
+            Button(action: { Task { await appState.panels.goBack(side: side) } }) {
+                Image(systemName: "arrow.left")
+                    .font(.system(size: 11, weight: .medium))
+            }
+            .buttonStyle(.plain)
+            .foregroundColor(tab.backStack.isEmpty ? .secondary.opacity(0.3) : .secondary)
+            .disabled(tab.backStack.isEmpty)
+            .help(L10n.t("panel.back"))
+
+            // Forward button
+            Button(action: { Task { await appState.panels.goForward(side: side) } }) {
+                Image(systemName: "arrow.right")
+                    .font(.system(size: 11, weight: .medium))
+            }
+            .buttonStyle(.plain)
+            .foregroundColor(tab.forwardStack.isEmpty ? .secondary.opacity(0.3) : .secondary)
+            .disabled(tab.forwardStack.isEmpty)
+            .help(L10n.t("panel.forward"))
+
             // Up button
             Button(action: { Task { await appState.panels.goUp(side: side) } }) {
-                Image(systemName: "chevron.left")
+                Image(systemName: "chevron.up")
                     .font(.system(size: 11, weight: .medium))
             }
             .buttonStyle(.plain)
@@ -90,6 +110,18 @@ struct FilePanePathBar: View {
             .buttonStyle(.plain)
             .help(appState.bookmarks.isBookmarked(fs: tab.remote, path: tab.path)
                   ? L10n.t("bookmark.remove") : L10n.t("bookmark.add"))
+
+            // Show hidden toggle
+            Button(action: {
+                appState.panels.side(side).showHidden.toggle()
+            }) {
+                Image(systemName: appState.panels.side(side).showHidden ? "eye.fill" : "eye.slash")
+                    .font(.system(size: 11))
+                    .foregroundColor(appState.panels.side(side).showHidden ? .accentColor : .secondary)
+            }
+            .buttonStyle(.plain)
+            .help(appState.panels.side(side).showHidden
+                  ? L10n.t("panel.hideHidden") : L10n.t("panel.showHidden"))
 
             // View mode toggle
             Button(action: {

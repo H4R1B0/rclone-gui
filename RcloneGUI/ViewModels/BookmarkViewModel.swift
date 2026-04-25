@@ -54,6 +54,43 @@ final class BookmarkViewModel {
         }
     }
 
+    func rename(id: UUID, newName: String) {
+        let trimmed = newName.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty,
+              let idx = bookmarks.firstIndex(where: { $0.id == id }) else { return }
+        bookmarks[idx].name = trimmed
+        save()
+    }
+
+    func move(fromIndex: Int, toIndex: Int) {
+        guard fromIndex >= 0, fromIndex < bookmarks.count,
+              toIndex >= 0, toIndex <= bookmarks.count,
+              fromIndex != toIndex else { return }
+        let item = bookmarks.remove(at: fromIndex)
+        let insertIndex = fromIndex < toIndex ? toIndex - 1 : toIndex
+        bookmarks.insert(item, at: min(insertIndex, bookmarks.count))
+        save()
+    }
+
+    func moveFromOffsets(_ offsets: IndexSet, to destination: Int) {
+        // Manual implementation to avoid SwiftUI dependency
+        let items = offsets.map { bookmarks[$0] }
+        let remaining: [Bookmark]
+        var adjustedDest = destination
+        do {
+            var tmp = bookmarks
+            for idx in offsets.sorted(by: >) {
+                tmp.remove(at: idx)
+                if idx < destination { adjustedDest -= 1 }
+            }
+            remaining = tmp
+        }
+        var result = remaining
+        result.insert(contentsOf: items, at: min(max(adjustedDest, 0), result.count))
+        bookmarks = result
+        save()
+    }
+
     func save() {
         if let data = try? JSONEncoder().encode(bookmarks) {
             try? data.write(to: configURL)
