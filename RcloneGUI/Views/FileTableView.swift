@@ -337,6 +337,9 @@ struct FileTableView: View {
             TapGesture(count: 2).onEnded {
                 if file.isDir {
                     Task { await appState.panels.navigate(side: side, dirName: file.name) }
+                } else if isMediaFile(file.name) && tab.remote != "/" {
+                    // 클라우드 미디어는 스트리밍 우선 — MediaPlayerSheet가 백엔드 네이티브 URL/publicLink/다운로드 순으로 시도
+                    mediaFile = file
                 } else if isImageFile(file.name) || isMediaFile(file.name) {
                     openWithDefaultApp(file)
                 }
@@ -395,6 +398,9 @@ struct FileTableView: View {
             TapGesture(count: 2).onEnded {
                 if file.isDir {
                     Task { await appState.panels.navigate(side: side, dirName: file.name) }
+                } else if isMediaFile(file.name) && tab.remote != "/" {
+                    // 클라우드 미디어는 스트리밍 우선 — MediaPlayerSheet가 백엔드 네이티브 URL/publicLink/다운로드 순으로 시도
+                    mediaFile = file
                 } else if isImageFile(file.name) || isMediaFile(file.name) {
                     openWithDefaultApp(file)
                 }

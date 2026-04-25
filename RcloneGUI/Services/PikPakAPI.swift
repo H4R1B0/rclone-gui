@@ -9,7 +9,7 @@ import RcloneKit
 /// 폴더 단위 캐시 (5분 TTL): 같은 폴더 안 여러 파일 썸네일 요청이 들어와도 PikPak API는 폴더당 1번 호출.
 @MainActor
 @Observable
-final class PikPakAPI: CloudThumbnailProvider {
+final class PikPakAPI: CloudThumbnailProvider, CloudStreamingProvider {
     static let shared = PikPakAPI()
 
     static let supportedTypes: Set<String> = ["pikpak"]
@@ -27,6 +27,10 @@ final class PikPakAPI: CloudThumbnailProvider {
         let id: String
         let name: String
         let thumbnailLink: String?
+        /// 영상의 미디어 스트림 정보 (스트리밍 URL 추출용)
+        let webContentLink: String?
+        /// 영상 등에 채워지는 보조 썸네일 — medias[].link.url 또는 첫 번째 미디어
+        let mediaThumbnailLink: String?
     }
 
     private var folderCaches: [String: FolderEntry] = [:]   // key: "remoteName/path"
@@ -42,41 +46,73 @@ final class PikPakAPI: CloudThumbnailProvider {
         size: CGFloat,
         client: RcloneClient
     ) async -> NSImage? {
-        guard let urlString = await thumbnailURL(
+        guard let pikPakFile = await fetchFile(
+            remoteName: remoteName,
+            filePath: file.path,
+            fileName: file.name,
+            client: client
+        ) else {
+            return nil
+        }
+
+        // 1순위: 정식 thumbnail_link (이미지 + 일부 영상)
+        // 2순위: medias[].link.url (영상 스크린샷 — PikPak이 thumbnail_link 미생성 시)
+        let candidates = [pikPakFile.thumbnailLink, pikPakFile.mediaThumbnailLink].compactMap { $0 }
+        for s in candidates {
+            if let url = URL(string: s), let img = await downloadImage(url: url) {
+                return img
+            }
+        }
+        return nil
+    }
+
+    // MARK: - CloudStreamingProvider
+
+    func streamingURL(
+        for file: FileItem,
+        remoteName: String,
+        client: RcloneClient
+    ) async -> URL? {
+        guard let pikPakFile = await fetchFile(
             remoteName: remoteName,
             filePath: file.path,
             fileName: file.name,
             client: client
         ),
-        let url = URL(string: urlString) else {
+        let link = pikPakFile.webContentLink,
+        let url = URL(string: link) else {
             return nil
         }
-        return await downloadImage(url: url)
+        return url
     }
 
-    // MARK: - Thumbnail URL resolution
+    // MARK: - File lookup
 
-    private func thumbnailURL(
+    /// 폴더 캐시에서 파일 메타데이터를 조회하고, 미스 시 PikPak API로 폴더 전체를 가져와 캐싱.
+    private func fetchFile(
         remoteName: String,
         filePath: String,
         fileName: String,
         client: RcloneClient
-    ) async -> String? {
+    ) async -> PikPakFile? {
         let parentPath = (filePath as NSString).deletingLastPathComponent
         let cacheKey = "\(remoteName)/\(parentPath)"
 
         if let entry = folderCaches[cacheKey], !entry.isExpired,
            let f = entry.files[fileName] {
-            return f.thumbnailLink
+            return f
         }
 
         guard let token = await accessToken(remoteName: remoteName, client: client) else {
+            log("토큰 추출 실패 — config/get에서 access_token 파싱 못함 (remote: \(remoteName))")
             return nil
         }
         guard let parentId = await resolveFolderId(path: parentPath, token: token) else {
+            log("폴더 ID 해석 실패 — path \"\(parentPath)\"의 segment 매칭 실패")
             return nil
         }
         guard let files = await listFiles(parentId: parentId, token: token) else {
+            log("listFiles 실패 (parent_id: \(parentId))")
             return nil
         }
 
@@ -84,7 +120,16 @@ final class PikPakAPI: CloudThumbnailProvider {
         for f in files { map[f.name] = f }
         folderCaches[cacheKey] = FolderEntry(files: map, timestamp: Date())
 
-        return map[fileName]?.thumbnailLink
+        if map[fileName] == nil {
+            log("파일 매칭 실패 — \"\(fileName)\" not in PikPak listing of \"\(parentPath)\" (\(files.count)개)")
+        }
+        return map[fileName]
+    }
+
+    private func log(_ msg: String) {
+        #if DEBUG
+        print("[PikPakAPI] \(msg)")
+        #endif
     }
 
     // MARK: - OAuth token
@@ -95,23 +140,25 @@ final class PikPakAPI: CloudThumbnailProvider {
         }
         do {
             let config = try await RcloneAPI.getRemoteConfig(using: client, name: remoteName)
-            guard let tokenStr = config["token"] as? String,
-                  let data = tokenStr.data(using: .utf8),
-                  let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                  let access = json["access_token"] as? String else {
+            guard let tokenStr = config["token"] as? String else {
+                log("config에 token 필드 없음 (keys: \(config.keys.sorted().joined(separator: ", ")))")
+                return nil
+            }
+            guard let data = tokenStr.data(using: .utf8),
+                  let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                log("token 필드가 JSON이 아님")
+                return nil
+            }
+            guard let access = json["access_token"] as? String else {
+                log("token JSON에 access_token 없음 (keys: \(json.keys.sorted().joined(separator: ", ")))")
                 return nil
             }
             tokenCache[remoteName] = access
             return access
         } catch {
+            log("config/get 실패: \(error.localizedDescription)")
             return nil
         }
-    }
-
-    /// 401 응답 시 토큰 캐시를 비워 다음 호출에서 rclone config로부터 다시 읽도록 함.
-    /// (rclone이 백그라운드에서 자체 refresh 했을 가능성에 기대 — 별도 PR에서 직접 refresh 추가 검토)
-    private func invalidateToken(remoteName: String) {
-        tokenCache.removeValue(forKey: remoteName)
     }
 
     // MARK: - Folder ID resolution
@@ -164,20 +211,39 @@ final class PikPakAPI: CloudThumbnailProvider {
             let (data, response) = try await URLSession.shared.data(for: request)
             guard let http = response as? HTTPURLResponse else { return nil }
             if http.statusCode == 401 {
-                // 토큰 만료/무효 — 캐시 비우고 caller가 재시도 또는 폴백
+                log("401 — access_token 만료/무효, 캐시 비움")
+                tokenCache.removeAll()
                 return nil
             }
-            guard (200..<300).contains(http.statusCode) else { return nil }
+            guard (200..<300).contains(http.statusCode) else {
+                let body = String(data: data, encoding: .utf8)?.prefix(200) ?? ""
+                log("HTTP \(http.statusCode): \(body)")
+                return nil
+            }
 
             guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
                   let arr = json["files"] as? [[String: Any]] else {
                 return nil
             }
-            return arr.map { dict in
-                PikPakFile(
+            return arr.map { dict -> PikPakFile in
+                // 영상의 경우 medias[].link.url에 스크린샷이 들어 있음 — thumbnail_link가 비어 있을 때 폴백
+                var mediaThumb: String? = nil
+                if let medias = dict["medias"] as? [[String: Any]] {
+                    for m in medias {
+                        if let link = m["link"] as? [String: Any],
+                           let url = link["url"] as? String,
+                           !url.isEmpty {
+                            mediaThumb = url
+                            break
+                        }
+                    }
+                }
+                return PikPakFile(
                     id: dict["id"] as? String ?? "",
                     name: dict["name"] as? String ?? "",
-                    thumbnailLink: dict["thumbnail_link"] as? String
+                    thumbnailLink: dict["thumbnail_link"] as? String,
+                    webContentLink: dict["web_content_link"] as? String,
+                    mediaThumbnailLink: mediaThumb
                 )
             }
         } catch {
