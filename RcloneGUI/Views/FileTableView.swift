@@ -24,7 +24,7 @@ struct FileTableView: View {
 
     private var viewMode: ViewMode { appState.panels.side(side).viewMode }
 
-    private let gridColumns = [GridItem(.adaptive(minimum: 90, maximum: 120), spacing: 8)]
+    private let gridColumns = [GridItem(.adaptive(minimum: 180, maximum: 240), spacing: 16)]
 
     var body: some View {
         let showHidden = appState.panels.side(side).showHidden
@@ -81,12 +81,12 @@ struct FileTableView: View {
                 Group {
                     if viewMode == .grid {
                         ScrollView {
-                            LazyVGrid(columns: gridColumns, spacing: 8) {
+                            LazyVGrid(columns: gridColumns, spacing: 16) {
                                 ForEach(visibleFiles) { file in
                                     gridCell(file)
                                 }
                             }
-                            .padding(8)
+                            .padding(16)
                         }
                     } else {
                         ScrollView {
@@ -353,35 +353,35 @@ struct FileTableView: View {
     private func gridCell(_ file: FileItem) -> some View {
         let isSelected = tab.selectedFiles.contains(file.name)
 
-        return VStack(spacing: 4) {
+        return VStack(spacing: 8) {
             if isThumbnailable(file) {
-                ThumbnailImageView(file: file, fs: tab.remote, size: 56, cornerRadius: 4)
+                ThumbnailImageView(file: file, fs: tab.remote, size: 112, cornerRadius: 8)
             } else {
                 Image(systemName: FormatUtils.fileIcon(name: file.name, isDir: file.isDir))
-                    .font(.system(size: 28))
+                    .font(.system(size: 56))
                     .foregroundColor(file.isDir ? .accentColor : .secondary)
-                    .frame(width: 56, height: 56)
+                    .frame(width: 112, height: 112)
             }
 
             if renamingFile == file.name {
                 TextField("Name", text: $renameText)
                     .textFieldStyle(.roundedBorder)
-                    .font(.system(size: 10))
+                    .font(.system(size: 12))
                     .multilineTextAlignment(.center)
-                    .frame(width: 80)
+                    .frame(width: 160)
                     .onSubmit { commitRename(file) }
                     .onExitCommand { renamingFile = nil }
             } else {
                 Text(file.name)
-                    .font(.system(size: 10))
+                    .font(.system(size: 12))
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
-                    .frame(width: 80)
+                    .frame(width: 160)
             }
         }
-        .padding(6)
+        .padding(12)
         .background(isSelected ? Color.accentColor.opacity(0.2) : Color.clear)
-        .cornerRadius(6)
+        .cornerRadius(8)
         .contentShape(Rectangle())
         .onTapGesture {
             if NSEvent.modifierFlags.contains(.shift) {
