@@ -211,18 +211,25 @@ final class PikPakAPI: CloudThumbnailProvider, CloudStreamingProvider {
         token: String,
         pageToken: String?
     ) async -> (files: [PikPakFile], nextPageToken: String?)? {
+        // PikPak 루트는 빈 문자열을 parent_id로 사용. "*"는 일부 deployment에서 invalid_argument 반환.
+        let actualParentId: String = (parentId == "*") ? "" : parentId
+
+        // rclone PikPak 백엔드의 호출 형식에 맞춤 (filters JSON 제거 — PikPak이 일부 환경에서 거부).
+        // trashed 필터는 응답에서 클라이언트가 처리.
         var components = URLComponents(url: baseURL.appendingPathComponent("/drive/v1/files"), resolvingAgainstBaseURL: false)!
         var items: [URLQueryItem] = [
-            URLQueryItem(name: "parent_id", value: parentId),
-            URLQueryItem(name: "thumbnail_size", value: "SIZE_MEDIUM"),
-            URLQueryItem(name: "limit", value: "500"),
-            URLQueryItem(name: "filters", value: #"{"trashed":{"eq":false}}"#)
+            URLQueryItem(name: "parent_id", value: actualParentId),
+            URLQueryItem(name: "thumbnail_size", value: "SIZE_LARGE"),
+            URLQueryItem(name: "with_audit", value: "true"),
+            URLQueryItem(name: "limit", value: "100")
         ]
         if let pageToken, !pageToken.isEmpty {
             items.append(URLQueryItem(name: "page_token", value: pageToken))
         }
         components.queryItems = items
         guard let url = components.url else { return nil }
+
+        log("GET \(url.absoluteString)")
 
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -247,7 +254,9 @@ final class PikPakAPI: CloudThumbnailProvider, CloudStreamingProvider {
                   let arr = json["files"] as? [[String: Any]] else {
                 return nil
             }
-            let files: [PikPakFile] = arr.map { dict in
+            // 클라이언트 측 trashed 필터 (서버 filters JSON이 일부 환경에서 거부되어 응답에서 처리)
+            let visible = arr.filter { ($0["trashed"] as? Bool) != true }
+            let files: [PikPakFile] = visible.map { dict in
                 var mediaThumb: String? = nil
                 if let medias = dict["medias"] as? [[String: Any]] {
                     for m in medias {
