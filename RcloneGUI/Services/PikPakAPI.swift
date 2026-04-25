@@ -337,7 +337,7 @@ final class PikPakAPI: CloudThumbnailProvider, CloudStreamingProvider {
             URLQueryItem(name: "thumbnail_size", value: "SIZE_MEDIUM"),
             URLQueryItem(name: "with_audit", value: "true"),
             URLQueryItem(name: "limit", value: "500"),
-            URLQueryItem(name: "filters", value: #"{"Phase":{"eq":"PHASE_TYPE_COMPLETE"},"Trashed":{"eq":"false"}}"#)
+            URLQueryItem(name: "filters", value: #"{"phase":{"eq":"PHASE_TYPE_COMPLETE"},"trashed":{"eq":"false"}}"#)
         ]
         // root는 parent_id 파라미터 자체를 생략 (rclone 동작)
         if !parentId.isEmpty {
