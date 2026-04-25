@@ -109,15 +109,12 @@ final class PikPakAPI: CloudThumbnailProvider, CloudStreamingProvider {
         }
 
         guard let access = await accessToken(remoteName: remoteName, client: client) else {
-            log("access_token 추출 실패 (\(remoteName))")
             return nil
         }
         guard let parentId = await resolveFolderId(remoteName: remoteName, path: parentPath, accessToken: access) else {
-            log("폴더 ID 해석 실패: \"\(parentPath)\"")
             return nil
         }
         guard let files = await listAllFiles(remoteName: remoteName, parentId: parentId, accessToken: access) else {
-            log("listAllFiles 실패 (parent_id: \(parentId))")
             return nil
         }
 
@@ -125,16 +122,7 @@ final class PikPakAPI: CloudThumbnailProvider, CloudStreamingProvider {
         for f in files { map[f.name] = f }
         folderCaches[cacheKey] = FolderEntry(files: map, timestamp: Date())
 
-        if map[fileName] == nil {
-            log("파일 매칭 실패 — \"\(fileName)\" not in \"\(parentPath)\" (\(files.count)개)")
-        }
         return map[fileName]
-    }
-
-    private func log(_ msg: String) {
-        #if DEBUG
-        print("[PikPakAPI] \(msg)")
-        #endif
     }
 
     // MARK: - Device ID (앱 설치 시 1회 생성, UserDefaults에 영구 저장)
@@ -159,14 +147,10 @@ final class PikPakAPI: CloudThumbnailProvider, CloudStreamingProvider {
         }
         do {
             let config = try await RcloneAPI.getRemoteConfig(using: client, name: remoteName)
-            guard let tokenStr = config["token"] as? String else {
-                log("config에 token 필드 없음")
-                return nil
-            }
-            guard let data = tokenStr.data(using: .utf8),
+            guard let tokenStr = config["token"] as? String,
+                  let data = tokenStr.data(using: .utf8),
                   let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
                   let access = json["access_token"] as? String else {
-                log("token JSON 파싱 실패")
                 return nil
             }
             tokenCache[remoteName] = access
@@ -175,7 +159,6 @@ final class PikPakAPI: CloudThumbnailProvider, CloudStreamingProvider {
             }
             return access
         } catch {
-            log("config/get 실패: \(error.localizedDescription)")
             return nil
         }
     }
@@ -238,15 +221,10 @@ final class PikPakAPI: CloudThumbnailProvider, CloudStreamingProvider {
 
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
-            guard let http = response as? HTTPURLResponse else { return nil }
-            guard (200..<300).contains(http.statusCode) else {
-                let bodyStr = String(data: data, encoding: .utf8)?.prefix(300) ?? ""
-                log("captcha/init HTTP \(http.statusCode): \(bodyStr)")
-                return nil
-            }
-            guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+            guard let http = response as? HTTPURLResponse,
+                  (200..<300).contains(http.statusCode),
+                  let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
                   let token = json["captcha_token"] as? String else {
-                log("captcha/init 응답 파싱 실패")
                 return nil
             }
             // expires_in은 number 또는 string으로 올 수 있음 — 안전한 캐스트
@@ -259,7 +237,6 @@ final class PikPakAPI: CloudThumbnailProvider, CloudStreamingProvider {
             captchaCache[key] = entry
             return token
         } catch {
-            log("captcha/init 예외: \(error.localizedDescription)")
             return nil
         }
     }
@@ -328,7 +305,6 @@ final class PikPakAPI: CloudThumbnailProvider, CloudStreamingProvider {
     ) async -> (files: [PikPakFile], nextPageToken: String?)? {
         let action = "GET:/drive/v1/files"
         guard let captcha = await captchaToken(remoteName: remoteName, action: action, accessToken: accessToken) else {
-            log("captcha 토큰 발급 실패")
             return nil
         }
 
@@ -349,8 +325,6 @@ final class PikPakAPI: CloudThumbnailProvider, CloudStreamingProvider {
         components.queryItems = items
         guard let url = components.url else { return nil }
 
-        log("GET \(url.absoluteString)")
-
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.timeoutInterval = 15
@@ -360,19 +334,15 @@ final class PikPakAPI: CloudThumbnailProvider, CloudStreamingProvider {
             let (data, response) = try await URLSession.shared.data(for: request)
             guard let http = response as? HTTPURLResponse else { return nil }
             if http.statusCode == 401 {
-                log("401 — access_token 만료, 캐시 비움")
                 tokenCache.removeAll()
                 return nil
             }
-            if http.statusCode == 403 || http.statusCode == 9 || http.statusCode == 4002 {
-                // captcha 만료/무효 — 캐시 비우고 재시도 가능 (호출자가 다음 호출 시 재발급)
-                log("\(http.statusCode) — captcha 무효, 캐시 비움")
+            if http.statusCode == 403 {
+                // captcha 만료/무효 — 캐시 비우고 호출자가 재시도
                 captchaCache.removeAll()
                 return nil
             }
             guard (200..<300).contains(http.statusCode) else {
-                let body = String(data: data, encoding: .utf8)?.prefix(300) ?? ""
-                log("HTTP \(http.statusCode): \(body)")
                 return nil
             }
 
@@ -402,7 +372,6 @@ final class PikPakAPI: CloudThumbnailProvider, CloudStreamingProvider {
             let next = json["next_page_token"] as? String
             return (files, next)
         } catch {
-            log("listFilesPage 예외: \(error.localizedDescription)")
             return nil
         }
     }
