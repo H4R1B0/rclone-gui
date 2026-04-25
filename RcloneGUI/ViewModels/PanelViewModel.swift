@@ -378,10 +378,9 @@ final class PanelViewModel {
 
     func goUp(side panelSide: PanelSide) async {
         let tab = side(panelSide).activeTab
-        guard !tab.path.isEmpty else { return }
-        var parts = tab.path.split(separator: "/").map(String.init)
-        parts.removeLast()
-        let newPath = parts.joined(separator: "/")
+        guard !tab.path.isEmpty, tab.path != "/" else { return }
+        let newPath = PathUtils.parent(tab.path)
+        guard newPath != tab.path else { return }
         tab.selectedFiles = []
         await loadFiles(side: panelSide, path: newPath)
     }
