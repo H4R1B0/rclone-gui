@@ -360,11 +360,21 @@ struct FileTableView: View {
                     .frame(width: 56, height: 56)
             }
 
-            Text(file.name)
-                .font(.system(size: 10))
-                .lineLimit(2)
-                .multilineTextAlignment(.center)
-                .frame(width: 80)
+            if renamingFile == file.name {
+                TextField("Name", text: $renameText)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.system(size: 10))
+                    .multilineTextAlignment(.center)
+                    .frame(width: 80)
+                    .onSubmit { commitRename(file) }
+                    .onExitCommand { renamingFile = nil }
+            } else {
+                Text(file.name)
+                    .font(.system(size: 10))
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                    .frame(width: 80)
+            }
         }
         .padding(6)
         .background(isSelected ? Color.accentColor.opacity(0.2) : Color.clear)
