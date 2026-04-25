@@ -194,16 +194,22 @@ final class MiddleClickNSView: NSView {
 
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
-        if window != nil && monitor == nil {
-            monitor = NSEvent.addLocalMonitorForEvents(matching: .otherMouseDown) { [weak self] event in
-                guard let self = self, event.buttonNumber == 2,
-                      self.window != nil else { return event }
-                let locationInView = self.convert(event.locationInWindow, from: nil)
-                if self.bounds.contains(locationInView) {
-                    self.action?()
+        if window != nil {
+            if monitor == nil {
+                monitor = NSEvent.addLocalMonitorForEvents(matching: .otherMouseDown) { [weak self] event in
+                    guard let self = self, event.buttonNumber == 2,
+                          self.window != nil else { return event }
+                    let locationInView = self.convert(event.locationInWindow, from: nil)
+                    if self.bounds.contains(locationInView) {
+                        self.action?()
+                    }
+                    return event
                 }
-                return event
             }
+        } else if let m = monitor {
+            // 윈도우에서 떨어져나갈 때(creator removed/closed) 모니터 즉시 해제 — 누수 방지
+            NSEvent.removeMonitor(m)
+            monitor = nil
         }
     }
 

@@ -52,7 +52,7 @@ struct FilePanePathBar: View {
                     .cornerRadius(4)
                     .focused($isFieldFocused)
                     .onSubmit {
-                        Task { await appState.panels.loadFiles(side: side, path: editPath) }
+                        Task { await submitPath(editPath) }
                         isEditing = false
                     }
                     .onExitCommand { isEditing = false }
@@ -153,5 +153,27 @@ struct FilePanePathBar: View {
         .onChange(of: appState.panels.activePanel) {
             isEditing = false
         }
+    }
+
+    /// 경로 바 직접 입력 처리.
+    /// - "remote:" 또는 "remote:/path" → 해당 리모트로 전환 후 path로 이동
+    /// - 그 외 → 현재 리모트 안에서 path로 해석
+    private func submitPath(_ raw: String) async {
+        let trimmed = raw.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else {
+            await appState.panels.loadFiles(side: side, path: "")
+            return
+        }
+        if let colonIdx = trimmed.firstIndex(of: ":") {
+            let remoteName = String(trimmed[..<colonIdx])
+            let after = trimmed[trimmed.index(after: colonIdx)...]
+            // remote 존재 확인 (없으면 일반 path로 폴백)
+            if appState.panels.remotes.contains(remoteName) {
+                let pathPart = String(after).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+                await appState.panels.loadFiles(side: side, remote: "\(remoteName):", path: pathPart)
+                return
+            }
+        }
+        await appState.panels.loadFiles(side: side, path: trimmed)
     }
 }
