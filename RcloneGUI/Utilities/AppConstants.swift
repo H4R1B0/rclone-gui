@@ -44,6 +44,21 @@ enum AppConstants {
         return dir
     }()
 
+    /// Caches/RcloneGUI/thumbnails — 영구 썸네일 캐시 (사용자가 수동으로 지움)
+    static let thumbnailCacheDir: URL = {
+        let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
+        let dir = caches.appendingPathComponent(appName).appendingPathComponent("thumbnails")
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir
+    }()
+
+    /// 썸네일 생성 시 임시 다운로드 디렉토리 — 생성 직후 삭제
+    static let thumbnailWorkDir: URL = {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("RcloneGUI-thumbs")
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir
+    }()
+
     // MARK: - Polling & Timing (seconds)
 
     static let transferPollingInterval: Double = 1
@@ -69,4 +84,18 @@ enum AppConstants {
     static let maxSpotlightItems = 1000
     static let defaultConcurrentTransfers = 4
     static let defaultMultiThreadStreams = 4
+
+    // MARK: - Thumbnails
+
+    /// 이미지 썸네일 생성 대상 최대 크기 — 초과 시 폴백 아이콘
+    static let thumbnailMaxImageBytes: Int64 = 25 * 1024 * 1024  // 25 MB
+
+    /// 영상 썸네일 생성 대상 최대 크기 — 첫 프레임 추출 위해 전체 다운로드 필요
+    static let thumbnailMaxVideoBytes: Int64 = 200 * 1024 * 1024  // 200 MB
+
+    /// 메모리 LRU 캐시에 보관할 썸네일 수
+    static let thumbnailMemoryLimit = 200
+
+    /// 그리드/리스트 셀에서 사용하는 기본 썸네일 픽셀 크기 (논리 픽셀)
+    static let thumbnailDefaultSize: CGFloat = 128
 }

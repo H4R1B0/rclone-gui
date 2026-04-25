@@ -7,6 +7,8 @@ struct SettingsSheet: View {
     @State private var pendingLocale: String = AppConstants.defaultLocale
     @State private var showRestartAlert = false
     @State private var showSetPassword = false
+    @State private var thumbnailCacheBytes: Int64 = 0
+    @State private var clearingCache = false
 
     private var settings: SettingsViewModel { appState.settings }
 
@@ -158,6 +160,36 @@ struct SettingsSheet: View {
                         .padding(.vertical, 4)
                     }
 
+                    // 캐시
+                    GroupBox(L10n.t("settings.cache")) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text(L10n.t("settings.cache.thumbnails"))
+                                    .font(.system(size: 12))
+                                Spacer()
+                                Text(FormatUtils.formatBytes(thumbnailCacheBytes))
+                                    .font(.system(size: 12))
+                                    .monospacedDigit()
+                                    .foregroundColor(.secondary)
+                            }
+                            HStack {
+                                Text(L10n.t("settings.cache.clearHelp"))
+                                    .font(.system(size: 10))
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                                Button(L10n.t("settings.cache.clear"), role: .destructive) {
+                                    clearingCache = true
+                                    ThumbnailCache.shared.clearAll()
+                                    refreshCacheSize()
+                                    clearingCache = false
+                                }
+                                .controlSize(.small)
+                                .disabled(clearingCache || thumbnailCacheBytes == 0)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+
                     // 동작
                     GroupBox(L10n.t("settings.behavior")) {
                         VStack(alignment: .leading, spacing: 8) {
@@ -207,6 +239,7 @@ struct SettingsSheet: View {
         }
         .onAppear {
             pendingLocale = settings.locale
+            refreshCacheSize()
         }
         .onChange(of: pendingLocale) {
             if pendingLocale != settings.locale {
@@ -268,5 +301,9 @@ struct SettingsSheet: View {
             .font(.system(size: 11))
             .foregroundColor(.secondary)
             .help(text)
+    }
+
+    private func refreshCacheSize() {
+        thumbnailCacheBytes = ThumbnailCache.shared.diskSizeBytes()
     }
 }

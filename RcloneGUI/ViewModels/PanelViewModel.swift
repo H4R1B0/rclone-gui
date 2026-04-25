@@ -54,7 +54,11 @@ final class TabState: Identifiable {
     }
     var loading: Bool = false
     var error: String?
-    var selectedFiles: Set<String> = []  // file NAMES (not paths) — matches TypeScript
+    var selectedFiles: Set<String> = [] {
+        didSet { if selectedFiles.isEmpty { rangeAnchor = nil } }
+    }
+    /// Shift+클릭 범위 선택의 anchor. 단일/토글 클릭 시 갱신, 선택 비울 때 자동 nil.
+    var rangeAnchor: String?
     var sortBy: SortField = .name {
         didSet { _cachedSortedFiles = nil; _cachedVisibleFiles = nil }
     }
@@ -72,6 +76,9 @@ final class TabState: Identifiable {
     private var _cachedSortedFiles: [FileItem]?
     private var _cachedVisibleFiles: [FileItem]?
     private var _cachedVisibleShowHidden: Bool?
+
+    /// 동시 다발 로딩에서 마지막 호출만 결과 적용하기 위한 세대 카운터
+    fileprivate var loadGeneration: Int = 0
 
     init(id: UUID = UUID(), label: String, mode: PanelMode, remote: String, path: String = "") {
         self.id = id
@@ -301,11 +308,17 @@ final class PanelViewModel {
         let prev = NavEntry(remote: tab.remote, path: tab.path)
         let next = NavEntry(remote: fs, path: dir)
 
+        // 같은 탭에 동시 로드 호출이 들어와도 마지막 호출만 화면에 반영
+        tab.loadGeneration += 1
+        let myGen = tab.loadGeneration
+
         tab.loading = true
         tab.error = nil
 
         do {
             let items = try await RcloneAPI.listFiles(using: client, fs: fs, remote: dir)
+            // 더 새로운 로드가 시작됐다면 결과 폐기 (stale write 방지)
+            guard tab.loadGeneration == myGen else { return }
             tab.files = items
             if let r = remote { tab.remote = r }
             if let p = path { tab.path = p }
@@ -322,9 +335,11 @@ final class PanelViewModel {
                 SpotlightIndexer.shared.indexFiles(remote: fs, path: dir, files: items)
             }
         } catch {
+            guard tab.loadGeneration == myGen else { return }
             tab.error = error.localizedDescription
         }
 
+        guard tab.loadGeneration == myGen else { return }
         tab.loading = false
 
         // Linked browsing: sync other panel to same path
@@ -367,10 +382,9 @@ final class PanelViewModel {
 
     func goUp(side panelSide: PanelSide) async {
         let tab = side(panelSide).activeTab
-        guard !tab.path.isEmpty else { return }
-        var parts = tab.path.split(separator: "/").map(String.init)
-        parts.removeLast()
-        let newPath = parts.joined(separator: "/")
+        guard !tab.path.isEmpty, tab.path != "/" else { return }
+        let newPath = PathUtils.parent(tab.path)
+        guard newPath != tab.path else { return }
         tab.selectedFiles = []
         await loadFiles(side: panelSide, path: newPath)
     }
@@ -394,11 +408,13 @@ final class PanelViewModel {
         } else {
             tab.selectedFiles.insert(name)
         }
+        tab.rangeAnchor = name
     }
 
     func singleSelect(side panelSide: PanelSide, name: String) {
         let tab = side(panelSide).activeTab
         tab.selectedFiles = [name]
+        tab.rangeAnchor = name
     }
 
     func selectAll(side panelSide: PanelSide) {
@@ -408,7 +424,9 @@ final class PanelViewModel {
     }
 
     func clearSelection(side panelSide: PanelSide) {
-        side(panelSide).activeTab.selectedFiles = []
+        let tab = side(panelSide).activeTab
+        tab.selectedFiles = []
+        tab.rangeAnchor = nil
     }
 
     func rangeSelect(side panelSide: PanelSide, toName: String) {
@@ -417,12 +435,13 @@ final class PanelViewModel {
         let visible = tab.visibleFiles(showHidden: sideState.showHidden)
         let names = visible.map(\.name)
 
-        // Find anchor (last selected item) and target
         guard let toIndex = names.firstIndex(of: toName) else { return }
 
-        // Find the anchor: the first currently-selected item in visible order
+        // 사용자가 마지막에 클릭한 anchor 우선, 없거나 더 이상 보이지 않으면 첫 선택 항목으로 폴백
         let anchorIndex: Int
-        if let first = names.firstIndex(where: { tab.selectedFiles.contains($0) }) {
+        if let anchor = tab.rangeAnchor, let idx = names.firstIndex(of: anchor) {
+            anchorIndex = idx
+        } else if let first = names.firstIndex(where: { tab.selectedFiles.contains($0) }) {
             anchorIndex = first
         } else {
             anchorIndex = toIndex
@@ -430,8 +449,8 @@ final class PanelViewModel {
 
         let start = min(anchorIndex, toIndex)
         let end = max(anchorIndex, toIndex)
-        let rangeNames = Set(names[start...end])
-        tab.selectedFiles = rangeNames
+        tab.selectedFiles = Set(names[start...end])
+        // anchor는 갱신하지 않음 — 연속 Shift+클릭 시 같은 시작점에서 범위 재조정
     }
 
     // MARK: - Sorting (TypeScript: same field → toggle direction)
@@ -459,9 +478,22 @@ final class PanelViewModel {
         let tab = side(panelSide).activeTab
         let filesToDelete = tab.selectedFiles
 
-        // Remember position of first selected file for auto-select after delete (FTP behavior)
-        let sorted = tab.sortedFiles
-        let firstSelectedIndex = sorted.firstIndex { filesToDelete.contains($0.name) }
+        // Auto-select용 anchor — 삭제 직전 정렬에서 첫 선택 위치의 다음 살아남는 파일 이름.
+        // 인덱스가 아닌 이름을 저장해야 refresh 후 새 정렬에서도 안전하게 찾을 수 있음.
+        let sortedBefore = tab.sortedFiles
+        let firstSelectedIdx = sortedBefore.firstIndex { filesToDelete.contains($0.name) }
+        let postDeleteAnchor: String? = {
+            guard let idx = firstSelectedIdx else { return nil }
+            // 선택 위치 이후의 첫 비선택 파일
+            for i in idx..<sortedBefore.count where !filesToDelete.contains(sortedBefore[i].name) {
+                return sortedBefore[i].name
+            }
+            // 없으면 이전 방향에서 첫 비선택 파일
+            for i in (0..<idx).reversed() where !filesToDelete.contains(sortedBefore[i].name) {
+                return sortedBefore[i].name
+            }
+            return nil
+        }()
 
         // Resolve remote type once for native trash detection
         let remoteType: String
@@ -509,10 +541,11 @@ final class PanelViewModel {
         }
         await refresh(side: panelSide)
 
-        // Auto-select adjacent file after delete (FTP-like behavior)
-        if let idx = firstSelectedIndex, !tab.sortedFiles.isEmpty {
-            let newIdx = min(idx, tab.sortedFiles.count - 1)
-            tab.selectedFiles = [tab.sortedFiles[newIdx].name]
+        // Auto-select: 사전에 결정한 anchor가 새 정렬에 살아 있으면 선택
+        if let anchorName = postDeleteAnchor,
+           tab.sortedFiles.contains(where: { $0.name == anchorName }) {
+            tab.selectedFiles = [anchorName]
+            tab.rangeAnchor = anchorName
         }
 
         if let lastError { throw lastError }
@@ -526,6 +559,38 @@ final class PanelViewModel {
         await refresh(side: panelSide)
         // Auto-select renamed file (FTP-like behavior)
         tab.selectedFiles = [newName]
+    }
+
+    /// 여러 항목 일괄 이름변경. 중간 실패 시에도 나머지를 계속 진행하고
+    /// 끝나면 한 번만 refresh. 성공한 항목은 선택 상태로 남기고, 실패는 (old, message)로 반환.
+    func renameMany(
+        side panelSide: PanelSide,
+        pairs: [(old: String, new: String)]
+    ) async -> [(old: String, error: String)] {
+        let tab = side(panelSide).activeTab
+        var succeeded: [String] = []
+        var failed: [(String, String)] = []
+
+        for pair in pairs where pair.old != pair.new {
+            let oldPath = tab.path.isEmpty ? pair.old : "\(tab.path)/\(pair.old)"
+            let newPath = tab.path.isEmpty ? pair.new : "\(tab.path)/\(pair.new)"
+            do {
+                try await RcloneAPI.moveFile(
+                    using: client,
+                    srcFs: tab.remote, srcRemote: oldPath,
+                    dstFs: tab.remote, dstRemote: newPath
+                )
+                succeeded.append(pair.new)
+            } catch {
+                failed.append((pair.old, error.localizedDescription))
+            }
+        }
+
+        await refresh(side: panelSide)
+        if !succeeded.isEmpty {
+            tab.selectedFiles = Set(succeeded)
+        }
+        return failed
     }
 
     // MARK: - Clipboard Operations
@@ -626,8 +691,12 @@ final class PanelViewModel {
         let c = self.client
         let tvm = self.transferVM
 
+        // 같은 (fs, path)에서 자기 자신으로 드롭하는 항목 차단 — rclone self-copy 오류·덮어쓰기 방지
+        let validFiles = files.filter { !($0.sourceFs == dstFs && $0.sourcePath == dstPath) }
+        guard !validFiles.isEmpty else { return }
+
         // Enqueue all files first
-        for file in files {
+        for file in validFiles {
             tvm?.enqueue(QueuedTransfer(name: file.fileName, isDir: file.isDir))
             if file.isDir {
                 let srcRemote = file.sourcePath.isEmpty ? file.fileName : "\(file.sourcePath)/\(file.fileName)"
@@ -639,7 +708,7 @@ final class PanelViewModel {
         let mts = self.multiThreadStreams
         await withTaskGroup(of: Void.self) { group in
             var running = 0
-            for file in files {
+            for file in validFiles {
                 if running >= maxConcurrent {
                     await group.next()
                     running -= 1

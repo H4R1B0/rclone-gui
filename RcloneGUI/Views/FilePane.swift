@@ -87,12 +87,23 @@ struct FilePane: View {
                             let tab = appState.panels.side(side).activeTab
                             let dstRemote = tab.path.isEmpty ? fileName : "\(tab.path)/\(fileName)"
                             let isDir = (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
-                            _ = try? await RcloneAPI.copyFileAsync(
-                                using: appState.client,
-                                srcFs: "/", srcRemote: srcPath,
-                                dstFs: tab.remote, dstRemote: dstRemote,
-                                multiThreadStreams: appState.settings.multiThreadStreams
-                            )
+                            // 디렉토리는 copyDir, 단일 파일은 copyFileAsync — Finder 드롭에서 폴더 전체 업로드 지원
+                            if isDir {
+                                _ = try? await RcloneAPI.copyDir(
+                                    using: appState.client,
+                                    srcFs: "/", srcRemote: srcPath,
+                                    dstFs: tab.remote, dstRemote: dstRemote,
+                                    transfers: appState.settings.transfers,
+                                    multiThreadStreams: appState.settings.multiThreadStreams
+                                )
+                            } else {
+                                _ = try? await RcloneAPI.copyFileAsync(
+                                    using: appState.client,
+                                    srcFs: "/", srcRemote: srcPath,
+                                    dstFs: tab.remote, dstRemote: dstRemote,
+                                    multiThreadStreams: appState.settings.multiThreadStreams
+                                )
+                            }
                             appState.transfers.addCopyOrigin(group: fileName, origin: CopyOrigin(
                                 srcFs: "/", srcRemote: srcPath,
                                 dstFs: tab.remote, dstRemote: dstRemote, isDir: isDir

@@ -141,15 +141,17 @@ struct BulkRenameSheet: View {
         isProcessing = true
         error = nil
         Task {
-            do {
-                for preview in previews where preview.old != preview.new {
-                    try await appState.panels.rename(side: side, oldName: preview.old, newName: preview.new)
-                }
-                dismiss()
-            } catch {
-                self.error = error.localizedDescription
-            }
+            let pairs = previews.map { (old: $0.old, new: $0.new) }
+            let failures = await appState.panels.renameMany(side: side, pairs: pairs)
             isProcessing = false
+            if failures.isEmpty {
+                dismiss()
+            } else {
+                // 성공한 변경은 이미 적용됐고, 실패한 항목만 모아서 표시
+                let summary = failures.prefix(3).map { "\($0.old): \($0.error)" }.joined(separator: "\n")
+                let extra = failures.count > 3 ? "\n\(L10n.t("report.andMore")) \(failures.count - 3)" : ""
+                self.error = summary + extra
+            }
         }
     }
 }

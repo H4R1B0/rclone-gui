@@ -272,22 +272,8 @@ struct FileTableView: View {
         return HStack(spacing: 0) {
             // Icon + Name
             HStack(spacing: 6) {
-                if tab.remote == "/" && isImageFile(file.name) && !file.isDir {
-                    AsyncImage(url: URL(fileURLWithPath: fullLocalPath(file))) { phase in
-                        switch phase {
-                        case .success(let image):
-                            image.resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 16, height: 16)
-                                .clipShape(RoundedRectangle(cornerRadius: 2))
-                        default:
-                            Image(systemName: FormatUtils.fileIcon(name: file.name, isDir: file.isDir))
-                                .font(.system(size: 13))
-                                .foregroundColor(.secondary)
-                                .frame(width: 16)
-                        }
-                    }
-                    .frame(width: 16, height: 16)
+                if isThumbnailable(file) {
+                    ThumbnailImageView(file: file, fs: tab.remote, size: 16, cornerRadius: 2)
                 } else {
                     Image(systemName: FormatUtils.fileIcon(name: file.name, isDir: file.isDir))
                         .font(.system(size: 13))
@@ -351,6 +337,9 @@ struct FileTableView: View {
             TapGesture(count: 2).onEnded {
                 if file.isDir {
                     Task { await appState.panels.navigate(side: side, dirName: file.name) }
+                } else if isMediaFile(file.name) && tab.remote != "/" {
+                    // 클라우드 미디어는 스트리밍 우선 — MediaPlayerSheet가 백엔드 네이티브 URL/publicLink/다운로드 순으로 시도
+                    mediaFile = file
                 } else if isImageFile(file.name) || isMediaFile(file.name) {
                     openWithDefaultApp(file)
                 }
@@ -365,22 +354,8 @@ struct FileTableView: View {
         let isSelected = tab.selectedFiles.contains(file.name)
 
         return VStack(spacing: 4) {
-            if tab.remote == "/" && isImageFile(file.name) && !file.isDir {
-                AsyncImage(url: URL(fileURLWithPath: fullLocalPath(file))) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image.resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 56, height: 56)
-                            .clipShape(RoundedRectangle(cornerRadius: 4))
-                    default:
-                        Image(systemName: FormatUtils.fileIcon(name: file.name, isDir: file.isDir))
-                            .font(.system(size: 28))
-                            .foregroundColor(.secondary)
-                            .frame(width: 56, height: 56)
-                    }
-                }
-                .frame(width: 56, height: 56)
+            if isThumbnailable(file) {
+                ThumbnailImageView(file: file, fs: tab.remote, size: 56, cornerRadius: 4)
             } else {
                 Image(systemName: FormatUtils.fileIcon(name: file.name, isDir: file.isDir))
                     .font(.system(size: 28))
@@ -388,11 +363,21 @@ struct FileTableView: View {
                     .frame(width: 56, height: 56)
             }
 
-            Text(file.name)
-                .font(.system(size: 10))
-                .lineLimit(2)
-                .multilineTextAlignment(.center)
-                .frame(width: 80)
+            if renamingFile == file.name {
+                TextField("Name", text: $renameText)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.system(size: 10))
+                    .multilineTextAlignment(.center)
+                    .frame(width: 80)
+                    .onSubmit { commitRename(file) }
+                    .onExitCommand { renamingFile = nil }
+            } else {
+                Text(file.name)
+                    .font(.system(size: 10))
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                    .frame(width: 80)
+            }
         }
         .padding(6)
         .background(isSelected ? Color.accentColor.opacity(0.2) : Color.clear)
@@ -413,6 +398,9 @@ struct FileTableView: View {
             TapGesture(count: 2).onEnded {
                 if file.isDir {
                     Task { await appState.panels.navigate(side: side, dirName: file.name) }
+                } else if isMediaFile(file.name) && tab.remote != "/" {
+                    // 클라우드 미디어는 스트리밍 우선 — MediaPlayerSheet가 백엔드 네이티브 URL/publicLink/다운로드 순으로 시도
+                    mediaFile = file
                 } else if isImageFile(file.name) || isMediaFile(file.name) {
                     openWithDefaultApp(file)
                 }
@@ -603,6 +591,18 @@ struct FileTableView: View {
     private func isImageFile(_ name: String) -> Bool {
         let ext = (name as NSString).pathExtension.lowercased()
         return ["jpg", "jpeg", "png", "gif", "bmp", "tiff", "webp", "heic"].contains(ext)
+    }
+
+    private func isVideoFile(_ name: String) -> Bool {
+        let ext = (name as NSString).pathExtension.lowercased()
+        return ["mp4", "mkv", "avi", "mov", "webm", "flv", "wmv", "m4v"].contains(ext)
+    }
+
+    /// 썸네일 미리보기 대상 파일 — 이미지·동영상.
+    /// 클라우드 파일은 ThumbnailCache가 크기 제한을 추가로 검사하므로 여기서는 통과시킴.
+    private func isThumbnailable(_ file: FileItem) -> Bool {
+        guard !file.isDir else { return false }
+        return isImageFile(file.name) || isVideoFile(file.name)
     }
 
     private func fullLocalPath(_ file: FileItem) -> String {
