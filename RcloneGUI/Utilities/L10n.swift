@@ -210,6 +210,12 @@ enum L10n {
         "settings.bwSchedule":  ["ko": "시간대별 대역폭 제한", "en": "Time-based Bandwidth Limit"],
         "settings.addSchedule": ["ko": "시간대 추가", "en": "Add Time Slot"],
 
+        // Cache
+        "settings.cache":           ["ko": "캐시", "en": "Cache"],
+        "settings.cache.thumbnails": ["ko": "썸네일 캐시", "en": "Thumbnail Cache"],
+        "settings.cache.clear":     ["ko": "캐시 지우기", "en": "Clear Cache"],
+        "settings.cache.clearHelp": ["ko": "지운 후 다시 탐색하면 자동으로 다시 로딩됩니다.", "en": "Thumbnails reload automatically when you browse again."],
+
         // Status bar
         "status.active":        ["ko": "%d개 전송 중", "en": "%d active"],
         "status.recentErrors":  ["ko": "최근 오류", "en": "Recent Errors"],
