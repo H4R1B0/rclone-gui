@@ -67,7 +67,7 @@ final class TabState: Identifiable {
     var backStack: [NavEntry] = []
     var forwardStack: [NavEntry] = []
 
-    static let maxHistory = 50
+    static var maxHistory: Int { AppConstants.maxNavigationHistory }
 
     private var _cachedSortedFiles: [FileItem]?
     private var _cachedVisibleFiles: [FileItem]?
