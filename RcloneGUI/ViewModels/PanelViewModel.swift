@@ -54,7 +54,11 @@ final class TabState: Identifiable {
     }
     var loading: Bool = false
     var error: String?
-    var selectedFiles: Set<String> = []  // file NAMES (not paths) — matches TypeScript
+    var selectedFiles: Set<String> = [] {
+        didSet { if selectedFiles.isEmpty { rangeAnchor = nil } }
+    }
+    /// Shift+클릭 범위 선택의 anchor. 단일/토글 클릭 시 갱신, 선택 비울 때 자동 nil.
+    var rangeAnchor: String?
     var sortBy: SortField = .name {
         didSet { _cachedSortedFiles = nil; _cachedVisibleFiles = nil }
     }
@@ -404,11 +408,13 @@ final class PanelViewModel {
         } else {
             tab.selectedFiles.insert(name)
         }
+        tab.rangeAnchor = name
     }
 
     func singleSelect(side panelSide: PanelSide, name: String) {
         let tab = side(panelSide).activeTab
         tab.selectedFiles = [name]
+        tab.rangeAnchor = name
     }
 
     func selectAll(side panelSide: PanelSide) {
@@ -418,7 +424,9 @@ final class PanelViewModel {
     }
 
     func clearSelection(side panelSide: PanelSide) {
-        side(panelSide).activeTab.selectedFiles = []
+        let tab = side(panelSide).activeTab
+        tab.selectedFiles = []
+        tab.rangeAnchor = nil
     }
 
     func rangeSelect(side panelSide: PanelSide, toName: String) {
@@ -427,12 +435,13 @@ final class PanelViewModel {
         let visible = tab.visibleFiles(showHidden: sideState.showHidden)
         let names = visible.map(\.name)
 
-        // Find anchor (last selected item) and target
         guard let toIndex = names.firstIndex(of: toName) else { return }
 
-        // Find the anchor: the first currently-selected item in visible order
+        // 사용자가 마지막에 클릭한 anchor 우선, 없거나 더 이상 보이지 않으면 첫 선택 항목으로 폴백
         let anchorIndex: Int
-        if let first = names.firstIndex(where: { tab.selectedFiles.contains($0) }) {
+        if let anchor = tab.rangeAnchor, let idx = names.firstIndex(of: anchor) {
+            anchorIndex = idx
+        } else if let first = names.firstIndex(where: { tab.selectedFiles.contains($0) }) {
             anchorIndex = first
         } else {
             anchorIndex = toIndex
@@ -440,8 +449,8 @@ final class PanelViewModel {
 
         let start = min(anchorIndex, toIndex)
         let end = max(anchorIndex, toIndex)
-        let rangeNames = Set(names[start...end])
-        tab.selectedFiles = rangeNames
+        tab.selectedFiles = Set(names[start...end])
+        // anchor는 갱신하지 않음 — 연속 Shift+클릭 시 같은 시작점에서 범위 재조정
     }
 
     // MARK: - Sorting (TypeScript: same field → toggle direction)
@@ -469,9 +478,22 @@ final class PanelViewModel {
         let tab = side(panelSide).activeTab
         let filesToDelete = tab.selectedFiles
 
-        // Remember position of first selected file for auto-select after delete (FTP behavior)
-        let sorted = tab.sortedFiles
-        let firstSelectedIndex = sorted.firstIndex { filesToDelete.contains($0.name) }
+        // Auto-select용 anchor — 삭제 직전 정렬에서 첫 선택 위치의 다음 살아남는 파일 이름.
+        // 인덱스가 아닌 이름을 저장해야 refresh 후 새 정렬에서도 안전하게 찾을 수 있음.
+        let sortedBefore = tab.sortedFiles
+        let firstSelectedIdx = sortedBefore.firstIndex { filesToDelete.contains($0.name) }
+        let postDeleteAnchor: String? = {
+            guard let idx = firstSelectedIdx else { return nil }
+            // 선택 위치 이후의 첫 비선택 파일
+            for i in idx..<sortedBefore.count where !filesToDelete.contains(sortedBefore[i].name) {
+                return sortedBefore[i].name
+            }
+            // 없으면 이전 방향에서 첫 비선택 파일
+            for i in (0..<idx).reversed() where !filesToDelete.contains(sortedBefore[i].name) {
+                return sortedBefore[i].name
+            }
+            return nil
+        }()
 
         // Resolve remote type once for native trash detection
         let remoteType: String
@@ -519,10 +541,11 @@ final class PanelViewModel {
         }
         await refresh(side: panelSide)
 
-        // Auto-select adjacent file after delete (FTP-like behavior)
-        if let idx = firstSelectedIndex, !tab.sortedFiles.isEmpty {
-            let newIdx = min(idx, tab.sortedFiles.count - 1)
-            tab.selectedFiles = [tab.sortedFiles[newIdx].name]
+        // Auto-select: 사전에 결정한 anchor가 새 정렬에 살아 있으면 선택
+        if let anchorName = postDeleteAnchor,
+           tab.sortedFiles.contains(where: { $0.name == anchorName }) {
+            tab.selectedFiles = [anchorName]
+            tab.rangeAnchor = anchorName
         }
 
         if let lastError { throw lastError }
