@@ -5,6 +5,9 @@ struct SidebarView: View {
     @Environment(AppState.self) private var appState
     @Binding var selection: SidebarItem?
     @State private var remoteToDelete: Remote?
+    @State private var renamingBookmarkId: UUID?
+    @State private var renameText: String = ""
+    @FocusState private var renameFocused: Bool
 
     var body: some View {
         List(selection: $selection) {
@@ -21,7 +24,14 @@ struct SidebarView: View {
             Section(L10n.t("sidebar.remotes")) {
                 ForEach(appState.accounts.orderedRemotes) { remote in
                     Label {
-                        Text(remote.displayName)
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(appState.accounts.displayName(for: remote.name))
+                            if appState.accounts.aliasStore.alias(for: remote.name) != nil {
+                                Text(remote.name)
+                                    .font(.system(size: 9))
+                                    .foregroundColor(.secondary)
+                            }
+                        }
                     } icon: {
                         ProviderIcon.icon(for: remote.type)
                     }
@@ -44,33 +54,10 @@ struct SidebarView: View {
             if !appState.bookmarks.bookmarks.isEmpty {
                 Section(L10n.t("bookmark.title")) {
                     ForEach(appState.bookmarks.bookmarks) { bookmark in
-                        Menu {
-                            Button(L10n.t("bookmark.openNewTabLeft")) {
-                                appState.panels.left.addTab(mode: bookmark.fs == "/" ? .local : .cloud, remote: bookmark.fs, path: bookmark.path, label: bookmark.name)
-                                Task { await appState.panels.loadFiles(side: .left) }
-                            }
-                            Button(L10n.t("bookmark.openNewTabRight")) {
-                                appState.panels.right.addTab(mode: bookmark.fs == "/" ? .local : .cloud, remote: bookmark.fs, path: bookmark.path, label: bookmark.name)
-                                Task { await appState.panels.loadFiles(side: .right) }
-                            }
-                            Divider()
-                            Button(L10n.t("delete"), role: .destructive) {
-                                appState.bookmarks.remove(id: bookmark.id)
-                            }
-                        } label: {
-                            Label {
-                                VStack(alignment: .leading, spacing: 1) {
-                                    Text(bookmark.name)
-                                    Text(bookmark.fs == "/" ? L10n.t("panel.local") : bookmark.fs.replacingOccurrences(of: ":", with: ""))
-                                        .font(.system(size: 9))
-                                        .foregroundColor(.secondary)
-                                }
-                            } icon: {
-                                Image(systemName: bookmark.fs == "/" ? "folder" : "cloud")
-                            }
-                        }
-                        .menuStyle(.borderlessButton)
-                        .menuIndicator(.hidden)
+                        bookmarkRow(bookmark: bookmark)
+                    }
+                    .onMove { offsets, destination in
+                        appState.bookmarks.moveFromOffsets(offsets, to: destination)
                     }
                 }
             }
@@ -106,7 +93,7 @@ struct SidebarView: View {
                 }
             }
         } message: {
-            Text(L10n.t("confirm.delete.message", remoteToDelete?.displayName ?? ""))
+            Text(L10n.t("confirm.delete.message", remoteToDelete.map { appState.accounts.displayName(for: $0.name) } ?? ""))
         }
         .safeAreaInset(edge: .bottom) {
             VStack(spacing: 0) {
@@ -145,6 +132,64 @@ struct SidebarView: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
+            }
+        }
+    }
+}
+
+extension SidebarView {
+    @ViewBuilder
+    fileprivate func bookmarkRow(bookmark: Bookmark) -> some View {
+        if renamingBookmarkId == bookmark.id {
+            HStack(spacing: 6) {
+                Image(systemName: bookmark.fs == "/" ? "folder" : "cloud")
+                    .foregroundColor(.secondary)
+                TextField("", text: $renameText)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.system(size: 12))
+                    .focused($renameFocused)
+                    .onSubmit {
+                        appState.bookmarks.rename(id: bookmark.id, newName: renameText)
+                        renamingBookmarkId = nil
+                    }
+                    .onExitCommand { renamingBookmarkId = nil }
+            }
+        } else {
+            Menu {
+                Button(L10n.t("bookmark.openNewTabLeft")) {
+                    appState.panels.left.addTab(mode: bookmark.fs == "/" ? .local : .cloud, remote: bookmark.fs, path: bookmark.path, label: bookmark.name)
+                    Task { await appState.panels.loadFiles(side: .left) }
+                }
+                Button(L10n.t("bookmark.openNewTabRight")) {
+                    appState.panels.right.addTab(mode: bookmark.fs == "/" ? .local : .cloud, remote: bookmark.fs, path: bookmark.path, label: bookmark.name)
+                    Task { await appState.panels.loadFiles(side: .right) }
+                }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: bookmark.fs == "/" ? "folder" : "cloud")
+                        .foregroundColor(.secondary)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(bookmark.name)
+                        Text(bookmark.fs == "/" ? L10n.t("panel.local") : bookmark.fs.replacingOccurrences(of: ":", with: ""))
+                            .font(.system(size: 9))
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .contextMenu {
+                Button(L10n.t("bookmark.rename")) {
+                    renameText = bookmark.name
+                    renamingBookmarkId = bookmark.id
+                    DispatchQueue.main.asyncAfter(deadline: .now() + AppConstants.renameFocusDelay) {
+                        renameFocused = true
+                    }
+                }
+                Divider()
+                Button(L10n.t("delete"), role: .destructive) {
+                    appState.bookmarks.remove(id: bookmark.id)
+                }
             }
         }
     }

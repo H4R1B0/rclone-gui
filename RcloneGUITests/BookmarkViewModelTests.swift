@@ -131,4 +131,56 @@ struct BookmarkViewModelTests {
         let b = Bookmark(name: "B", fs: "/", path: "/b")
         #expect(a.id != b.id)
     }
+
+    @Test("rename updates name and persists")
+    func renameUpdates() {
+        let url = makeTempURL()
+        let vm = BookmarkViewModel(configURL: url)
+        vm.add(name: "Old", fs: "/", path: "/p")
+        let id = vm.bookmarks[0].id
+        vm.rename(id: id, newName: "New Name")
+        #expect(vm.bookmarks[0].name == "New Name")
+        let reload = BookmarkViewModel(configURL: url)
+        #expect(reload.bookmarks[0].name == "New Name")
+    }
+
+    @Test("rename ignores empty/whitespace")
+    func renameIgnoresEmpty() {
+        let vm = BookmarkViewModel(configURL: makeTempURL())
+        vm.add(name: "Keep", fs: "/", path: "/p")
+        let id = vm.bookmarks[0].id
+        vm.rename(id: id, newName: "   ")
+        #expect(vm.bookmarks[0].name == "Keep")
+    }
+
+    @Test("moveFromOffsets reorders and persists")
+    func moveReorders() {
+        let url = makeTempURL()
+        let vm = BookmarkViewModel(configURL: url)
+        vm.add(name: "A", fs: "/", path: "/a")
+        vm.add(name: "B", fs: "/", path: "/b")
+        vm.add(name: "C", fs: "/", path: "/c")
+        // Move first (A) to end
+        vm.moveFromOffsets(IndexSet(integer: 0), to: 3)
+        #expect(vm.bookmarks.map(\.name) == ["B", "C", "A"])
+        let reload = BookmarkViewModel(configURL: url)
+        #expect(reload.bookmarks.map(\.name) == ["B", "C", "A"])
+    }
+
+    @Test("move with fromIndex/toIndex works")
+    func moveIndexed() {
+        let vm = BookmarkViewModel(configURL: makeTempURL())
+        vm.add(name: "A", fs: "/", path: "/a")
+        vm.add(name: "B", fs: "/", path: "/b")
+        vm.move(fromIndex: 1, toIndex: 0)
+        #expect(vm.bookmarks.map(\.name) == ["B", "A"])
+    }
+
+    @Test("move with invalid indices is no-op")
+    func moveInvalid() {
+        let vm = BookmarkViewModel(configURL: makeTempURL())
+        vm.add(name: "A", fs: "/", path: "/a")
+        vm.move(fromIndex: 5, toIndex: 0)
+        #expect(vm.bookmarks.map(\.name) == ["A"])
+    }
 }

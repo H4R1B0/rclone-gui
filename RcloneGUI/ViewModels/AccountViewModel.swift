@@ -8,8 +8,9 @@ final class AccountViewModel {
     var isLoading: Bool = false
     var error: String?
     private(set) var remoteOrder: [String] = []
+    let aliasStore: RemoteAliasStore
 
-    private let client: RcloneClientProtocol
+    let client: RcloneClientProtocol
     private let remoteOrderURL: URL
 
     /// remotes sorted by user-defined order
@@ -23,10 +24,21 @@ final class AccountViewModel {
         }
     }
 
-    init(client: RcloneClientProtocol, remoteOrderURL: URL? = nil) {
+    init(client: RcloneClientProtocol, remoteOrderURL: URL? = nil, aliasStore: RemoteAliasStore = RemoteAliasStore()) {
         self.client = client
         self.remoteOrderURL = remoteOrderURL ?? AppConstants.appSupportDir.appendingPathComponent(AppConstants.remoteOrderFile)
+        self.aliasStore = aliasStore
         loadRemoteOrder()
+    }
+
+    // MARK: - Aliases
+
+    func displayName(for remoteName: String) -> String {
+        aliasStore.alias(for: remoteName) ?? remoteName
+    }
+
+    func setAlias(for remoteName: String, to alias: String?) {
+        aliasStore.setAlias(name: remoteName, alias: alias)
     }
 
     private func loadRemoteOrder() {

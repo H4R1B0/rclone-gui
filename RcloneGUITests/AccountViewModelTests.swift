@@ -91,4 +91,68 @@ struct AccountViewModelTests {
         #expect(config["type"] == "drive")
         #expect(config["client_id"] == "abc123")
     }
+
+    @Test("displayName falls back to name without alias") @MainActor
+    func displayNameFallback() {
+        let store = RemoteAliasStore(defaults: UserDefaults(suiteName: "acct-dn-\(UUID().uuidString)")!, key: "a")
+        let vm = AccountViewModel(client: mock, remoteOrderURL: makeTempURL(), aliasStore: store)
+        #expect(vm.displayName(for: "gdrive") == "gdrive")
+    }
+
+    @Test("setAlias + displayName returns alias") @MainActor
+    func setAliasReturns() {
+        let store = RemoteAliasStore(defaults: UserDefaults(suiteName: "acct-sa-\(UUID().uuidString)")!, key: "a")
+        let vm = AccountViewModel(client: mock, remoteOrderURL: makeTempURL(), aliasStore: store)
+        vm.setAlias(for: "gdrive", to: "Work Drive")
+        #expect(vm.displayName(for: "gdrive") == "Work Drive")
+    }
+
+    @Test("setAlias with nil removes") @MainActor
+    func setAliasNilRemoves() {
+        let store = RemoteAliasStore(defaults: UserDefaults(suiteName: "acct-sanil-\(UUID().uuidString)")!, key: "a")
+        let vm = AccountViewModel(client: mock, remoteOrderURL: makeTempURL(), aliasStore: store)
+        vm.setAlias(for: "gdrive", to: "Work Drive")
+        vm.setAlias(for: "gdrive", to: nil)
+        #expect(vm.displayName(for: "gdrive") == "gdrive")
+    }
+}
+
+@Suite("RemoteAliasStore")
+struct RemoteAliasStoreTests {
+    private func makeStore() -> RemoteAliasStore {
+        let d = UserDefaults(suiteName: "ras-\(UUID().uuidString)")!
+        return RemoteAliasStore(defaults: d, key: "k")
+    }
+
+    @Test("set + alias returns value")
+    func setGet() {
+        let store = makeStore()
+        store.setAlias(name: "a", alias: "Alpha")
+        #expect(store.alias(for: "a") == "Alpha")
+    }
+
+    @Test("whitespace alias treated as empty")
+    func whitespace() {
+        let store = makeStore()
+        store.setAlias(name: "a", alias: "   ")
+        #expect(store.alias(for: "a") == nil)
+    }
+
+    @Test("nil alias removes")
+    func nilRemoves() {
+        let store = makeStore()
+        store.setAlias(name: "a", alias: "X")
+        store.setAlias(name: "a", alias: nil)
+        #expect(store.alias(for: "a") == nil)
+    }
+
+    @Test("persists across instances")
+    func persistAcross() {
+        let suite = "ras-persist-\(UUID().uuidString)"
+        let d = UserDefaults(suiteName: suite)!
+        let s1 = RemoteAliasStore(defaults: d, key: "k")
+        s1.setAlias(name: "a", alias: "A")
+        let s2 = RemoteAliasStore(defaults: d, key: "k")
+        #expect(s2.alias(for: "a") == "A")
+    }
 }

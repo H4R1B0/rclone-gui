@@ -1,4 +1,5 @@
 import SwiftUI
+import RcloneKit
 
 struct RemoteSelectorView: View {
     @Environment(AppState.self) private var appState
@@ -19,19 +20,7 @@ struct RemoteSelectorView: View {
                         appState.panels.setRemote(side: side, remote: "\(remote.name):")
                         Task { await appState.panels.loadFiles(side: side) }
                     }) {
-                        VStack(spacing: 6) {
-                            ProviderIcon.icon(for: remote.type, size: 24)
-                            Text(remote.displayName)
-                                .font(.system(size: 13, weight: .medium))
-                                .lineLimit(1)
-                            Text(remote.type)
-                                .font(.system(size: 11))
-                                .foregroundColor(.secondary)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(Color(nsColor: .controlBackgroundColor))
-                        .cornerRadius(8)
+                        remoteCard(remote)
                     }
                     .buttonStyle(.plain)
                     .opacity(draggingRemoteName == remote.name ? 0.4 : 1)
@@ -46,8 +35,33 @@ struct RemoteSelectorView: View {
                     ))
                 }
 
-                // Add account button
-                Button(action: { appState.showAccountSetup = true }) {
+                remoteAddButton
+            }
+            .padding(20)
+        }
+    }
+
+    @ViewBuilder
+    private func remoteCard(_ remote: Remote) -> some View {
+        let hasAlias = appState.accounts.aliasStore.alias(for: remote.name) != nil
+        VStack(spacing: 6) {
+            ProviderIcon.icon(for: remote.type, size: 24)
+            Text(appState.accounts.displayName(for: remote.name))
+                .font(.system(size: 13, weight: .medium))
+                .lineLimit(1)
+            Text(hasAlias ? remote.name : remote.type)
+                .font(.system(size: hasAlias ? 10 : 11))
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 16)
+        .background(Color(nsColor: .controlBackgroundColor))
+        .cornerRadius(8)
+    }
+
+    private var remoteAddButton: some View {
+        Group {
+            Button(action: { appState.showAccountSetup = true }) {
                     VStack(spacing: 6) {
                         Image(systemName: "plus.circle")
                             .font(.system(size: 24))
@@ -67,8 +81,6 @@ struct RemoteSelectorView: View {
                     )
                 }
                 .buttonStyle(.plain)
-            }
-            .padding(20)
         }
     }
 }
