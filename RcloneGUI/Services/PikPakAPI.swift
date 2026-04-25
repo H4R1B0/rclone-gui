@@ -111,8 +111,8 @@ final class PikPakAPI: CloudThumbnailProvider, CloudStreamingProvider {
             log("폴더 ID 해석 실패 — path \"\(parentPath)\"의 segment 매칭 실패")
             return nil
         }
-        guard let files = await listFiles(parentId: parentId, token: token) else {
-            log("listFiles 실패 (parent_id: \(parentId))")
+        guard let files = await listAllFiles(parentId: parentId, token: token) else {
+            log("listAllFiles 실패 (parent_id: \(parentId))")
             return nil
         }
 
@@ -164,13 +164,15 @@ final class PikPakAPI: CloudThumbnailProvider, CloudStreamingProvider {
     // MARK: - Folder ID resolution
 
     /// 빈 path는 root("*"). 그 외엔 segment별로 listFiles 호출하며 ID 트리 워킹.
+    /// PikPak `name eq` filter가 한글·특수문자(대괄호·공백 2개·점 등) 폴더명에서 HTTP 400을
+    /// 반환하므로 name filter는 사용하지 않고 클라이언트 측에서 매칭한다.
     private func resolveFolderId(path: String, token: String) async -> String? {
         let segments = path.split(separator: "/").map(String.init).filter { !$0.isEmpty }
         guard !segments.isEmpty else { return "*" }
 
         var currentId = "*"
         for segment in segments {
-            guard let children = await listFiles(parentId: currentId, token: token, nameFilter: segment),
+            guard let children = await listAllFiles(parentId: currentId, token: token),
                   let match = children.first(where: { $0.name == segment }) else {
                 return nil
             }
@@ -181,23 +183,43 @@ final class PikPakAPI: CloudThumbnailProvider, CloudStreamingProvider {
 
     // MARK: - HTTP
 
-    private func listFiles(
+    /// 폴더 전체를 page_token으로 순회 — 큰 폴더(200+ 항목)도 모두 가져옴.
+    private func listAllFiles(parentId: String, token: String) async -> [PikPakFile]? {
+        var all: [PikPakFile] = []
+        var pageToken: String? = nil
+        var iterations = 0
+        let maxPages = 20  // 폭주 방지 (page당 500 → 최대 10000개)
+
+        repeat {
+            guard let result = await listFilesPage(
+                parentId: parentId,
+                token: token,
+                pageToken: pageToken
+            ) else {
+                return all.isEmpty ? nil : all
+            }
+            all.append(contentsOf: result.files)
+            pageToken = result.nextPageToken?.isEmpty == false ? result.nextPageToken : nil
+            iterations += 1
+        } while pageToken != nil && iterations < maxPages
+
+        return all
+    }
+
+    private func listFilesPage(
         parentId: String,
         token: String,
-        nameFilter: String? = nil
-    ) async -> [PikPakFile]? {
+        pageToken: String?
+    ) async -> (files: [PikPakFile], nextPageToken: String?)? {
         var components = URLComponents(url: baseURL.appendingPathComponent("/drive/v1/files"), resolvingAgainstBaseURL: false)!
         var items: [URLQueryItem] = [
             URLQueryItem(name: "parent_id", value: parentId),
             URLQueryItem(name: "thumbnail_size", value: "SIZE_MEDIUM"),
-            URLQueryItem(name: "limit", value: "200"),
+            URLQueryItem(name: "limit", value: "500"),
             URLQueryItem(name: "filters", value: #"{"trashed":{"eq":false}}"#)
         ]
-        if let nameFilter, !nameFilter.isEmpty {
-            // PikPak filters는 JSON 형태로만 동작 — name eq filter
-            let nameJson = #"{"name":{"eq":"\#(nameFilter.replacingOccurrences(of: "\"", with: "\\\""))"},"trashed":{"eq":false}}"#
-            items.removeAll { $0.name == "filters" }
-            items.append(URLQueryItem(name: "filters", value: nameJson))
+        if let pageToken, !pageToken.isEmpty {
+            items.append(URLQueryItem(name: "page_token", value: pageToken))
         }
         components.queryItems = items
         guard let url = components.url else { return nil }
@@ -205,7 +227,7 @@ final class PikPakAPI: CloudThumbnailProvider, CloudStreamingProvider {
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        request.timeoutInterval = 10
+        request.timeoutInterval = 15
 
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
@@ -225,8 +247,7 @@ final class PikPakAPI: CloudThumbnailProvider, CloudStreamingProvider {
                   let arr = json["files"] as? [[String: Any]] else {
                 return nil
             }
-            return arr.map { dict -> PikPakFile in
-                // 영상의 경우 medias[].link.url에 스크린샷이 들어 있음 — thumbnail_link가 비어 있을 때 폴백
+            let files: [PikPakFile] = arr.map { dict in
                 var mediaThumb: String? = nil
                 if let medias = dict["medias"] as? [[String: Any]] {
                     for m in medias {
@@ -246,7 +267,10 @@ final class PikPakAPI: CloudThumbnailProvider, CloudStreamingProvider {
                     mediaThumbnailLink: mediaThumb
                 )
             }
+            let next = json["next_page_token"] as? String
+            return (files, next)
         } catch {
+            log("listFilesPage 예외: \(error.localizedDescription)")
             return nil
         }
     }
