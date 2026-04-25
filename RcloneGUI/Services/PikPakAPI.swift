@@ -3,7 +3,7 @@ import AppKit
 import CryptoKit
 import RcloneKit
 
-/// PikPak 네이티브 HTTP API로 thumbnail_link / web_content_link를 받아오는 프로바이더.
+/// PikPak 네이티브 HTTP API로 thumbnail_link / media link를 받아오는 썸네일 프로바이더.
 ///
 /// rclone PikPak 백엔드와 동일한 호출 형식을 따른다 (필수):
 /// - `x-captcha-token`: `/v1/shield/captcha/init`로 사전 발급 (15회 MD5 sign)
@@ -48,7 +48,6 @@ final class PikPakAPI: CloudThumbnailProvider, CloudStreamingProvider {
         let id: String
         let name: String
         let thumbnailLink: String?
-        let webContentLink: String?
         let mediaThumbnailLink: String?
     }
 
@@ -86,16 +85,64 @@ final class PikPakAPI: CloudThumbnailProvider, CloudStreamingProvider {
 
     // MARK: - CloudStreamingProvider
 
+    /// PikPak 리스팅 응답엔 `web_content_link`가 보통 비어 있으므로 `GET /drive/v1/files/{id}`로 직접 조회.
+    /// rclone PikPak 백엔드도 동일한 패턴(file_id 단건 GET)으로 download URL을 얻음.
     func streamingURL(
         for file: FileItem,
         remoteName: String,
         client: RcloneClient
     ) async -> URL? {
         guard let f = await fetchFile(remoteName: remoteName, filePath: file.path, fileName: file.name, client: client),
-              let s = f.webContentLink, let url = URL(string: s) else {
+              !f.id.isEmpty else {
             return nil
         }
-        return url
+        guard let access = await accessToken(remoteName: remoteName, client: client) else { return nil }
+        return await fetchFileLink(fileId: f.id, remoteName: remoteName, accessToken: access)
+    }
+
+    /// `/drive/v1/files/{id}` 단건 조회로 web_content_link 또는 medias[].link.url(video category) 반환.
+    private func fetchFileLink(fileId: String, remoteName: String, accessToken: String) async -> URL? {
+        let action = "GET:/drive/v1/files/\(fileId)"
+        guard let captcha = await captchaToken(remoteName: remoteName, action: action, accessToken: accessToken) else {
+            return nil
+        }
+
+        let url = apiBase.appendingPathComponent("/drive/v1/files/\(fileId)")
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.timeoutInterval = 15
+        applyDefaultHeaders(&request, accessToken: accessToken, captchaToken: captcha)
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let http = response as? HTTPURLResponse else { return nil }
+            if http.statusCode == 401 { tokenCache.removeAll(); return nil }
+            if http.statusCode == 403 { captchaCache.removeAll(); return nil }
+            guard (200..<300).contains(http.statusCode),
+                  let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                return nil
+            }
+
+            // 1순위: web_content_link
+            if let s = json["web_content_link"] as? String, !s.isEmpty, let url = URL(string: s) {
+                return url
+            }
+            // 2순위: medias[] 중 video category의 link.url (트랜스코딩 스트리밍 URL)
+            if let medias = json["medias"] as? [[String: Any]] {
+                for m in medias {
+                    let category = (m["category"] as? String) ?? ""
+                    guard category.lowercased().contains("video") else { continue }
+                    if let link = m["link"] as? [String: Any],
+                       let u = link["url"] as? String, !u.isEmpty,
+                       let url = URL(string: u) {
+                        return url
+                    }
+                }
+            }
+            return nil
+        } catch {
+            return nil
+        }
     }
 
     // MARK: - File lookup
@@ -365,7 +412,6 @@ final class PikPakAPI: CloudThumbnailProvider, CloudStreamingProvider {
                     id: dict["id"] as? String ?? "",
                     name: dict["name"] as? String ?? "",
                     thumbnailLink: dict["thumbnail_link"] as? String,
-                    webContentLink: dict["web_content_link"] as? String,
                     mediaThumbnailLink: mediaThumb
                 )
             }

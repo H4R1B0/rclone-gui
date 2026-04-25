@@ -19,12 +19,12 @@ protocol CloudThumbnailProvider: AnyObject {
 }
 
 /// 클라우드 백엔드의 네이티브 스트리밍 API를 통해 직접 재생 가능한 URL을 반환.
-/// rclone publicLink가 share interstitial 페이지를 반환하는 백엔드(PikPak 등)를 우회하기 위함.
+/// 이 URL은 macOS 기본 비디오 플레이어(IINA/QuickTime/VLC 등)에 그대로 넘겨 HTTP 스트리밍시킴.
 @MainActor
 protocol CloudStreamingProvider: AnyObject {
     static var supportedTypes: Set<String> { get }
 
-    /// AVPlayer가 byte-range 스트리밍 가능한 직접 미디어 URL. 실패 시 nil.
+    /// 외부 비디오 플레이어가 byte-range 스트리밍 가능한 직접 미디어 URL. 실패 시 nil.
     func streamingURL(
         for file: FileItem,
         remoteName: String,
@@ -33,7 +33,7 @@ protocol CloudStreamingProvider: AnyObject {
 }
 
 /// 등록된 프로바이더 중 백엔드 타입에 맞는 것을 찾아 반환.
-/// 새 프로바이더 추가 시 `providers` 배열에만 등록하면 ThumbnailCache/MediaPlayerSheet가 자동으로 사용.
+/// 새 프로바이더 추가 시 `providers` 배열에만 등록하면 ThumbnailCache가 자동으로 사용.
 @MainActor
 enum CloudThumbnailRegistry {
     private static let providers: [CloudThumbnailProvider] = [

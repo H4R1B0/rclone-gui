@@ -14,7 +14,6 @@ struct FileTableView: View {
     @State private var showBulkRename = false
     @State private var hashCompareFiles: (FileItem, FileItem)?
     @State private var showCompress = false
-    @State private var mediaFile: FileItem?
     @State private var versionFile: FileItem?
     @FocusState private var listFocused: Bool
 
@@ -24,7 +23,7 @@ struct FileTableView: View {
 
     private var viewMode: ViewMode { appState.panels.side(side).viewMode }
 
-    private let gridColumns = [GridItem(.adaptive(minimum: 90, maximum: 120), spacing: 8)]
+    private let gridColumns = [GridItem(.adaptive(minimum: 180, maximum: 240), spacing: 16)]
 
     var body: some View {
         let showHidden = appState.panels.side(side).showHidden
@@ -81,12 +80,12 @@ struct FileTableView: View {
                 Group {
                     if viewMode == .grid {
                         ScrollView {
-                            LazyVGrid(columns: gridColumns, spacing: 8) {
+                            LazyVGrid(columns: gridColumns, spacing: 16) {
                                 ForEach(visibleFiles) { file in
                                     gridCell(file)
                                 }
                             }
-                            .padding(8)
+                            .padding(16)
                         }
                     } else {
                         ScrollView {
@@ -178,9 +177,6 @@ struct FileTableView: View {
                 QuickLookPreview(url: url)
                     .frame(width: 600, height: 500)
             }
-        }
-        .sheet(item: $mediaFile) { file in
-            MediaPlayerSheet(file: file, fs: tab.remote)
         }
         .sheet(item: $versionFile) { file in
             VersionHistorySheet(file: file, fs: tab.remote)
@@ -338,8 +334,12 @@ struct FileTableView: View {
                 if file.isDir {
                     Task { await appState.panels.navigate(side: side, dirName: file.name) }
                 } else if isMediaFile(file.name) && tab.remote != "/" {
-                    // 클라우드 미디어는 스트리밍 우선 — MediaPlayerSheet가 백엔드 네이티브 URL/publicLink/다운로드 순으로 시도
-                    mediaFile = file
+                    // 클라우드 미디어: 스트리밍 URL을 기본 플레이어에 직접 핸드오프, 실패 시 다운로드 폴백
+                    Task {
+                        if !(await streamCloudMedia(file)) {
+                            await MainActor.run { openWithDefaultApp(file) }
+                        }
+                    }
                 } else if isImageFile(file.name) || isMediaFile(file.name) {
                     openWithDefaultApp(file)
                 }
@@ -353,35 +353,35 @@ struct FileTableView: View {
     private func gridCell(_ file: FileItem) -> some View {
         let isSelected = tab.selectedFiles.contains(file.name)
 
-        return VStack(spacing: 4) {
+        return VStack(spacing: 8) {
             if isThumbnailable(file) {
-                ThumbnailImageView(file: file, fs: tab.remote, size: 56, cornerRadius: 4)
+                ThumbnailImageView(file: file, fs: tab.remote, size: 112, cornerRadius: 8)
             } else {
                 Image(systemName: FormatUtils.fileIcon(name: file.name, isDir: file.isDir))
-                    .font(.system(size: 28))
+                    .font(.system(size: 56))
                     .foregroundColor(file.isDir ? .accentColor : .secondary)
-                    .frame(width: 56, height: 56)
+                    .frame(width: 112, height: 112)
             }
 
             if renamingFile == file.name {
                 TextField("Name", text: $renameText)
                     .textFieldStyle(.roundedBorder)
-                    .font(.system(size: 10))
+                    .font(.system(size: 12))
                     .multilineTextAlignment(.center)
-                    .frame(width: 80)
+                    .frame(width: 160)
                     .onSubmit { commitRename(file) }
                     .onExitCommand { renamingFile = nil }
             } else {
                 Text(file.name)
-                    .font(.system(size: 10))
+                    .font(.system(size: 12))
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
-                    .frame(width: 80)
+                    .frame(width: 160)
             }
         }
-        .padding(6)
+        .padding(12)
         .background(isSelected ? Color.accentColor.opacity(0.2) : Color.clear)
-        .cornerRadius(6)
+        .cornerRadius(8)
         .contentShape(Rectangle())
         .onTapGesture {
             if NSEvent.modifierFlags.contains(.shift) {
@@ -399,8 +399,12 @@ struct FileTableView: View {
                 if file.isDir {
                     Task { await appState.panels.navigate(side: side, dirName: file.name) }
                 } else if isMediaFile(file.name) && tab.remote != "/" {
-                    // 클라우드 미디어는 스트리밍 우선 — MediaPlayerSheet가 백엔드 네이티브 URL/publicLink/다운로드 순으로 시도
-                    mediaFile = file
+                    // 클라우드 미디어: 스트리밍 URL을 기본 플레이어에 직접 핸드오프, 실패 시 다운로드 폴백
+                    Task {
+                        if !(await streamCloudMedia(file)) {
+                            await MainActor.run { openWithDefaultApp(file) }
+                        }
+                    }
                 } else if isImageFile(file.name) || isMediaFile(file.name) {
                     openWithDefaultApp(file)
                 }
@@ -453,12 +457,6 @@ struct FileTableView: View {
             }
 
             Divider()
-        }
-
-        if isMediaFile(file.name) && !file.isDir {
-            Button(L10n.t("media.play")) {
-                mediaFile = file
-            }
         }
 
         Button(L10n.t("file.properties")) {
@@ -607,6 +605,46 @@ struct FileTableView: View {
 
     private func fullLocalPath(_ file: FileItem) -> String {
         tab.path.isEmpty ? "/\(file.name)" : "/\(tab.path)/\(file.name)"
+    }
+
+    /// 클라우드 미디어 파일을 macOS 기본 비디오 플레이어로 직접 스트리밍.
+    /// 백엔드 streaming provider가 직접 미디어 URL을 반환하면 다운로드 없이 플레이어에 핸드오프.
+    /// 성공 true · 스트리밍 URL 미가용/플레이어 실행 실패 false → 호출자가 다운로드 폴백.
+    private func streamCloudMedia(_ file: FileItem) async -> Bool {
+        let fs = tab.remote
+        let remoteName = fs.hasSuffix(":") ? String(fs.dropLast()) : fs
+        guard !remoteName.isEmpty,
+              let remoteType = try? await RcloneAPI.getRemoteType(using: appState.client, name: remoteName),
+              let provider = CloudStreamingRegistry.provider(for: remoteType),
+              let url = await provider.streamingURL(for: file, remoteName: remoteName, client: appState.client) else {
+            return false
+        }
+        return await openInDefaultMediaPlayer(url, fileName: file.name)
+    }
+
+    /// 사용자의 기본 비디오 플레이어를 찾아 HTTP URL을 인자로 실행.
+    /// IINA/QuickTime/VLC/MPV 등은 모두 HTTP URL을 launch arg로 받아 byte-range 스트리밍.
+    /// macOS 14의 LaunchServices는 probe 파일이 실제로 디스크에 존재할 때 확장자 매칭이 안정적이므로
+    /// 임시 빈 파일을 만들고, 사용자 파일의 확장자(.mkv 등) 우선 시도 후 .mp4 fallback.
+    private func openInDefaultMediaPlayer(_ url: URL, fileName: String) async -> Bool {
+        let ext = (fileName as NSString).pathExtension.lowercased()
+        var candidates: [String] = []
+        if !ext.isEmpty { candidates.append(ext) }
+        if !candidates.contains("mp4") { candidates.append("mp4") }
+
+        for probeExt in candidates {
+            let probe = FileManager.default.temporaryDirectory
+                .appendingPathComponent("_rclonegui_probe.\(probeExt)")
+            try? Data().write(to: probe)
+            defer { try? FileManager.default.removeItem(at: probe) }
+
+            guard let appURL = NSWorkspace.shared.urlForApplication(toOpen: probe) else { continue }
+            let config = NSWorkspace.OpenConfiguration()
+            if (try? await NSWorkspace.shared.open([url], withApplicationAt: appURL, configuration: config)) != nil {
+                return true
+            }
+        }
+        return false
     }
 
     private func openWithDefaultApp(_ file: FileItem) {

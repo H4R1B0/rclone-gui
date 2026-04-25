@@ -11,7 +11,6 @@
 		06D843FC3C1FCBD2CAD2CF03 /* ShortcutsIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FDF3F697D764C5128E99BD1 /* ShortcutsIntents.swift */; };
 		073DBA89543E46C63CD05503 /* PropertiesSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F65BAEDE8D4FA63EFECA57F3 /* PropertiesSheet.swift */; };
 		07903421301330FCC247F7DC /* swift.png in Resources */ = {isa = PBXBuildFile; fileRef = 05B6DE5FD9C0EBD865B72F26 /* swift.png */; };
-		079E791883E64C1DBDCA57B1 /* MediaPlayerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DF32F9F85FC56862BA973A /* MediaPlayerSheet.swift */; };
 		07A226EE2F77ABA507DC3BCB /* ClipboardState.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEE731FEF9343F36A7C52E62 /* ClipboardState.swift */; };
 		0846BBDAF58C63FA7B651375 /* seafile.png in Resources */ = {isa = PBXBuildFile; fileRef = C45B2EF82642F29E5F7159A8 /* seafile.png */; };
 		0A5B284FD454E8B3EA58A36F /* tardigrade.png in Resources */ = {isa = PBXBuildFile; fileRef = 4D8252569E582A89FF2A3F6A /* tardigrade.png */; };
@@ -289,7 +288,6 @@
 		B5FBB2AFC29F900A57EABD79 /* NewFolderSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewFolderSheet.swift; sourceTree = "<group>"; };
 		B9F841982F02D0F31D7A2CDC /* b2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = b2.png; sourceTree = "<group>"; };
 		BE0BEEB1956F45527B59319B /* sharefile.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = sharefile.png; sourceTree = "<group>"; };
-		C0DF32F9F85FC56862BA973A /* MediaPlayerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPlayerSheet.swift; sourceTree = "<group>"; };
 		C1A6BCC513DEF5D8A450FC0B /* DuplicateDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuplicateDetectorTests.swift; sourceTree = "<group>"; };
 		C39052C9D36832AD867377D5 /* imagekit.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = imagekit.png; sourceTree = "<group>"; };
 		C45B2EF82642F29E5F7159A8 /* seafile.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = seafile.png; sourceTree = "<group>"; };
@@ -476,7 +474,6 @@
 				6A388AAB43F3E2C01CDEAF23 /* FinderUploadSheet.swift */,
 				7C17292A13239D0E9FC11E27 /* HashCompareSheet.swift */,
 				FE94DFF88C4A3C2100E5E0FA /* LockScreenView.swift */,
-				C0DF32F9F85FC56862BA973A /* MediaPlayerSheet.swift */,
 				3EA740BCD6F8AD3810DEEA88 /* MenuBarView.swift */,
 				3367A1B528B7C25267CA61E4 /* MountView.swift */,
 				B5FBB2AFC29F900A57EABD79 /* NewFolderSheet.swift */,
@@ -850,7 +847,6 @@
 				C706CB7F75EC151B17E37F45 /* HashCompareSheet.swift in Sources */,
 				40D08091F09CE22B1ECC0FD3 /* L10n.swift in Sources */,
 				3A422DE5C87248AC604C7DB2 /* LockScreenView.swift in Sources */,
-				079E791883E64C1DBDCA57B1 /* MediaPlayerSheet.swift in Sources */,
 				25B731ED42E255F1E03CE89F /* MenuBarView.swift in Sources */,
 				C459DD6871CEA692FAB4DBE4 /* MountView.swift in Sources */,
 				AC944D099EDFC62D21457718 /* MountViewModel.swift in Sources */,
@@ -1082,7 +1078,7 @@
 					"$(PROJECT_DIR)/Resources/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.5.1;
+				MARKETING_VERSION = 1.5.2;
 				OTHER_LDFLAGS = (
 					"-lrclone",
 				);
@@ -1107,7 +1103,7 @@
 					"$(PROJECT_DIR)/Resources/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.5.1;
+				MARKETING_VERSION = 1.5.2;
 				OTHER_LDFLAGS = (
 					"-lrclone",
 				);
