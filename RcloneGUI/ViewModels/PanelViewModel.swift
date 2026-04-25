@@ -561,6 +561,38 @@ final class PanelViewModel {
         tab.selectedFiles = [newName]
     }
 
+    /// 여러 항목 일괄 이름변경. 중간 실패 시에도 나머지를 계속 진행하고
+    /// 끝나면 한 번만 refresh. 성공한 항목은 선택 상태로 남기고, 실패는 (old, message)로 반환.
+    func renameMany(
+        side panelSide: PanelSide,
+        pairs: [(old: String, new: String)]
+    ) async -> [(old: String, error: String)] {
+        let tab = side(panelSide).activeTab
+        var succeeded: [String] = []
+        var failed: [(String, String)] = []
+
+        for pair in pairs where pair.old != pair.new {
+            let oldPath = tab.path.isEmpty ? pair.old : "\(tab.path)/\(pair.old)"
+            let newPath = tab.path.isEmpty ? pair.new : "\(tab.path)/\(pair.new)"
+            do {
+                try await RcloneAPI.moveFile(
+                    using: client,
+                    srcFs: tab.remote, srcRemote: oldPath,
+                    dstFs: tab.remote, dstRemote: newPath
+                )
+                succeeded.append(pair.new)
+            } catch {
+                failed.append((pair.old, error.localizedDescription))
+            }
+        }
+
+        await refresh(side: panelSide)
+        if !succeeded.isEmpty {
+            tab.selectedFiles = Set(succeeded)
+        }
+        return failed
+    }
+
     // MARK: - Clipboard Operations
 
     func paste(side panelSide: PanelSide, clipboard: ClipboardState) async throws {
