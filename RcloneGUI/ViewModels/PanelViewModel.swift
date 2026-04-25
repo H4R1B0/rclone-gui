@@ -636,8 +636,12 @@ final class PanelViewModel {
         let c = self.client
         let tvm = self.transferVM
 
+        // 같은 (fs, path)에서 자기 자신으로 드롭하는 항목 차단 — rclone self-copy 오류·덮어쓰기 방지
+        let validFiles = files.filter { !($0.sourceFs == dstFs && $0.sourcePath == dstPath) }
+        guard !validFiles.isEmpty else { return }
+
         // Enqueue all files first
-        for file in files {
+        for file in validFiles {
             tvm?.enqueue(QueuedTransfer(name: file.fileName, isDir: file.isDir))
             if file.isDir {
                 let srcRemote = file.sourcePath.isEmpty ? file.fileName : "\(file.sourcePath)/\(file.fileName)"
@@ -649,7 +653,7 @@ final class PanelViewModel {
         let mts = self.multiThreadStreams
         await withTaskGroup(of: Void.self) { group in
             var running = 0
-            for file in files {
+            for file in validFiles {
                 if running >= maxConcurrent {
                     await group.next()
                     running -= 1
