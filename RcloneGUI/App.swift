@@ -19,7 +19,6 @@ extension Notification.Name {
     static let requestForward = Notification.Name("requestForward")
     static let requestToggleHidden = Notification.Name("requestToggleHidden")
     static let requestQuickFilter = Notification.Name("requestQuickFilter")
-    static let requestBookmarkJump = Notification.Name("requestBookmarkJump")
 }
 
 @main
@@ -140,16 +139,6 @@ struct RcloneGUIApp: App {
                 .keyboardShortcut("a", modifiers: .command)
             }
 
-            CommandMenu("Bookmarks") {
-                ForEach(0..<9) { i in
-                    Button("Jump to Bookmark \(i + 1)") {
-                        NotificationCenter.default.post(name: .requestBookmarkJump,
-                                                        object: nil,
-                                                        userInfo: ["index": i])
-                    }
-                    .keyboardShortcut(KeyEquivalent(Character("\(i + 1)")), modifiers: .command)
-                }
-            }
         }
 
         MenuBarExtra {

@@ -121,15 +121,6 @@ struct FilePane: View {
             showQuickFilter = true
             quickFilterFocused = true
         }
-        .onReceive(NotificationCenter.default.publisher(for: .requestBookmarkJump)) { notif in
-            guard appState.panels.activePanel == side else { return }
-            guard let index = notif.userInfo?["index"] as? Int else { return }
-            let bookmarks = appState.bookmarks.bookmarks
-            guard index < bookmarks.count else { return }
-            let bm = bookmarks[index]
-            Task { await appState.panels.navigateTo(side: side, remote: bm.fs, path: bm.path) }
-            NotificationCenter.default.post(name: .requestExplorer, object: nil)
-        }
         .simultaneousGesture(TapGesture().onEnded { appState.panels.activePanel = side })
     }
 
